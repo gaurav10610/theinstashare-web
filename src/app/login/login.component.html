@@ -1,0 +1,30 @@
+<div class="container-fluid h-100 container-base">
+  <!-- Connection lost snackbar -->
+  <div id="snackbar"
+    class="{{stopNotification || signalingService.signalingRouter.connected ? 'top-snackbar' : 'top-snackbar snackbar-show'}}">
+    <p>Connection lost from server...</p>
+  </div>
+  <div style="text-align:center;margin-top: 15px;color:#217093">
+    <img src="{{assetsPath + 'images/icons/app-icon.png'}}" class="desktop-icon mobile-icon" alt="" />
+    <p>Peer to Peer Media Streaming Service</p>
+  </div>
+
+  <form autocomplete="off" (submit)="formSubmit()">
+    <div id="username_div" class="inputGroup inputGroup1">
+      <p #error id="error" [ngClass]="{'error':true, 'hidden-class': flaggedErrorText === undefined}"
+        style="margin-bottom: 10px">* {{flaggedErrorText}}</p>
+      <label id="username_label" for="username">
+        <p>Choose a username to start with:</p>
+      </label>
+      <input #username id="username" name="username" type="text" maxlength="256" required />
+    </div>
+    <div id="start_div">
+      <div id="start_btn_div" class="inputGroup inputGroup3">
+        <button id="register" type="button" (click)="register()">
+          <i *ngIf="connecting" class="fas fa-spinner fa-spin"></i>
+          <p *ngIf="!connecting">Start :)</p>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>

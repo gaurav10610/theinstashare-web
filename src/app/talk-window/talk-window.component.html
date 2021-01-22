@@ -1,0 +1,383 @@
+<div id="container" class="container-fluid h-100 container-base">
+  <div id="cover_spin" *ngIf="showLoader" class="cover-spin"></div>
+  <!-- Connection lost snackbar -->
+  <div id="snackbar" [ngClass]="{'top-snackbar':true,'snackbar-show':!signalingService.signalingRouter.connected}">
+    <p>connection lost from server</p>
+  </div>
+  <div id="error_snackbar"
+    [ngClass]="{'top-snackbar':true,'snackbar-show':talkWindowContextService.errors.length !== 0}">
+    <p *ngFor="let error of talkWindowContextService.errors">{{error}}</p>
+  </div>
+  <div id="frame" class="frame">
+
+    <!-- Draggable DIV -->
+    <div id="draggable_div" class="draggable-div"
+      *ngIf="talkWindowContextService.bindingFlags.isAccessingRemote && talkWindowContextService.bindingFlags.isFullScreenMode"
+      (click)="handleRemoteAccess('stop')">
+      <!-- Include a header DIV with the same name as the draggable DIV, followed by "header" -->
+      <div id="draggable_header" class="draggable-div-header crimson-color">End Remote Access</div>>
+    </div>
+
+    <div id="sidepanel"
+      [ngClass]="{'hidden-class':talkWindowContextService.bindingFlags.isFullScreenMode || !talkWindowContextService.bindingFlags.showSidepanel,
+      'h-100 show-class':!talkWindowContextService.bindingFlags.isFullScreenMode && talkWindowContextService.bindingFlags.showSidepanel}">
+      <div id="profile">
+        <div class="center-header">
+          <p class="font-weight-bold">
+            <span>Logged in as: {{userContextService.username}}</span>
+            <span style="float : right; margin-right: 20px;" (click)="logout()" class="pointer-cursor">
+              <i id="logout-icon" class="fas fa-power-off" aria-hidden="true"></i>
+            </span>
+          </p>
+        </div>
+      </div>
+      <div id="search_users" class="search-contacts">
+        <!-- <input type="text" class="form-control" placeholder="this is disabled for time being" disabled> -->
+        <p><span>Online Users</span></p>
+      </div>
+      <div id="contacts" class="contacts no-scroll">
+        <div id="no_one_online" class="search-contacts" *ngIf="talkWindowContextService.activeUsers.length === 0">
+          <p class="font-weight-bold"><span>Nobody is Online!!</span></p>
+        </div>
+        <ul id="contacts-ul">
+          <li id="{{user}}_contact" [ngClass]="{'list-group-item d-flex justify-content-between align-items-center contact-list pointer-cursor':true, 
+            'active':user === userContextService.userToChat}" *ngFor="let user of talkWindowContextService.activeUsers"
+            (click)="startTextChat(user)">
+            <i id="{{user}}_status_icon"
+              class="{{talkWindowContextService.getUserStatus(user) ? 'fas fa-user-alt fa-lg':'fas fa-user-alt-slash fa-lg'}}"
+              aria-hidden="true"></i>
+            <p>{{user}}</p>
+            <span id="{{user}}_badge" [ngClass]="{'badge badge-primary badge-pill':true,
+             'invisible':userContextService.getUserWebrtcContext(user) === null 
+             || userContextService.getUserWebrtcContext(user).unreadCount === 0}">
+              {{userContextService.getUserWebrtcContext(user) === null ? '' : userContextService.getUserWebrtcContext(user).unreadCount}}
+            </span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div #chat_div id="chat_div" [ngClass]="{'full-height-width':talkWindowContextService.bindingFlags.isFullScreenMode,
+      'content content-desktop': !talkWindowContextService.bindingFlags.isFullScreenMode,
+      'hidden-class': !talkWindowContextService.bindingFlags.showChatWindow}">
+      <div id="contact_profile_header"
+        [ngClass]="{'contact-profile': true,
+        'hidden-class':(userContextService.isMobile && talkWindowContextService.bindingFlags.haveRemoteVideoStream 
+        && !talkWindowContextService.bindingFlags.minimizeVideo) || talkWindowContextService.bindingFlags.isFullScreenMode}">
+        <div class="side-div"><i
+            class="{{talkWindowContextService.getUserStatus(userContextService.userToChat) ? 'fas fa-user-alt':'fas fa-user-alt-slash'}}"
+            aria-hidden="true"></i></div>
+        <div class="side-div" style="padding:4px;">
+          <p>{{userContextService.userToChat}}</p>
+        </div>
+        <div class="side-div social-media">
+          <div class="img-column pointer-cursor" *ngIf="userContextService.isMobile" (click)="backToContacts()">
+            <i id="back-icon" class="fas fa-arrow-circle-left" aria-hidden="true"></i>
+          </div>
+          <div *ngIf="!userContextService.isMobile && talkWindowContextService.bindingFlags.haveRemoteVideoStream 
+            && !talkWindowContextService.bindingFlags.minimizeVideo"
+            class="img-column pointer-cursor circle-icon deepskyblue-color" (click)="resizeRemoteVideo(true)">
+            <i id="profile_video_min-icon" class="fas fa-envelope" aria-hidden="true"></i>
+          </div>
+          <div
+            [ngClass]="{'img-column pointer-cursor circle-icon':true, 'grey-color':talkWindowContextService.bindingFlags.isDndOn}"
+            *ngIf="!userContextService.isMobile" (click)="handleDnd()">
+            <i id="profile_dnd-icon" class="fas fa-bell-slash" aria-hidden="true"></i>
+          </div>
+          <div
+            [ngClass]="{'img-column pointer-cursor circle-icon':true, 'grey-color':talkWindowContextService.bindingFlags.isOnMute}"
+            *ngIf="!userContextService.isMobile && talkWindowContextService.bindingFlags.isAudioCalling"
+            (click)="handleMute()">
+            <i id="profile_mute-icon" class="fas fa-microphone-alt-slash" aria-hidden="true"></i>
+          </div>
+          <div [ngClass]="{'img-column pointer-cursor circle-icon':true, 
+            'crimson-color':talkWindowContextService.bindingFlags.isScreenSharing, 
+            'sgreen-color':!talkWindowContextService.bindingFlags.isScreenSharing}" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
+            || (!userContextService.isMobile && !talkWindowContextService.bindingFlags.isVideoCalling)"
+            (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isScreenSharing ? 'stop-screen' : 'screen')">
+            <i id="profile_screen-icon" class="fas fa-desktop" aria-hidden="true"></i>
+          </div>
+
+          <!-- remote access icon -->
+          <div [ngClass]="{'img-column pointer-cursor circle-icon':true, 
+          'crimson-color':talkWindowContextService.bindingFlags.isAccessingRemote, 
+          'sgreen-color':!talkWindowContextService.bindingFlags.isAccessingRemote}"
+            *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
+          && talkWindowContextService.bindingFlags.haveRemoteVideoStream && talkWindowContextService.remoteAccessContext['canAccessRemote']"
+            (click)="handleRemoteAccess(talkWindowContextService.bindingFlags.isAccessingRemote ? 'stop' : 'start')">
+            <i id="profile_remote_access-icon" class="fas fa-mouse" aria-hidden="true"></i>
+          </div>
+
+          <div [ngClass]="{'img-column pointer-cursor circle-icon':true, 
+            'crimson-color':talkWindowContextService.bindingFlags.isSoundSharing, 
+            'sgreen-color':!talkWindowContextService.bindingFlags.isSoundSharing}" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing && 
+            (userContextService.isNativeApp || talkWindowContextService.bindingFlags.isSoundSharing)"
+            (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isSoundSharing ? 'stop-sound' : 'sound')">
+            <i id="profile_sound-icon" class="fas fa-play-circle" aria-hidden="true"></i>
+          </div>
+          <div class="img-column pointer-cursor circle-icon"
+            *ngIf="!userContextService.isMobile && talkWindowContextService.bindingFlags.haveRemoteVideoStream"
+            (click)="handleVideoFullScreen(true)">
+            <i id="profile_fullscreen-icon" class="fas fa-compress" aria-hidden="true"></i>
+          </div>
+          <div [ngClass]="{'img-column pointer-cursor circle-icon':true,
+            'crimson-color':talkWindowContextService.bindingFlags.isVideoCalling,
+            'cyan-color':!talkWindowContextService.bindingFlags.isVideoCalling}"
+            *ngIf="!userContextService.isMobile && !talkWindowContextService.bindingFlags.isScreenSharing"
+            (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isVideoCalling ? 'stop-video' :'video')">
+            <i id="profile_video-icon"
+              class="{{talkWindowContextService.bindingFlags.isVideoCalling ? 'fas fa-video-slash':'fas fa-video'}}"
+              aria-hidden="true"></i>
+          </div>
+          <div [ngClass]="{'img-column pointer-cursor circle-icon':true,
+           'crimson-color':talkWindowContextService.bindingFlags.isAudioCalling,
+           'mgreen-color':!talkWindowContextService.bindingFlags.isAudioCalling}" *ngIf="!userContextService.isMobile"
+            (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isAudioCalling ? 'stop-audio' :'audio')">
+            <i id="profile_audio-icon"
+              class="{{talkWindowContextService.bindingFlags.isAudioCalling ? 'fas fa-phone-slash':'fas fa-phone'}}"
+              aria-hidden="true"></i>
+          </div>
+          <div class="img-column pointer-cursor" *ngIf="userContextService.isMobile" (click)="setIconsPopup()">
+            <i class="fas fa-ellipsis-v" aria-hidden="true"></i>
+          </div>
+        </div>
+      </div>
+      <div #remote_video_div id="remote_video_div"
+        [ngClass]="{'show-class':talkWindowContextService.bindingFlags.haveRemoteVideoStream,
+        'full-height-width':talkWindowContextService.bindingFlags.haveRemoteVideoStream && talkWindowContextService.bindingFlags.isFullScreenMode,
+        'hidden-class':!talkWindowContextService.bindingFlags.haveRemoteVideoStream,
+        'local-video':talkWindowContextService.bindingFlags.minimizeVideo,
+        'video-div': talkWindowContextService.bindingFlags.haveRemoteVideoStream && !talkWindowContextService.bindingFlags.minimizeVideo}">
+
+        <video #remoteVideo id="remoteVideo" [ngClass]="{'video-tag show-class':talkWindowContextService.bindingFlags.haveRemoteVideoStream,
+         'hidden-class':!talkWindowContextService.bindingFlags.haveRemoteVideoStream,
+         'scale-video':!talkWindowContextService.bindingFlags.isScreenSharing}" autoplay>
+        </video>
+
+        <!-- this is blank canvas used for remote access -->
+        <canvas #remote_video_canvas id="remote_video_canvas" [ngClass]="{'remote-video-canvas':true, 
+          'hidden-class':!talkWindowContextService.bindingFlags.isScreenSharing 
+          || !talkWindowContextService.bindingFlags.haveRemoteVideoStream 
+          || !talkWindowContextService.bindingFlags.isAccessingRemote}" tabindex="0">
+        </canvas>
+
+      </div>
+      <div id="local_video_div" [ngClass]="{'local-video':talkWindowContextService.bindingFlags.haveLocalVideoStream  
+        && !talkWindowContextService.bindingFlags.minimizeVideo,
+        'mobile-local-video':talkWindowContextService.bindingFlags.isFullScreenMode || userContextService.isMobile,
+        'hidden-class': !talkWindowContextService.bindingFlags.haveLocalVideoStream 
+        || talkWindowContextService.bindingFlags.minimizeVideo 
+        || talkWindowContextService.bindingFlags.isScreenSharing}">
+        <video #localVideo id="localVideo" class="local-video mobile-local-video show-class" autoplay></video>
+      </div>
+
+      <div #msg_history id="msg_history" [ngClass]="{'messages':true,
+      'hidden-class':talkWindowContextService.bindingFlags.haveRemoteVideoStream 
+        && !talkWindowContextService.bindingFlags.minimizeVideo}">
+        <div #message_history id="message_history" class="message-history-div">
+          <ul *ngIf="talkWindowContextService.hasMessageContext(userContextService.userToChat)" id="message-list">
+            <li id="messages"
+              *ngFor="let message of talkWindowContextService.getMessageContext(userContextService.userToChat)"
+              class="{{message.sent ? 'replies': 'sent'}}">
+
+              <!-- message and icon div -->
+              <div id="message_n_icon" class="message-n-icon">
+
+                <i class="fas fa-user-alt" aria-hidden="true"></i>
+                <p *ngIf="message.type === 'data'">{{message.message}}</p>
+
+                <!-- file type messages block -->
+                <div *ngIf="message.type === 'file'">
+                  <div id="progress_bar" *ngIf="talkWindowContextService.sharedContent[message.contentId] === undefined"
+                    class="message-media">
+                    <div class="progress">
+                      <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                        aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 75%"></div>
+                    </div>
+                    <!-- <span>receiving file....</span> -->
+                  </div>
+                  <img id="media_{{message.contentId}}" class="message-media"
+                    *ngIf="message.contentType === 'image' && talkWindowContextService.sharedContent[message.contentId] !== undefined"
+                    src="{{talkWindowContextService.sharedContent[message.contentId]}}"
+                    (click)="openMediaViewer(message.contentType,message.contentId)">
+                  <video id="media_{{message.contentId}}" class="message-media"
+                    *ngIf="message.contentType === 'video'&& talkWindowContextService.sharedContent[message.contentId] !== undefined"
+                    src="{{talkWindowContextService.sharedContent[message.contentId]}}"
+                    (click)="openMediaViewer(message.contentType,message.contentId)"></video>
+                  <audio id="media_{{message.contentId}}" class="message-media"
+                    *ngIf="message.contentType === 'audio'&& talkWindowContextService.sharedContent[message.contentId] !== undefined"
+                    src="{{talkWindowContextService.sharedContent[message.contentId]}}" controls></audio>
+                  <i *ngIf="!message.sent && talkWindowContextService.sharedContent[message.contentId] !== undefined"
+                    class="fas fa-download fa-2x pointer-cursor" aria-hidden="true"
+                    (click)="downloadFile(message.contentId,message.fileName,$event)"></i>
+                </div>
+
+              </div>
+
+              <!-- message status and time -->
+              <div id="message_status" *ngIf="message.sent" class="right-float" style="margin: 3px 15px 15px 0;">
+                <p class="right-float" style="font-size: small;font-style: italic;" *ngIf="message.status">
+                  {{message.status}}</p><br>
+                <p class="right-float" style="font-size: small;" *ngIf="message.time">
+                  {{message.time}}</p>
+              </div>
+
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div id="type_msg" [ngClass]="{'message-input':true,'hidden-class':talkWindowContextService.bindingFlags.haveRemoteVideoStream 
+        && !talkWindowContextService.bindingFlags.minimizeVideo}">
+        <div class="wrap">
+          <input #text_msg id="text_msg" type="text" autocomplete="off" placeholder="write your message..."
+            (keyup)="sendTextMessage($event)" />
+          <i class="fa fa-paperclip attachment" aria-hidden="true" (click)="openFileDialog()"></i>
+          <input id="file_input" type="file" style="display:none" (change)="startSharingFile($event)" multiple />
+          <button class="submit" (click)="sendTextMessage()">
+            <i id="btn_msg" class="fa fa-paper-plane" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+      <audio #remoteAudio id="remoteAudio" style="display:none" autoplay></audio>
+      <audio #remoteSound id="remoteSound" style="display:none" autoplay></audio>
+      <audio id="callerTune" style="display:none" muted src="{{assetsPath + 'media/tune.mp3'}}" loop></audio>
+      <audio id="messageTune" style="display:none" muted src="{{assetsPath + 'media/message.mp3'}}"></audio>
+    </div>
+  </div>
+</div>
+
+<!-- Media Viewer Modal Popup -->
+<div id="media_viewer" [ngClass]="{'modal media-viewer-modal':true,
+ 'show-class':talkWindowContextService.mediaViewerContext['contentId'] !== undefined,
+ 'hidden-class':talkWindowContextService.mediaViewerContext['contentId'] === undefined}"
+  (click)="closeMediaViewer($event)">
+  <div id="media_viewer_content" class="modal-content media-viewer-content" (click)="closeMediaViewer($event)">
+    <img id="viewer_image" class="message-media"
+      *ngIf="talkWindowContextService.mediaViewerContext['contentType'] === 'image'"
+      src="{{talkWindowContextService.sharedContent[talkWindowContextService.mediaViewerContext['contentId']]}}"
+      (click)="closeMediaViewer($event)">
+    <video id="viewer_video" class="message-media"
+      *ngIf="talkWindowContextService.mediaViewerContext['contentType'] === 'video'"
+      src="{{talkWindowContextService.sharedContent[talkWindowContextService.mediaViewerContext['contentId']]}}"
+      controls (click)="closeMediaViewer($event)"></video>
+  </div>
+</div>
+
+<!-- Modal Popup for displaying informational info or various requests -->
+<div id="myModal" class="{{(talkWindowContextService.popupContext.size === 0) ? 'hidden-class': 'modal show-class'}}">
+  <div id="myModalContent" class="modal-content"
+    *ngFor="let context of talkWindowContextService.popupContext| keyvalue">
+    <p id="modal-text" class="font-weight-bold" style="text-align:center; margin-bottom: 20px">
+      {{context.value.modalText}}</p>
+    <div style="text-align:center;">
+      <i *ngIf="context.value.type.includes('connecting')" class="fas fa-spinner fa-spin fa-2x"></i><br>
+      <div class="call-buttons">
+
+        <div id="disconnect" *ngIf="context.value.disconnect"
+          class="pointer-cursor circle-icon crimson-color modal-button"
+          (click)="closeCall('disconnect', context.value.channel)">
+          <i *ngIf="context.value.channel === 'video'" class="fas fa-video-slash"></i>
+          <i *ngIf="context.value.channel === 'audio'" class="fas fa-phone-slash"></i>
+          <i *ngIf="context.value.channel === 'screen'" class="fas fa-desktop"></i>
+          <i *ngIf="context.value.channel === 'sound'" class="fas fa-play-circle"></i>
+          <i *ngIf="context.value.channel === 'remoteControl'" class="fas fa-mouse"></i>
+        </div>
+
+        <div id="accept" *ngIf="context.value.accept" class="pointer-cursor circle-icon mgreen-color modal-button"
+          (click)="acceptCall(context.value.channel)">
+          <i *ngIf="context.value.channel === 'video'" class="fas fa-video"></i>
+          <i *ngIf="context.value.channel === 'audio'" class="fas fa-phone"></i>
+          <i *ngIf="context.value.channel === 'screen'" class="fas fa-desktop"></i>
+          <i *ngIf="context.value.channel === 'sound'" class="fas fa-play-circle"></i>
+          <i *ngIf="context.value.channel === 'remoteControl'" class="fas fa-mouse"></i>
+        </div>
+
+        <div id="decline" *ngIf="context.value.decline" class="pointer-cursor circle-icon crimson-color modal-button"
+          (click)="closeCall('decline', context.value.channel)">
+          <i *ngIf="context.value.channel === 'video'" class="fas fa-video-slash"></i>
+          <i *ngIf="context.value.channel === 'audio'" class="fas fa-phone-slash"></i>
+          <i *ngIf="context.value.channel === 'screen'" class="fas fa-desktop"></i>
+          <i *ngIf="context.value.channel === 'sound'" class="fas fa-play-circle"></i>
+          <i *ngIf="context.value.channel === 'remoteControl'" class="fas fa-mouse"></i>
+        </div>
+
+        <button id="close" *ngIf="context.value.close" class="btn btn-dark btn-sm modal-button"
+          (click)="closeCall('close', context.value.channel)">close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="icons_modal" [ngStyle]="{'display':talkWindowContextService.bindingFlags.showIconsPopup ? 'block':'none'}"
+  class="modal" (click)="onFrameClick($event)">
+  <div class="modal-content">
+    <div style="text-align:center;">
+      <div *ngIf="userContextService.isMobile && talkWindowContextService.bindingFlags.haveRemoteVideoStream 
+        && !talkWindowContextService.bindingFlags.minimizeVideo"
+        class="side-div pointer-cursor circle-icon deepskyblue-color" (click)="resizeRemoteVideo(true)">
+        <i id="video_min-icon" class="fas fa-envelope" aria-hidden="true"></i>
+      </div>
+      <div [ngClass]="{'side-div pointer-cursor circle-icon':true,
+       'grey-color':talkWindowContextService.bindingFlags.isDndOn}" (click)="handleDnd()">
+        <i id="mobile_dnd-icon" class="fas fa-bell-slash" aria-hidden="true"></i>
+      </div>
+      <div [ngClass]="{'side-div pointer-cursor circle-icon':true,
+       'grey-color':talkWindowContextService.bindingFlags.isOnMute}"
+        *ngIf="talkWindowContextService.bindingFlags.isAudioCalling" (click)="handleMute()">
+        <i id="mobile_mute-icon" class="fas fa-microphone-alt-slash" aria-hidden="true"></i>
+      </div>
+      <div [ngClass]="{'side-div pointer-cursor circle-icon':true,
+        'crimson-color':talkWindowContextService.bindingFlags.isScreenSharing,
+        'sgreen-color':!talkWindowContextService.bindingFlags.isScreenSharing}" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
+        || (userContextService.isNativeApp && !talkWindowContextService.bindingFlags.isVideoCalling)"
+        (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isScreenSharing ? 'stop-screen' : 'screen')">
+        <i id="mobile_screen-icon" class="fas fa-desktop" aria-hidden="true"></i>
+      </div>
+
+      <!-- remote access icon -->
+      <div [ngClass]="{'side-div pointer-cursor circle-icon':true, 
+          'crimson-color':talkWindowContextService.bindingFlags.isAccessingRemote, 
+          'sgreen-color':!talkWindowContextService.bindingFlags.isAccessingRemote}"
+        *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
+          && talkWindowContextService.bindingFlags.haveRemoteVideoStream && talkWindowContextService.remoteAccessContext['canAccessRemote']"
+        (click)="handleRemoteAccess(talkWindowContextService.bindingFlags.isAccessingRemote ? 'stop' : 'start')">
+        <i id="profile_remote_access-icon" class="fas fa-mouse" aria-hidden="true"></i>
+      </div>
+
+      <div [ngClass]="{'side-div pointer-cursor circle-icon':true,
+        'crimson-color':talkWindowContextService.bindingFlags.isSoundSharing,
+        'sgreen-color':!talkWindowContextService.bindingFlags.isSoundSharing}" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
+        && (userContextService.isNativeApp || talkWindowContextService.bindingFlags.isSoundSharing)"
+        (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isSoundSharing ? 'stop-sound' : 'sound')">
+        <i id="mobile_sound-icon" class="fas fa-play-circle" aria-hidden="true"></i>
+      </div>
+      <div [ngClass]="{'side-div pointer-cursor circle-icon':true,
+        'crimson-color':talkWindowContextService.bindingFlags.isVideoCalling,
+        'cyan-color':!talkWindowContextService.bindingFlags.isVideoCalling}"
+        *ngIf="!talkWindowContextService.bindingFlags.isScreenSharing"
+        (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isVideoCalling ? 'stop-video' :'video')">
+        <i id="mobile_video-icon"
+          class="{{talkWindowContextService.bindingFlags.isVideoSharing ? 'fas fa-video-slash':'fas fa-video'}}"
+          aria-hidden="true"></i>
+      </div>
+      <div [ngClass]="{'side-div pointer-cursor circle-icon':true,
+        'crimson-color':talkWindowContextService.bindingFlags.isAudioCalling,
+        'mgreen-color':!talkWindowContextService.bindingFlags.isAudioCalling}"
+        (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isAudioCalling ? 'stop-audio' :'audio')">
+        <i id="mobile_audio-icon"
+          class="{{talkWindowContextService.bindingFlags.isAudioCalling ? 'fas fa-phone-slash':'fas fa-phone'}}"
+          aria-hidden="true"></i>
+      </div>
+      <div class="side-div pointer-cursor circle-icon"
+        *ngIf="!userContextService.isMobile && talkWindowContextService.bindingFlags.haveRemoteVideoStream"
+        (click)="handleVideoFullScreen(false)">
+        <i id="fullscreen-icon" class="fas fa-compress" aria-hidden="true"></i>
+      </div>
+      <div class="side-div pointer-cursor circle-icon"
+        *ngIf="userContextService.isMobile && talkWindowContextService.bindingFlags.isVideoCalling"
+        (click)="handleCameraFlip()">
+        <i id="mobile_flip-icon" class="fas fa-camera" aria-hidden="true"></i>
+      </div>
+    </div>
+  </div>
+</div>
