@@ -72,8 +72,10 @@ export class AppConstants {
 
   public static FILE = 'file';
 
+  //file start event identifier
   public static FILE_START = 'file-start';
 
+  //file end event identifier
   public static FILE_END = 'file-end';
 
   // VIDEO channel constant
