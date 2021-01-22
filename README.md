@@ -18,7 +18,7 @@ Currently, it supports the following features -
 NOTE - For sharing remote access of your machine use desktop version of TheInstashare app.
 
 ```
-https://bitbucket.org/ironman0693/instashare-desktop/src/master/
+https://github.com/gaurav10610/theinstashare-desktop
 ```
 
 ### Minor Features - 
@@ -34,6 +34,12 @@ https://bitbucket.org/ironman0693/instashare-desktop/src/master/
 - All the newly created webrtc connections will get closed as soon as user choose to stop media streaming.
 - Text messages exchange, file transfer and streaming of remote access events(relaying of mouse and keyboard events) is powered by webrtc data channels.
 - Idle webrtc datachannels will automatically get cleaned up along with webrtc connections by a recurring job if there is no exchange of information via datachannel from certain configured time.
+
+### Steps to build the app -
+``` 
+npm install
+ng build --prod 
+```
 
 ### Screenshots -
 
