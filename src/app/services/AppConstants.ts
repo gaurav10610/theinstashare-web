@@ -137,10 +137,13 @@ export class AppConstants {
 
   //This will contains the max bitrates for webrtc connections
   public static MEDIA_BITRATES = {
-    VIDEO: 2000,
+    VIDEO: 1000,
     SCREEN: 3000,
     FILE: 100000,
-    DATA: 1000
+    DATA: 1000,
+    REMOTE_CONTROL: 3000,
+    AUDIO: 500,
+    SOUND: 1000
   };
 
   public static VIDEO_CONSTRAINTS = {

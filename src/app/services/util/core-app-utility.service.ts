@@ -207,4 +207,56 @@ export class CoreAppUtilityService {
   getNestedValue(object: any, ...levels: any) {
     return levels.reduce((object: any, level: any) => object && object[level], object);
   }
+
+  /**
+   * this will return the media type for sdp modification so that app can apply 
+   * max bitrate limit for a webrtc connection
+   *  
+   * @param channel: media type audio/video/text 
+   * 
+   */
+  getMediaTypeForSdpModification(channel: string) {
+    if (channel === AppConstants.VIDEO || channel === AppConstants.SCREEN) {
+      return AppConstants.VIDEO;
+    } else if (channel === AppConstants.FILE || channel === AppConstants.DATA
+      || channel === AppConstants.REMOTE_CONTROL) {
+      return AppConstants.APPLICATION;
+    } else if (channel === AppConstants.AUDIO || channel === AppConstants.SOUND) {
+      return AppConstants.AUDIO;
+    }
+  }
+
+  /**
+   * this will return the max bitrate to configure in the SDP
+   * 
+   * @param channel: media type audio/video/text 
+   * 
+   */
+  getMaxBitrateForSdpModification(channel) {
+    let bitrate = 500;
+    switch (channel) {
+      case AppConstants.VIDEO:
+        bitrate = AppConstants.MEDIA_BITRATES.VIDEO;
+        break;
+      case AppConstants.SCREEN:
+        bitrate = AppConstants.MEDIA_BITRATES.SCREEN;
+        break;
+      case AppConstants.AUDIO:
+        bitrate = AppConstants.MEDIA_BITRATES.AUDIO
+        break;
+      case AppConstants.SOUND:
+        bitrate = AppConstants.MEDIA_BITRATES.SOUND
+        break;
+      case AppConstants.FILE:
+        bitrate = AppConstants.MEDIA_BITRATES.FILE;
+        break;
+      case AppConstants.REMOTE_CONTROL:
+        bitrate = AppConstants.MEDIA_BITRATES.REMOTE_CONTROL;
+        break;
+      case AppConstants.DATA:
+        bitrate = AppConstants.MEDIA_BITRATES.DATA;
+        break;
+    }
+    return bitrate;
+  }
 }

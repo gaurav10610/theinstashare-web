@@ -1,7 +1,7 @@
 ![](./src/assets/images/icons/app-icon.png)
 
 # theinstashare-web
-This is the web version of TheInstashare app which is a free peer to peer media streaming service built on top of WebRTC tech stack. Every feature is powered by the underlying peer to peer streaming capabilities provided by WebRTC stack. Product is still very much under active development.
+theinstashare-web is the web version of TheInstashare app which is a free peer to peer media streaming service built on top of WebRTC tech stack. Every feature is powered by the underlying peer to peer streaming capabilities provided by WebRTC stack. Product is still very much under active development. is the web version of TheInstashare app which is a free peer to peer media streaming service built on top of WebRTC tech stack. Every feature is powered by the underlying peer to peer streaming capabilities provided by WebRTC stack. Product is still very much under active development.
 
 ### Try web version at - https://theinstashare.com/
 

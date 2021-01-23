@@ -315,39 +315,16 @@ export class CoreWebrtcService {
     return new Promise((resolve, reject) => {
       peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
       peerConnection.createAnswer().then(async (newAnswer: any) => {
-        let answer: any = newAnswer;
-        let modifiedSdp: any;
 
         /**
-         * before setting local session description on webrtc peer connection app
+         * before setting local session description on webrtc peer connection, app
          * will modify the max bitrate that webrtc peer connection can use
          *
          */
-        switch (mediaChannel) {
-          case AppConstants.VIDEO:
-            modifiedSdp = await this.setMediaBitrate(answer.sdp, AppConstants.VIDEO,
-              AppConstants.MEDIA_BITRATES.SCREEN);
-            answer = new RTCSessionDescription({ type: 'answer', sdp: modifiedSdp });
-            break;
-
-          case AppConstants.SCREEN:
-            modifiedSdp = await this.setMediaBitrate(answer.sdp, AppConstants.VIDEO,
-              AppConstants.MEDIA_BITRATES.SCREEN);
-            answer = new RTCSessionDescription({ type: 'answer', sdp: modifiedSdp });
-            break;
-
-          case AppConstants.FILE:
-            modifiedSdp = await this.setMediaBitrate(answer.sdp, AppConstants.APPLICATION,
-              AppConstants.MEDIA_BITRATES.FILE);
-            answer = new RTCSessionDescription({ type: 'answer', sdp: modifiedSdp });
-            break;
-
-          case AppConstants.DATA:
-            modifiedSdp = await this.setMediaBitrate(answer.sdp, AppConstants.APPLICATION,
-              AppConstants.MEDIA_BITRATES.DATA);
-            answer = new RTCSessionDescription({ type: 'answer', sdp: modifiedSdp });
-            break;
-        }
+        const maxBitrate = this.coreAppUtilService.getMaxBitrateForSdpModification(mediaChannel);
+        const sdpMediaType = this.coreAppUtilService.getMediaTypeForSdpModification(mediaChannel);
+        const modifiedSdp: any = await this.setMediaBitrate(newAnswer.sdp, sdpMediaType, maxBitrate);
+        const answer: any = new RTCSessionDescription({ type: 'answer', sdp: modifiedSdp });;
 
         peerConnection.setLocalDescription(answer);
         resolve({
