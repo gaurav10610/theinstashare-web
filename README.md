@@ -66,6 +66,9 @@ ng build --prod
 
 ![](./markdown-images/text-screen.png)
 
+### Preview - 
+[![app preview](https://img.youtube.com/vi/zVNrG0JuXz4/0.jpg)](https://youtu.be/zVNrG0JuXz4)
+
 ### Author - 
 Gaurav Kumar Yadav
 
