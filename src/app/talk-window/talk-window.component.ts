@@ -13,6 +13,7 @@ import { CoreWebrtcService } from '../services/webrtc/core-webrtc.service';
 import { CoreAppUtilityService } from '../services/util/core-app-utility.service';
 import { TalkWindowContextService } from '../services/context/talk-window-context.service';
 import { MessageService } from '../services/message/message.service';
+import { CreateDataChannelType } from '../services/contracts/CreateDataChannelType';
 
 @Component({
   selector: 'app-talk-window',
@@ -37,6 +38,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   ) { }
 
   showLoader: boolean = false;
+
+  fileReader: any;
 
   //assets path
   assetsPath = environment.is_native_app ? 'assets/' : '../../assets/';
@@ -181,6 +184,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      */
     this.talkWindowContextService.remoteAccessContext['localOS'] = this.talkWindowUtilService.getOSType();
     LoggerUtil.log('local operating system: ' + this.talkWindowContextService.remoteAccessContext['localOS']);
+
+    this.fileReader = new FileReader();
   }
 
   ngAfterViewInit(): void {
@@ -293,6 +298,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
         case AppConstants.USER_ACTIVE_STATUS:
           this.talkWindowUtilService.updateUserStatus(signalingMessage.connected, signalingMessage.username);
+          break;
+
+        case AppConstants.WEBRTC_EVENT:
+          this.handleWebrtcEvent(signalingMessage);
           break;
 
         default:
@@ -414,34 +423,20 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         this.userContextService.initializeUserWebrtcContext(signalingMessage.from);
       }
 
-      //set reconnect flag to true
-      this.userContextService.getUserWebrtcContext(signalingMessage.from)[AppConstants.RECONNECT] = true;
-
-      /**
-       *
-       * check if this offer isn't for renegotiating the webrtc connection, then
-       * initialiaze an appropriate webrtc connection and set it in user's webrtc
-       * context
-       *
-       * check 'renegotiate' boolean flag in signaling message for above check
-       *
-       */
-      if (signalingMessage.renegotiate === undefined || signalingMessage.renegotiate === false) {
-        await this.coreWebrtcService.rtcConnectionInit(signalingMessage.channel, signalingMessage.from, false);
-      }
+      const initializedConnection = await this.coreWebrtcService.rtcConnectionInit(signalingMessage.channel, signalingMessage.from);
 
       // get the appropriate webrtc peer connection for further processing
-      const peerConnection = await this.coreAppUtilService.getAppropriatePeerConnection(signalingMessage.from,
-        signalingMessage.channel, false);
+      const peerConnection = this.userContextService.getUserWebrtcContext(signalingMessage.from)[AppConstants.CONNECTION];
 
       /**
-       * if this offer isn't for renegotiating the webrtc connection, then register
-       * all the webrtc event listners for the peer connection
+       * if there is no new connection initialized, then register webrtc event listeners
+       * 
        */
-      if (signalingMessage.renegotiate === undefined) {
-        await this.webrtcService.registerWebrtcEventListeners(peerConnection, signalingMessage.channel,
-          false, signalingMessage.from);
+      if (initializedConnection) {
+        await this.webrtcService.registerWebrtcEventListeners(peerConnection, signalingMessage.from);
       }
+
+      this.coreWebrtcService.mediaContextInit(signalingMessage.channel, signalingMessage.from);
 
       /**
        * handle the received webrtc offer 'sdp', set the remote description and
@@ -483,11 +478,11 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        */
       switch (signalingMessage.channel) {
         case AppConstants.SCREEN:
-          this.talkWindowContextService.updateBindingFlag('isScreenSharing', true, signalingMessage.channel, false);
+          this.talkWindowContextService.updateBindingFlag('isScreenSharing', true, signalingMessage.channel);
           break;
 
         case AppConstants.SOUND:
-          this.talkWindowContextService.updateBindingFlag('isSoundSharing', true, signalingMessage.channel, false);
+          this.talkWindowContextService.updateBindingFlag('isSoundSharing', true, signalingMessage.channel);
           break;
       }
     } catch (e) {
@@ -520,7 +515,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * webrtc context
        *
        */
-      await this.coreWebrtcService.rtcConnectionInit(signalingMessage.channel, signalingMessage.from, true);
+      await this.coreWebrtcService.rtcConnectionInit(signalingMessage.channel, signalingMessage.from);
 
       // get the appropriate webrtc peer connection for further processing
       const peerConnection = await this.coreAppUtilService.getAppropriatePeerConnection(signalingMessage.from, signalingMessage.channel, true);
@@ -528,7 +523,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       /**
        * register all the event listners on the webrtc peer connection
        */
-      await this.webrtcService.registerWebrtcEventListeners(peerConnection, signalingMessage.channel, true, signalingMessage.from);
+      await this.webrtcService.registerWebrtcEventListeners(peerConnection, signalingMessage.from);
 
       /**
        *
@@ -570,12 +565,12 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        */
       switch (signalingMessage.channel) {
         case AppConstants.SOUND:
-          this.talkWindowContextService.updateBindingFlag('isSoundSharing', true, signalingMessage.channel, true);
+          this.talkWindowContextService.updateBindingFlag('isSoundSharing', true, signalingMessage.channel);
           break;
 
         case AppConstants.SCREEN:
-          this.talkWindowContextService.updateBindingFlag('isScreenSharing', true, signalingMessage.channel, true);
-          this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', true, signalingMessage.channel, true);
+          this.talkWindowContextService.updateBindingFlag('isScreenSharing', true, signalingMessage.channel);
+          this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', true, signalingMessage.channel);
 
           /**
            * set local media stream in appropriate media tag on UI
@@ -585,11 +580,11 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           break;
 
         case AppConstants.AUDIO:
-          this.talkWindowContextService.updateBindingFlag('haveLocalAudioStream', true, signalingMessage.channel, true);
+          this.talkWindowContextService.updateBindingFlag('haveLocalAudioStream', true, signalingMessage.channel);
           break;
 
         case AppConstants.VIDEO:
-          this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', true, signalingMessage.channel, true);
+          this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', true, signalingMessage.channel);
           /**
            * set local media stream in appropriate media tag on UI
            *
@@ -600,7 +595,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       /**
        * set the local media stream in user's webrtc context
        */
-      userContext[AppConstants.CONNECTIONS][signalingMessage.channel][AppConstants.STREAM] = offerContainer.stream;
+      userContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.STREAM] = offerContainer.stream;
     } catch (e) {
       LoggerUtil.log(e);
     }
@@ -751,7 +746,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * will stop camera video streaming as well along with audio
        */
       case AppConstants.STOP_AUDIO:
-        const userConnnections = this.userContextService.getUserWebrtcContext(userToChat)[AppConstants.CONNECTIONS];
+        const userConnnections = this.userContextService.getUserWebrtcContext(userToChat)[AppConstants.MEDIA_CONTEXT];
         Object.keys(userConnnections).forEach((channel) => {
           if (channel === AppConstants.VIDEO || channel === AppConstants.AUDIO) {
 
@@ -856,13 +851,13 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * webrtc context
        *
        */
-      await this.coreWebrtcService.rtcConnectionInit(channel, userToChat, true);
-      const peerConnection = userContext[AppConstants.CONNECTIONS][channel][AppConstants.SENDER];
+      await this.coreWebrtcService.rtcConnectionInit(channel, userToChat);
+      const peerConnection = userContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.SENDER];
 
       /**
        * regiter all the event listners on the webrtc peer connection
        */
-      await this.webrtcService.registerWebrtcEventListeners(peerConnection, channel, true, userToChat);
+      await this.webrtcService.registerWebrtcEventListeners(peerConnection, userToChat);
 
       /**
        *
@@ -903,7 +898,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       /**
        * set local media stream in user's context
        */
-      userContext[AppConstants.CONNECTIONS][channel][AppConstants.STREAM] = offerContainer.stream;
+      userContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.STREAM] = offerContainer.stream;
 
       /**
        * set some values values in the media call context which will be used to
@@ -921,12 +916,12 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        */
       switch (channel) {
         case AppConstants.SOUND:
-          this.talkWindowContextService.updateBindingFlag('isSoundSharing', true, channel, true);
+          this.talkWindowContextService.updateBindingFlag('isSoundSharing', true, channel);
           break;
 
         case AppConstants.SCREEN:
-          this.talkWindowContextService.updateBindingFlag('isScreenSharing', true, channel, true);
-          this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', true, channel, true);
+          this.talkWindowContextService.updateBindingFlag('isScreenSharing', true, channel);
+          this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', true, channel);
 
           /**
            * set local media stream in appropriate media tag on UI
@@ -936,11 +931,11 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           break;
 
         case AppConstants.AUDIO:
-          this.talkWindowContextService.updateBindingFlag('haveLocalAudioStream', true, channel, true);
+          this.talkWindowContextService.updateBindingFlag('haveLocalAudioStream', true, channel);
           break;
 
         case AppConstants.VIDEO:
-          this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', true, channel, true);
+          this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', true, channel);
 
           /**
            * set local media stream in appropriate media tag on UI
@@ -1060,7 +1055,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         if (!this.userContextService.hasUserWebrtcContext(userToChat)) {
           this.userContextService.initializeUserWebrtcContext(userToChat);
         }
-        const userContext = this.userContextService.getUserWebrtcContext(userToChat);
+        const webrtcContext = this.userContextService.getUserWebrtcContext(userToChat);
 
         //generate a new message identifier
         const messageId: any = await this.coreAppUtilService.generateIdentifier();
@@ -1071,35 +1066,39 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           status: AppConstants.CHAT_MESSAGE_STATUS.SENT,
           message: textMessage,
           username: userToChat,
-          type: AppConstants.DATA,
+          type: AppConstants.TEXT,
           sent: true
         });
 
         //check if there is an open data channel exist
-        if (this.coreAppUtilService.isDataChannelOpen(userContext, AppConstants.DATA)) {
+        if (this.coreAppUtilService.isDataChannelConnected(webrtcContext, AppConstants.TEXT)) {
           // LoggerUtil.log('Found an open data channel already.');
 
           //send message on data channel
-          userContext[AppConstants.CONNECTIONS][AppConstants.DATA].dataChannel.send(JSON.stringify({
+          webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.TEXT].dataChannel.send(JSON.stringify({
             id: messageId,
             message: textMessage,
             username: this.userContextService.username,
-            type: AppConstants.DATA
+            type: AppConstants.TEXT
           }));
         } else {
 
-          LoggerUtil.log('data channel is not in open state for user: ' + userToChat);
+          LoggerUtil.log('text data channel is not in open state for user: ' + userToChat);
+
+          if (webrtcContext[AppConstants.MESSAGE_QUEUE] === undefined) {
+            this.userContextService.initializeMessageQueue(userToChat);
+          }
 
           // just queue the message and wait for data channel setup
-          userContext[AppConstants.MESSAGE_QUEUE].enqueue({
+          webrtcContext[AppConstants.MESSAGE_QUEUE].enqueue({
             id: messageId,
             message: textMessage,
             username: this.userContextService.username,
-            type: AppConstants.DATA
+            type: AppConstants.TEXT
           });
 
           // when datachannel request has already been raised, then just queue the messages
-          if (this.coreAppUtilService.isDataChannelConnecting(userContext, AppConstants.DATA)) {
+          if (this.coreAppUtilService.isDataChannelConnecting(webrtcContext, AppConstants.TEXT)) {
 
             /**
              * do nothing here as message has been queued and will be sent when
@@ -1110,20 +1109,18 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
              */
           } else {
 
+            const createDataChannelType: CreateDataChannelType = {
+              username: userToChat,
+              channel: AppConstants.TEXT
+            }
+
             //set up new data channel
-            const dataChannel: any = await this.webrtcService.setUpDataChannel(userToChat, AppConstants.DATA);
+            const dataChannel: any = await this.webrtcService.setUpDataChannel(createDataChannelType);
 
             // register datachannel onmessage listener
             dataChannel.onmessage = (msgEvent: any) => {
               this.webrtcService.onDataChannelMessage(msgEvent.data);
             };
-
-            // datachannel onopen listener
-            dataChannel.onopen = () => {
-              LoggerUtil.log(AppConstants.DATA + ' data channel has been opened');
-              userContext[AppConstants.CONNECTIONS][AppConstants.DATA].state = AppConstants.CHANNEL_STATUS.OPEN;
-              this.webrtcService.sendQueuedMessagesOnChannel(userToChat);
-            }; // Here ends onopen listener
           }
         }
       }
@@ -1152,15 +1149,16 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       if (!this.userContextService.hasUserWebrtcContext(userToChat)) {
         this.userContextService.initializeUserWebrtcContext(userToChat);
       }
-      const userContext = this.userContextService.getUserWebrtcContext(userToChat);
+      const webrtcContext = this.userContextService.getUserWebrtcContext(userToChat);
       let dataChannel: any;
-      if (!userContext[AppConstants.FILE_QUEUE]) {
+      if (!webrtcContext[AppConstants.FILE_QUEUE]) {
         this.userContextService.initializeFileQueue(userToChat);
       }
+
       for (let i = 0; i < event.target.files.length; i++) {
         const contentType = await this.talkWindowUtilService.resolveFileType(event.target.files[i].type.split('/')[1]);
         const contentId: any = await this.coreAppUtilService.generateIdentifier();
-        userContext[AppConstants.FILE_QUEUE].enqueue({
+        webrtcContext[AppConstants.FILE_QUEUE].enqueue({
           id: contentId,
           file: event.target.files[i],
           username: userToChat,
@@ -1184,32 +1182,43 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         this.talkWindowContextService.sharedContent[contentId] = '';
       }
 
-      const fileReader: any = new FileReader();
-      if (!this.coreAppUtilService.isDataChannelOpen(userContext, AppConstants.FILE)) {
-        //open data channel here
-        dataChannel = await this.webrtcService.setUpDataChannel(userToChat, AppConstants.FILE);
-        LoggerUtil.log('registered message listener on datachannel');
-        // remote datachannel onmessage listener
-        dataChannel.onmessage = (msgEvent: any) => {
-          this.webrtcService.onDataChannelMessage(msgEvent.data);
-        };
+      if (this.coreAppUtilService.isDataChannelConnected(webrtcContext, AppConstants.FILE)) {
 
-        // datachannel onopen listener
-        dataChannel.onopen = () => {
-          LoggerUtil.log(AppConstants.FILE + ' data channel has been opened');
-          userContext[AppConstants.CONNECTIONS][AppConstants.FILE].state = AppConstants.CHANNEL_STATUS.OPEN;
-          this.talkWindowUtilService.readFile(fileReader, userContext[AppConstants.FILE_QUEUE].front());
-
-          //set up recuring job to clean this connection when it's idle
-          this.webrtcService.setupJobToCleanIdleDataConnection(AppConstants.FILE, userToChat);
-        };
-      } else {
         LoggerUtil.log('file data channel found open');
-        this.talkWindowUtilService.readFile(fileReader, userContext[AppConstants.FILE_QUEUE].front());
+        this.talkWindowUtilService.readFile(this.fileReader, webrtcContext[AppConstants.FILE_QUEUE].front());
+      } else {
+
+        LoggerUtil.log('file data channel is not in open state for user: ' + userToChat);
+
+        if (this.coreAppUtilService.isDataChannelConnecting(webrtcContext, AppConstants.FILE)) {
+
+          /**
+           * do nothing here as files has been queued and will be sent when
+           * data channel comes in open state
+           *
+           * @TODO setup a timeout job here to check if datachannel is
+           * connected after some time or not else try connecting it again
+           */
+        } else {
+
+          const createDataChannelType: CreateDataChannelType = {
+            username: userToChat,
+            channel: AppConstants.FILE
+          }
+
+          //open data channel here
+          dataChannel = await this.webrtcService.setUpDataChannel(createDataChannelType);
+          LoggerUtil.log('registered message listener on file datachannel');
+
+          // remote datachannel onmessage listener
+          dataChannel.onmessage = (msgEvent: any) => {
+            this.webrtcService.onDataChannelMessage(msgEvent.data);
+          };
+        }
       }
 
-      fileReader.onload = async (event: any) => {
-        const fileRecord: any = userContext[AppConstants.FILE_QUEUE].dequeue();
+      this.fileReader.onload = async (event: any) => {
+        const fileRecord: any = webrtcContext[AppConstants.FILE_QUEUE].dequeue();
         this.talkWindowContextService.sharedContent[fileRecord[AppConstants.CONTENT_ID]] = event.target.result;
         // LoggerUtil.log(fileRecord);
         // LoggerUtil.log("Blob size: " + event.target.result.length);
@@ -1230,7 +1239,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
             }, AppConstants.FILE);
 
           //update last data exchanged timestamp in user's webrtc context
-          this.webrtcService.updateLastSendTimestamp(AppConstants.FILE, userToChat);
+          webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][AppConstants.LAST_USED] = Date.now();
 
           //stop sending file data if data channel buffer is already crossed threshold
           while (dataChannel.bufferedAmount > AppConstants.DATACHANNEL_BUFFER_THRESHOLD) {
@@ -1251,14 +1260,14 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
             }, AppConstants.FILE);
 
           //update last data exchanged timestamp in user's webrtc context
-          this.webrtcService.updateLastSendTimestamp(AppConstants.FILE, userToChat);
+          webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][AppConstants.LAST_USED] = Date.now();
         } else {
           //for bigger file size, send it in chunks
           await this.sendFileDataInChunks(fileRecord, event.target.result);
         }
         //Send file data
-        if (!userContext[AppConstants.FILE_QUEUE].isEmpty()) {
-          this.talkWindowUtilService.readFile(fileReader, userContext[AppConstants.FILE_QUEUE].front());
+        if (!webrtcContext[AppConstants.FILE_QUEUE].isEmpty()) {
+          this.talkWindowUtilService.readFile(this.fileReader, webrtcContext[AppConstants.FILE_QUEUE].front());
         }
       } //here ends onload
     } else {
@@ -1281,8 +1290,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   sendFileDataInChunks(fileRecord: any, fileBlob: any) {
     return new Promise<void>(async (resolve) => {
-      const dataChannel: any = this.userContextService.getUserWebrtcContext(fileRecord[AppConstants.USERNAME])
-      [AppConstants.CONNECTIONS][AppConstants.FILE].dataChannel;
+      const userContext: any = this.userContextService.getUserWebrtcContext(fileRecord[AppConstants.USERNAME]);
+      const dataChannel: any = userContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE].dataChannel;
       const chunks: any[] = this.talkWindowUtilService.chunkString(fileBlob, AppConstants.CHUNK_SIZE);
       const totalChunks: number = chunks.length;
 
@@ -1304,7 +1313,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * update last data exchanged timestamp in user's webrtc context
        * 
        */
-      this.webrtcService.updateLastSendTimestamp(AppConstants.FILE, fileRecord[AppConstants.USERNAME]);
+      userContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][AppConstants.LAST_USED] = Date.now();
 
       //send file data chunks one by one
       for (let i = 0; i < totalChunks; i++) {
@@ -1326,7 +1335,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       }
 
       //update last data exchanged timestamp in user's webrtc context
-      this.webrtcService.updateLastSendTimestamp(AppConstants.FILE, fileRecord[AppConstants.USERNAME]);
+      userContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][AppConstants.LAST_USED] = Date.now();
 
       while (dataChannel.bufferedAmount > AppConstants.DATACHANNEL_BUFFER_THRESHOLD) {
         await this.coreAppUtilService.delay(AppConstants.DATACHANNEL_FILE_SEND_TIMEOUT);
@@ -1346,7 +1355,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         }, AppConstants.FILE);
 
       //update last data exchanged timestamp in user's webrtc context
-      this.webrtcService.updateLastSendTimestamp(AppConstants.FILE, fileRecord[AppConstants.USERNAME]);
+      userContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][AppConstants.LAST_USED] = Date.now();
       resolve();
     });
   }
@@ -1400,8 +1409,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          * connection types which souldn't be terminated/closed
          *
          */
-        Object.keys(userContext[AppConstants.CONNECTIONS]).forEach((connectionType) => {
-          if (connectionType !== AppConstants.DATA) {
+        Object.keys(userContext[AppConstants.MEDIA_CONTEXT]).forEach((connectionType) => {
+          if (connectionType !== AppConstants.TEXT) {
             this.webrtcService.stopMediaStream(connectionType, this.userContextService.userToChat, true);
           }
         });
@@ -1436,28 +1445,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       modalText: 'connecting....',
       channel: channel
     });
-
-    /**
-     * @TODO this is temporary, fix it afterwards
-     * 
-     */
-    if (channel !== AppConstants.REMOTE_CONTROL) {
-
-      /**
-       * setup a timeout jobs to check if webrtc connections come in connected state
-       * after a specified time else cleanup the connections appropriately
-       *
-       */
-      this.webrtcService.cleanWebrtcConnectionsIfNotConnected(channel, userToChat, AppConstants.CONNECTION_TIMEOUT, false);
-      if (channel !== AppConstants.SCREEN && channel !== AppConstants.SOUND) {
-        this.webrtcService.cleanWebrtcConnectionsIfNotConnected(channel, userToChat, AppConstants.CONNECTION_TIMEOUT, true);
-      }
-
-      if (channel === AppConstants.VIDEO && !this.talkWindowContextService.bindingFlags.isAudioCalling) {
-        this.webrtcService.cleanWebrtcConnectionsIfNotConnected(AppConstants.AUDIO, userToChat, AppConstants.CONNECTION_TIMEOUT, true);
-        this.webrtcService.cleanWebrtcConnectionsIfNotConnected(AppConstants.AUDIO, userToChat, AppConstants.CONNECTION_TIMEOUT, false);
-      }
-    }
   }
 
   /**
@@ -1547,8 +1534,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * @TODO abstract away this logic and add a filter argument for
        * connection types which souldn't be terminated/closed
        */
-      Object.keys(userContext[AppConstants.CONNECTIONS]).forEach((connectionType) => {
-        if (connectionType !== AppConstants.DATA && connectionType !== AppConstants.FILE) {
+      Object.keys(userContext[AppConstants.MEDIA_CONTEXT]).forEach((connectionType) => {
+        if (connectionType !== AppConstants.TEXT && connectionType !== AppConstants.FILE) {
           this.webrtcService.stopMediaStream(connectionType, userToChat, true);
         }
       });
@@ -1583,8 +1570,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          * @TODO abstract away this logic and add a filter argument for
          * connection types which souldn't be terminated/closed
          */
-        Object.keys(userContext[AppConstants.CONNECTIONS]).forEach((channel) => {
-          if (channel !== AppConstants.DATA) {
+        Object.keys(userContext[AppConstants.MEDIA_CONTEXT]).forEach((channel) => {
+          if (channel !== AppConstants.TEXT) {
             this.webrtcService.stopMediaStream(channel, userToChat, true);
           }
         });
@@ -1640,7 +1627,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     /**
      * get user's local audio track and then enable/disable the track
      */
-    const localAudioTrack: any = webrtcContext[AppConstants.CONNECTIONS][AppConstants.AUDIO].stream.getAudioTracks()[0];
+    const localAudioTrack: any = webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.AUDIO].stream.getAudioTracks()[0];
     localAudioTrack.enabled = !this.talkWindowContextService.bindingFlags.isOnMute;
     this.talkWindowUtilService.appRef.tick();
   }
@@ -1722,9 +1709,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      * existing media streaming needs to be stopped
      *
      */
-    this.coreWebrtcService.stopLocalStream(userContext[AppConstants.CONNECTIONS][AppConstants.VIDEO][AppConstants.STREAM]);
+    this.coreWebrtcService.stopLocalStream(userContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][AppConstants.STREAM]);
 
-    const peerConnection = userContext[AppConstants.CONNECTIONS][AppConstants.VIDEO][AppConstants.SENDER];
+    const peerConnection = userContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][AppConstants.SENDER];
 
     /**
      *
@@ -1758,7 +1745,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     /**
      * set the local media stream in user's webrtc context
      */
-    userContext[AppConstants.CONNECTIONS][AppConstants.VIDEO][AppConstants.STREAM] = offerContainer.stream;
+    userContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][AppConstants.STREAM] = offerContainer.stream;
 
     /**
      * render the local media stream appropriate media tag on UI
@@ -1880,8 +1867,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          *
          */
         this.createWebrtcSendPeerConnection(signalingMessage);
-        this.webrtcService.cleanWebrtcConnectionsIfNotConnected(signalingMessage.channel,
-          signalingMessage.from, AppConstants.CONNECTION_TIMEOUT, true);
       }
     }
   }
@@ -1917,7 +1902,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       this.webrtcService.mediaConnectionDisconnectHandler(false, channel, username, false, userContext, popupContext);
 
       //clean the the connections from user's webrtc context
-      delete userContext[AppConstants.CONNECTIONS][channel];
+      delete userContext[AppConstants.MEDIA_CONTEXT][channel];
     }
   }
 
@@ -2370,8 +2355,13 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      */
     const userToChat: string = this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME];
 
+    const createDataChannelType: CreateDataChannelType = {
+      username: userToChat,
+      channel: AppConstants.REMOTE_CONTROL
+    }
+
     //set up new data channel
-    const dataChannel: any = await this.webrtcService.setUpDataChannel(userToChat, AppConstants.REMOTE_CONTROL);
+    const dataChannel: any = await this.webrtcService.setUpDataChannel(createDataChannelType);
 
     // register datachannel onmessage listener
     dataChannel.onmessage = (msgEvent: any) => {
@@ -2409,5 +2399,44 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         this.remoteVideoDiv.nativeElement.clientHeight,
         this.remoteVideo, this.remoteVideoCanvas);
     }; // Here ends onopen listener
+  }
+
+  /**
+   * 
+   * this will handle webrtc events 
+   * 
+   * @param signalingMessage received signaling message 
+   */
+  handleWebrtcEvent(signalingMessage: any) {
+    LoggerUtil.log('handling webrtc event: ' + signalingMessage.event);
+    const webrtcContext = this.userContextService.getUserWebrtcContext(signalingMessage.from);
+
+    switch (signalingMessage.event) {
+
+      /**
+       * 
+       * webrtc data channel open event received from remote user's end
+       */
+      case AppConstants.WEBRTC_EVENTS.CHANNEL_OPEN:
+        LoggerUtil.log(signalingMessage.channel + ' data channel has been opened');
+        switch (signalingMessage.channel) {
+
+          case AppConstants.TEXT:
+            webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.TEXT][AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTED;
+            this.webrtcService.sendQueuedMessagesOnChannel(signalingMessage.from);
+            break;
+
+          case AppConstants.FILE:
+            webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTED;
+            this.talkWindowUtilService.readFile(this.fileReader, webrtcContext[AppConstants.FILE_QUEUE].front());
+            break;
+
+          case AppConstants.REMOTE_CONTROL:
+        }
+        break;
+
+      default:
+      //do nothing here
+    }
   }
 }

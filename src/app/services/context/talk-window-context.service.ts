@@ -158,13 +158,12 @@ export class TalkWindowContextService {
    * @param senderUpdate
    * 
    */
-  updateBindingFlag(propertyName: string, propertyValue: any, channel: string, senderUpdate: boolean) {
+  updateBindingFlag(propertyName: string, propertyValue: any, channel: string) {
     this.bindingFlags[propertyName] = propertyValue;
     const eventObj = {
       property: propertyName,
       value: propertyValue,
-      channel: channel,
-      senderUpdate: senderUpdate
+      channel: channel
     };
     this.mediaContextUpdateEventEmitter.emit(eventObj);
   }

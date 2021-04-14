@@ -21,60 +21,27 @@ export class CoreWebrtcService {
    *
    * @param username username of the user with whom connection has to be established
    *
-   * @param needSender boolean value to determine whether sender or receive peer
-   * connection has to be initialized. Applicable only for media webrtc connection
-   * i.e connections other than 'data' or 'file'
-   *
    */
-  rtcConnectionInit(channel: string, username: string, needSendPeer: boolean) {
-    return new Promise<void>((resolve, reject) => {
+  rtcConnectionInit(channel: string, username: string) {
+    return new Promise<boolean>((resolve, reject) => {
       try {
+        let initializedConnection = false;
         const PeerConnection = RTCPeerConnection || webkitRTCPeerConnection;
-        const userContext = this.userContextService.getUserWebrtcContext(username);
+        const webrtcContext = this.userContextService.getUserWebrtcContext(username);
 
-        /**
-         * initialize empty connections container if it does not exist yet
-         *
-         */
-        if (userContext[AppConstants.CONNECTIONS][channel] === undefined) {
-          userContext[AppConstants.CONNECTIONS][channel] = {};
-        }
-
-        const connectionType: string = this.coreAppUtilService.getConnectionIdentifier(channel, needSendPeer);
-
-        //initialize a new webrtc peer connection
-        userContext[AppConstants.CONNECTIONS][channel][connectionType] = new PeerConnection(AppConstants.STUN_CONFIG);
-
+        let connectionStatus = webrtcContext[AppConstants.CONNECTION_STATE];
         /**
          * 
-         * @TODO optimize switch statements here
+         * @TODO Fix this flow afterwards  
          * 
          */
-        switch (channel) {
-          case AppConstants.DATA:
-            userContext[AppConstants.CONNECTIONS][channel].state = AppConstants.CHANNEL_STATUS.NEW;
-            userContext[AppConstants.CONNECTIONS][channel][AppConstants.DATACHANNEL] = undefined;
-            break;
-
-          case AppConstants.FILE:
-            userContext[AppConstants.CONNECTIONS][channel].state = AppConstants.CHANNEL_STATUS.NEW;
-            userContext[AppConstants.CONNECTIONS][channel][AppConstants.DATACHANNEL] = undefined;
-            userContext[AppConstants.CONNECTIONS][channel][AppConstants.IMAGE] = [];
-            userContext[AppConstants.CONNECTIONS][channel][AppConstants.AUDIO] = [];
-            userContext[AppConstants.CONNECTIONS][channel][AppConstants.VIDEO] = [];
-            userContext[AppConstants.CONNECTIONS][channel][AppConstants.LAST_USED] = undefined;
-            userContext[AppConstants.CONNECTIONS][channel][AppConstants.RECURRING_JOB_ID] = undefined;
-            break;
-
-          case AppConstants.REMOTE_CONTROL:
-            userContext[AppConstants.CONNECTIONS][channel].state = AppConstants.CHANNEL_STATUS.NEW;
-            userContext[AppConstants.CONNECTIONS][channel][AppConstants.DATACHANNEL] = undefined;
-            break;
-
-          default:
-          //do nothing here
+        if (connectionStatus === AppConstants.CONNECTION_STATES.NOT_CONNECTED) {
+          initializedConnection = true;
+          //initialize a new webrtc peer connection
+          webrtcContext[AppConstants.CONNECTION] = new PeerConnection(AppConstants.STUN_CONFIG);
+          webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.NOT_CONNECTED;
         }
-        resolve();
+        resolve(initializedConnection);
       } catch (error) {
         LoggerUtil.log('there is an error while initializing peer connection');
         reject(error);
@@ -83,16 +50,51 @@ export class CoreWebrtcService {
   }
 
   /**
+   * initializing a webrtc peer connection and store it user's webrtc connection
+   *
+   * @param channel webrtc cnonection's media type for connection means the type
+   * of media data that we will relay on this connection e.g 'text','video' or 'audio'
+   *
+   * @param username username of the user with whom connection has to be established
+   *
+   */
+  mediaContextInit(channel: string, username: string) {
+
+    const webrtcContext = this.userContextService.getUserWebrtcContext(username);
+
+    /**
+     * initialize empty connections container if it does not exist yet
+     *
+     */
+    if (webrtcContext[AppConstants.MEDIA_CONTEXT][channel] === undefined) {
+      webrtcContext[AppConstants.MEDIA_CONTEXT][channel] = {};
+    }
+
+    if (webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.DATACHANNEL] === undefined) {
+      webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.NOT_CONNECTED;
+    }
+
+    if (channel === AppConstants.FILE) {
+      if (webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.IMAGE] === undefined) {
+        webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.IMAGE] = [];
+        webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.AUDIO] = [];
+        webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.VIDEO] = [];
+        webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.LAST_USED] = undefined;
+        webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.RECURRING_JOB_ID] = undefined;
+      }
+    }
+  }
+
+  /**
    * this will handle the processing of any 'answer' type message received
    *
    * @param signalingMessage received signaling message
    *
+   *  @TODO remove the Promise afterwards
    */
   handleAnswer(signalingMessage: any) {
     return new Promise<void>(async (resolve) => {
-      const peerConnection = await this.coreAppUtilService
-        .getAppropriatePeerConnection(signalingMessage.from, signalingMessage.channel, true);
-      // set remote description on peer connection
+      const peerConnection = this.userContextService.getUserWebrtcContext(signalingMessage.from)[AppConstants.CONNECTION];
       peerConnection.setRemoteDescription(new RTCSessionDescription(signalingMessage.answer));
       resolve();
     });
@@ -105,8 +107,7 @@ export class CoreWebrtcService {
    *
    */
   async handleOffer(signalingMessage: any) {
-    const peerConnection = await this.coreAppUtilService
-      .getAppropriatePeerConnection(signalingMessage.from, signalingMessage.channel, false);
+    const peerConnection: any = this.userContextService.getUserWebrtcContext(signalingMessage.from)[AppConstants.CONNECTION];
     return this.generateAnswer(peerConnection, signalingMessage.offer, signalingMessage.channel);
   }
 
@@ -115,12 +116,11 @@ export class CoreWebrtcService {
    *
    * @param signalingMessage received signaling message
    *
+   * @TODO remove the Promise afterwards
    */
   handleCandidate(signalingMessage: any) {
     return new Promise<void>(async (resolve) => {
-      const peerConnection: any = await this.coreAppUtilService.getAppropriatePeerConnection(signalingMessage.from,
-        signalingMessage.channel, !signalingMessage.isSender);
-      // set ice candidate on peer connection
+      const peerConnection: any = this.userContextService.getUserWebrtcContext(signalingMessage.from)[AppConstants.CONNECTION];
       peerConnection.addIceCandidate(new RTCIceCandidate(signalingMessage.candidate));
       resolve();
     });
@@ -143,9 +143,9 @@ export class CoreWebrtcService {
     return new Promise(async (resolve, reject) => {
       try {
         /**
-         * @TODO convert to switch statement later afterwards
+         * @TODO convert to switch statement later
          */
-        if (mediaChannel === AppConstants.DATA || mediaChannel === AppConstants.FILE || mediaChannel === AppConstants.REMOTE_CONTROL) {
+        if (mediaChannel === AppConstants.TEXT || mediaChannel === AppConstants.FILE || mediaChannel === AppConstants.REMOTE_CONTROL) {
           const offerPayload = await this.getDataChannelOffer(peerConnection, mediaChannel);
           resolve(offerPayload);
         } else {
@@ -178,7 +178,7 @@ export class CoreWebrtcService {
       /**
        * open data channe here
        */
-      const dataChannel = await this.openDataChannel(peerConnection);
+      const dataChannel = await this.openDataChannel(peerConnection, mediaChannel);
       peerConnection.createOffer().then((offer: any) => {
         peerConnection.setLocalDescription(offer);
         resolve({
@@ -345,16 +345,18 @@ export class CoreWebrtcService {
    * this will open a data channel on supplied webrtc peer connection
    *
    * @param peerConnection webrtc peer connection on data channel has to be opened
+   * 
+   * @param channelId webrtc data channel id
    *
    * @return newly opened webrtc datachannel
    */
-  openDataChannel(peerConnection: any) {
+  openDataChannel(peerConnection: any, channelId: string) {
     return new Promise((resolve, reject) => {
       try {
         if (peerConnection == null) {
           reject('peer connection is not yet initialized to open data channel');
         }
-        const dataChannel = peerConnection.createDataChannel('myDataChannel');
+        const dataChannel = peerConnection.createDataChannel(channelId);
         dataChannel.onerror = (error: any) => {
           LoggerUtil.log(error);
         };

@@ -4,10 +4,11 @@
  **/
 export class AppConstants {
 
-  // WebRTC connections
-  public static CONNECTIONS = 'connections';
-
   public static DATACHANNEL = 'dataChannel';
+
+  public static WEBRTC_EVENTS = {
+    CHANNEL_OPEN: 'channelOpen'
+  };
 
   // User's chatMessages
   public static CHAT_MESSAGES = 'chatMessages';
@@ -15,7 +16,9 @@ export class AppConstants {
   // User's message queue
   public static MESSAGE_QUEUE = 'msgQueue';
 
-  public static FILE_QUEUE = 'FileQueue';
+  public static FILE_QUEUE = 'fileQueue';
+
+  public static WEBRTC_ON_CONNECT_QUEUE = 'webrtcOnConnectQueue';
 
   // OFFER constant
   public static OFFER = 'offer';
@@ -67,8 +70,10 @@ export class AppConstants {
 
   public static RECEIVER = 'receiver';
 
+  public static WEBRTC_EVENT = 'rtcEvent';
+
   // TEXT constant
-  public static DATA = 'data';
+  public static TEXT = 'text';
 
   public static FILE = 'file';
 
@@ -109,6 +114,12 @@ export class AppConstants {
   // RTC server constant
   public static RTC_SERVER = 'rtc_server';
 
+  public static MEDIA_CONTEXT = 'mediaContext';
+
+  public static CONNECTION = 'connection';
+
+  public static CONNECTION_STATE = 'connectionState';
+
   // Signaling RTC constant
   public static SIGNALING_RTC = 'signaling_rtc';
 
@@ -127,12 +138,6 @@ export class AppConstants {
     BUSY: 'busy',
     AVAILABLE: 'available',
     OFFLINE: 'offline'
-  };
-
-  public static CHANNEL_STATUS = {
-    NEW: 1,
-    CONNECTING: 2,
-    OPEN: 3
   };
 
   //This will contains the max bitrates for webrtc connections
@@ -298,5 +303,12 @@ export class AppConstants {
     MOUSE_DOWN: 'mouseDown',
     MOUSE_UP: 'mouseUp',
     SELECT: 'select'
+  };
+
+  public static CONNECTION_STATES = {
+    CONNECTING: 'connecting',
+    CONNECTED: 'connected',
+    NOT_CONNECTED: 'notconnected',
+    CLEANING: 'cleaning'
   };
 }
