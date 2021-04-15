@@ -16,13 +16,10 @@ export class CoreWebrtcService {
   /**
    * initializing a webrtc peer connection and store it user's webrtc connection
    *
-   * @param channel webrtc cnonection's media type for connection means the type
-   * of media data that we will relay on this connection e.g 'text','video' or 'audio'
-   *
    * @param username username of the user with whom connection has to be established
    *
    */
-  rtcConnectionInit(channel: string, username: string) {
+  rtcConnectionInit(username: string) {
     return new Promise<boolean>((resolve, reject) => {
       try {
         let initializedConnection = false;
@@ -43,8 +40,8 @@ export class CoreWebrtcService {
         }
         resolve(initializedConnection);
       } catch (error) {
-        LoggerUtil.log('there is an error while initializing peer connection');
-        reject(error);
+        LoggerUtil.log(error);
+        reject('there is an error while initializing peer connection');
       }
     });
   }
@@ -68,10 +65,14 @@ export class CoreWebrtcService {
      */
     if (webrtcContext[AppConstants.MEDIA_CONTEXT][channel] === undefined) {
       webrtcContext[AppConstants.MEDIA_CONTEXT][channel] = {};
-    }
 
-    if (webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.DATACHANNEL] === undefined) {
-      webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.NOT_CONNECTED;
+      /**
+       * 
+       * @TODO refactor it afterwards
+       */
+      if (channel === AppConstants.TEXT || channel === AppConstants.FILE || channel === AppConstants.REMOTE_CONTROL) {
+        webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.NOT_CONNECTED;
+      }
     }
 
     if (channel === AppConstants.FILE) {
@@ -119,7 +120,7 @@ export class CoreWebrtcService {
    * @TODO remove the Promise afterwards
    */
   handleCandidate(signalingMessage: any) {
-    return new Promise<void>(async (resolve) => {
+    return new Promise<void>((resolve) => {
       const peerConnection: any = this.userContextService.getUserWebrtcContext(signalingMessage.from)[AppConstants.CONNECTION];
       peerConnection.addIceCandidate(new RTCIceCandidate(signalingMessage.candidate));
       resolve();
@@ -324,7 +325,7 @@ export class CoreWebrtcService {
         const maxBitrate = this.coreAppUtilService.getMaxBitrateForSdpModification(mediaChannel);
         const sdpMediaType = this.coreAppUtilService.getMediaTypeForSdpModification(mediaChannel);
         const modifiedSdp: any = await this.setMediaBitrate(newAnswer.sdp, sdpMediaType, maxBitrate);
-        const answer: any = new RTCSessionDescription({ type: 'answer', sdp: modifiedSdp });;
+        const answer: any = new RTCSessionDescription({ type: 'answer', sdp: modifiedSdp });
 
         peerConnection.setLocalDescription(answer);
         resolve({

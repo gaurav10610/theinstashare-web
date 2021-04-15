@@ -93,34 +93,13 @@ export class CoreAppUtilityService {
    * provide user is in connected state the user who's username is passed as
    * an argument
    *
-   * @param username username of the user with whom the connection's state need
-   * needs to be tested
+   * @param webrtcContext user's webrtc context
    *
    * @return a boolean result
    * 
    */
-  isWebrtcConnectionConnected(username: string) {
-    return new Promise<boolean>(async (resolve) => {
-      const peerConnection: any = this.userContextService.getUserWebrtcContext(username)[AppConstants.CONNECTION];
-      if (peerConnection) {
-
-        /**
-         * check peer connection state here
-         * 
-         * for macOS chrome 'connectionState' doesn't seems to change so for now checking 
-         * 'iceConnectionSate' instead
-         */
-        if (peerConnection.connectionState === 'connected'
-          || peerConnection.iceConnectionState === 'connected'
-          || peerConnection.iceConnectionState === 'completed') {
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      } else {
-        resolve(false);
-      }
-    });
+  isWebrtcConnectionConnected(webrtcContext: any) {
+    return this.getNestedValue(webrtcContext, AppConstants.CONNECTION_STATE) === AppConstants.CONNECTION_STATES.CONNECTING;
   }
 
   /**
@@ -131,7 +110,7 @@ export class CoreAppUtilityService {
    *
    */
   isWebrtcConnectionConnecting(webrtcContext: any) {
-    return this.getNestedValue(webrtcContext, AppConstants.CONNECTION, AppConstants.CONNECTION_STATE) === AppConstants.CONNECTION_STATES.CONNECTING;
+    return this.getNestedValue(webrtcContext, AppConstants.CONNECTION_STATE) === AppConstants.CONNECTION_STATES.CONNECTING;
   }
 
   /**

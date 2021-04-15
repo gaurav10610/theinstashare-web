@@ -10,7 +10,7 @@ import { CoreAppUtilityService } from '../util/core-app-utility.service';
 import { TalkWindowContextService } from '../context/talk-window-context.service';
 import { MessageService } from '../message/message.service';
 import { CreateDataChannelType } from '../contracts/CreateDataChannelType';
-import { WebrctCallbackContextType } from '../contracts/WebrtcCallbackContextType';
+import { WebrctCallbackContextType as CallbackContextType } from '../contracts/WebrtcCallbackContextType';
 
 /**
  * this service contains all the webrtc related reusable logic chunks which app
@@ -129,6 +129,8 @@ export class TalkWindowWebrtcService {
    */
   registerWebrtcEventListeners(peerConnection: any, userToChat: any) {
     return new Promise<void>((resolve, reject) => {
+      LoggerUtil.log('registering webrtc events on webrtc connection for ' + userToChat);
+      LoggerUtil.log(this.userContextService.getUserWebrtcContext(userToChat));
       try {
 
 
@@ -138,6 +140,69 @@ export class TalkWindowWebrtcService {
          */
         peerConnection.onnegotiationneeded = async () => {
           LoggerUtil.log(userToChat + ' webrtc connection needs renegotiation');
+
+          // peerConnection.createOffer().then((offer: any) => {
+          //   peerConnection.setLocalDescription(offer);
+
+          //   /**
+          //    * 
+          //    * send the offer payload
+          //    */
+          //   this.sendPayload({
+          //     type: AppConstants.OFFER,
+          //     from: this.userContextService.username,
+          //     to: this.userContextService.username,
+          //     channel: AppConstants.CONNECTION,
+          //     offer: offer,
+          //     renegotiate: true
+          //   });
+          // }).catch((error: any) => {
+          //   LoggerUtil.log('There is an error while sending renegotiation offer to ' + userToChat);
+          //   LoggerUtil.log(error);
+          // });
+
+        };
+
+        /**
+         * 
+         * @param ev 
+         * 
+         */
+        peerConnection.onsignalingstatechange = () => {
+          LoggerUtil.log(userToChat + ' webrtc connection signaling state: ' + peerConnection.signalingState);
+          const webrtcContext = this.userContextService.getUserWebrtcContext(userToChat);
+          switch (peerConnection.signalingState) {
+
+            /**
+             * 
+             * There is no ongoing exchange of offer and answer underway. This may mean that the RTCPeerConnection 
+             * object is new, in which case both the localDescription and remoteDescription are null; it may also mean 
+             * that negotiation is complete and a connection has been established.
+             * 
+             */
+            case 'stable':
+              /**
+               * 
+               * make the connection status as 'connected' in the user's webrtc context
+               * 
+               */
+              webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTED;
+
+              /**
+               * 
+               * execute all the callback functions wih provided callback context
+               * 
+               */
+              while (!webrtcContext[AppConstants.WEBRTC_ON_CONNECT_QUEUE].isEmpty()) {
+                const callback: CallbackContextType = <CallbackContextType>webrtcContext[AppConstants.WEBRTC_ON_CONNECT_QUEUE].dequeue();
+                try {
+                  callback.callbackFunction(callback.callbackContext);
+                } catch (e) {
+                  LoggerUtil.log(e);
+                }
+              }
+              break;
+          }
         };
 
         /**
@@ -161,7 +226,6 @@ export class TalkWindowWebrtcService {
               break;
 
             case 'connected':
-
               /**
                * 
                * make the connection status as 'connected' in the user's webrtc context
@@ -175,7 +239,7 @@ export class TalkWindowWebrtcService {
                * 
                */
               while (!webrtcContext[AppConstants.WEBRTC_ON_CONNECT_QUEUE].isEmpty()) {
-                const callback: WebrctCallbackContextType = <WebrctCallbackContextType>webrtcContext[AppConstants.WEBRTC_ON_CONNECT_QUEUE].dequeue();
+                const callback: CallbackContextType = <CallbackContextType>webrtcContext[AppConstants.WEBRTC_ON_CONNECT_QUEUE].dequeue();
                 try {
                   callback.callbackFunction(callback.callbackContext);
                 } catch (e) {
@@ -303,8 +367,6 @@ export class TalkWindowWebrtcService {
       const webrtcContext: any = this.userContextService.getUserWebrtcContext(userToChat);
 
       webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.DATACHANNEL] = dataChannel;
-
-      LoggerUtil.log(webrtcContext);
 
       /**
        * register onmessage listener on received data channel
@@ -1302,67 +1364,186 @@ export class TalkWindowWebrtcService {
   }
 
   /**
+   * 
+   * this will setup a webrtc connection with provided user
+   * 
+   * @param username username of the user with whom webrtc connection have to be established
+   * 
+   *  @param offerMessage this is an optional offer signaling message
+   */
+  setUpWebrtcConnection(username: string, offerMessage?: any) {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+
+        LoggerUtil.log('setting up new webrtc connection');
+
+        /**
+         * 
+         * initialize webrtc context if not yet initialized
+         */
+        if (!this.userContextService.hasUserWebrtcContext(username)) {
+          this.userContextService.initializeUserWebrtcContext(username);
+        }
+        const webrtcContext: any = this.userContextService.getUserWebrtcContext(username);
+
+        if (webrtcContext[AppConstants.CONNECTION_STATE] === AppConstants.CONNECTION_STATES.NOT_CONNECTED) {
+
+          /**
+           * 
+           * initialize webrtc peer connection
+           */
+          const initializedConnection: boolean = await this.coreWebrtcService.rtcConnectionInit(username);
+
+          /**
+           * 
+           * update webrtc connection state to connecting so that not other flow can update it further
+           */
+          webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTING;
+          const peerConnection: any = webrtcContext[AppConstants.CONNECTION];
+
+          /**
+           * 
+           * register webrtc connection if new webrtc conection has been initialized
+           */
+          if (initializedConnection) {
+            this.registerWebrtcEventListeners(peerConnection, username);
+          }
+
+          /**
+           * 
+           * create the offer for the peer connection and send it to other peer
+           */
+          if (offerMessage === undefined) {
+            peerConnection.createOffer().then((offer: any) => {
+              peerConnection.setLocalDescription(offer);
+
+              /**
+               * 
+               * send the offer payload
+               */
+              this.sendPayload({
+                from: this.userContextService.username,
+                to: username,
+                channel: AppConstants.CONNECTION,
+                type: AppConstants.OFFER,
+                offer: offer
+              });
+            }).catch((error: any) => {
+              LoggerUtil.log(error);
+              reject('There is an error while generating offer on peer connection');
+            });
+          } else {
+            peerConnection.setRemoteDescription(new RTCSessionDescription(offerMessage.offer));
+            peerConnection.createAnswer().then((answer: any) => {
+              peerConnection.setLocalDescription(answer);
+
+              /**
+               * 
+               * send the answer payload
+               */
+              this.sendPayload({
+                from: this.userContextService.username,
+                to: username,
+                channel: AppConstants.CONNECTION,
+                type: AppConstants.ANSWER,
+                answer: answer
+              });
+            }).catch((error: any) => {
+              LoggerUtil.log('there is an error while generating answer');
+              reject(error);
+            }); // Here ends create answer
+          }
+        } else {
+          /**
+           * 
+           * already in connecting/connected state so do nothing here
+           */
+        }
+      } catch (e) {
+        LoggerUtil.log(e);
+        reject('there is an exception occured while establishing connection with ' + username);
+      }
+    });
+  }
+
+  /**
    * setup datachannel with a user
    *
    * @param createDataChannelType create data channel request type
    *
    */
   setUpDataChannel(createDataChannelType: CreateDataChannelType) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise<void>(async (resolve, reject) => {
       try {
-
         /**
-         * initialize webrtc connection for datachannel
+         * 
+         * initialize the webrtc context if not yet initialized
          */
-        const initializedConnection: boolean = await this.coreWebrtcService.rtcConnectionInit(createDataChannelType.channel, createDataChannelType.username);
-
+        if (!this.userContextService.hasUserWebrtcContext(createDataChannelType.username)) {
+          this.userContextService.initializeUserWebrtcContext(createDataChannelType.username);
+        }
         this.coreWebrtcService.mediaContextInit(createDataChannelType.channel, createDataChannelType.username);
 
-        const userContext = this.userContextService.getUserWebrtcContext(createDataChannelType.username);
+        const webrtcContext: any = this.userContextService.getUserWebrtcContext(createDataChannelType.username);
 
         /**
-         * set the datachannel state in user's webrtc connection as 'connecting'
-         * so no other setup datachannel request should be made
-         *
+         * 
+         * mark data channel state as connecting for provided channel in user's webrtc media context
          */
-        userContext[AppConstants.MEDIA_CONTEXT][createDataChannelType.channel][AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTING;
-        const peerConnection = userContext[AppConstants.CONNECTION];
+        webrtcContext[AppConstants.MEDIA_CONTEXT][createDataChannelType.channel][AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTING;
+        if (webrtcContext[AppConstants.CONNECTION_STATE] === AppConstants.CONNECTION_STATES.CONNECTED) {
 
-        if (initializedConnection) {
-          LoggerUtil.log(userContext);
+          const peerConnection: any = webrtcContext[AppConstants.CONNECTION];
           /**
-           * register all the event listners on the webrtc peer connection
+           *
+           * generate the appropriate 'offer' for sending it to the other user
+           *
+           * 'offerContainer' will contain the genrated offer sdp and few other
+           * properties which app utilizes to compose an offer signaling message
+           * to be sent to other user
+           *
            */
-          await this.registerWebrtcEventListeners(peerConnection, createDataChannelType.username);
+          const offerContainer: any = await this.coreWebrtcService.generateOffer(peerConnection, createDataChannelType.channel);
+          const dataChannel: any = offerContainer.dataChannel;
+          LoggerUtil.log('registered message listener on ' + createDataChannelType.channel + ' data channel');
+
+          // remote datachannel onmessage listener
+          dataChannel.onmessage = (msgEvent: any) => {
+            this.onDataChannelMessage(msgEvent.data);
+          };
+
+          /**
+           * send the composed 'offer' signaling message to the other user
+           */
+          this.sendPayload({
+            type: offerContainer.offerPayload.type,
+            offer: offerContainer.offerPayload.offer,
+            channel: offerContainer.offerPayload.channel,
+            from: this.userContextService.username,
+            to: createDataChannelType.username,
+            renegotiate: true
+          });
+
+          /**
+           * set the datachannel in user's webrtc context
+           */
+          webrtcContext[AppConstants.MEDIA_CONTEXT][createDataChannelType.channel][AppConstants.DATACHANNEL] = dataChannel;
+        } else {
+          /**
+           * 
+           * if webrtc connection is not in connetcted state then add the setup data channel function 
+           * along with the calling context in the webrtc on connect queue
+           */
+          const webrtcCallbackContextType: CallbackContextType = {
+            callbackFunction: this.setUpDataChannel.bind(this),
+            callbackContext: createDataChannelType
+          };
+          webrtcContext[AppConstants.WEBRTC_ON_CONNECT_QUEUE].enqueue(webrtcCallbackContextType);
+          if (webrtcContext[AppConstants.CONNECTION_STATE] === AppConstants.CONNECTION_STATES.NOT_CONNECTED) {
+            this.setUpWebrtcConnection(createDataChannelType.username);
+          }
         }
-
-        /**
-         *
-         * generate the appropriate 'offer' for sending it to the other user
-         *
-         * 'offerContainer' will contain the genrated offer sdp and few other
-         * properties which app utilizes to compose an offer signaling message
-         * to be sent to other user
-         *
-         */
-        const offerContainer: any = await this.coreWebrtcService.generateOffer(peerConnection, createDataChannelType.channel);
-
-        /**
-         * send the composed 'offer' signaling message to the other user
-         */
-        this.sendPayload({
-          type: offerContainer.offerPayload.type,
-          offer: offerContainer.offerPayload.offer,
-          channel: offerContainer.offerPayload.channel,
-          from: this.userContextService.username,
-          to: createDataChannelType.username
-        });
-
-        /**
-         * set the datachannel in user's webrtc context
-         */
-        userContext[AppConstants.MEDIA_CONTEXT][createDataChannelType.channel][AppConstants.DATACHANNEL] = offerContainer.dataChannel;
-        resolve(offerContainer.dataChannel);
+        resolve();
       } catch (e) {
         reject(e);
       }

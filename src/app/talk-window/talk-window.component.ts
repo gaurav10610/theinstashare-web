@@ -262,14 +262,14 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   async onRouterMessage(signalingMessage: any) {
     try {
-      //LoggerUtil.log('received message via ' + signalingMessage.via + ': ' + JSON.stringify(signalingMessage));
+      LoggerUtil.log('received message via ' + signalingMessage.via + ': ' + JSON.stringify(signalingMessage));
       switch (signalingMessage.type) {
         case AppConstants.REGISTER:
           await this.handleRegister(signalingMessage);
           break;
 
         case AppConstants.OFFER:
-          await this.processWebrtcOffer(signalingMessage);
+          await this.consumeWebrtcOfferConnection(signalingMessage);
           break;
 
         case AppConstants.ANSWER:
@@ -375,11 +375,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     return new Promise<void>(async (resolve) => {
 
       /**
-       * consume the 'offer' message via receive peer connection
-       */
-      this.consumeWebrtcOfferForReceiveConnection(signalingMessage);
-
-      /**
        * if the sender of the 'offer' message is expecting an offer in return
        * then we will create a new webrtc connection and send the offer to the
        * sender
@@ -411,83 +406,56 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    * @param signalingMessage: received signaling message
    */
-  async consumeWebrtcOfferForReceiveConnection(signalingMessage: any) {
-    try {
+  async consumeWebrtcOfferConnection(signalingMessage: any) {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
 
-      /**
-       * initialize user's webrtc context for the user from whom we've received
-       * this message if it doesn't exist
-       *
-       */
-      if (!this.userContextService.hasUserWebrtcContext(signalingMessage.from)) {
-        this.userContextService.initializeUserWebrtcContext(signalingMessage.from);
+        /**
+         * 
+         * if this offer message is for renegotiating an already connection connection
+         * 
+         */
+        if (signalingMessage.renegotiate) {
+
+          this.coreWebrtcService.mediaContextInit(signalingMessage.channel, signalingMessage.from);
+
+          /**
+           * handle the received webrtc offer 'sdp', set the remote description and
+           * generate the answer sebsequently for sending it to the other user
+           *
+           * 'answerContainer' will contain the genrated answer sdp and few other
+           * properties which app utilizes to compose an answer signaling message
+           * to be sent to other user
+           *
+           */
+          const answerContainer: any = await this.coreWebrtcService.handleOffer(signalingMessage);
+
+          /**
+           * send the composed 'answer' signaling message to the other user from whom
+           * we've received the offer message
+           *
+           */
+          this.webrtcService.sendPayload({
+            type: AppConstants.ANSWER,
+            answer: answerContainer.answerPayload.answer,
+            channel: answerContainer.answerPayload.channel,
+            from: this.userContextService.username,
+            to: signalingMessage.from
+          });
+        } else {
+
+          /**
+           * 
+           * this will setup a new webrtc connection 
+           */
+          this.webrtcService.setUpWebrtcConnection(signalingMessage.from, signalingMessage);
+        }
+        resolve();
+      } catch (e) {
+        LoggerUtil.log('there is an error while consuming webrtc offer received from ' + signalingMessage.from);
+        reject(e);
       }
-
-      const initializedConnection = await this.coreWebrtcService.rtcConnectionInit(signalingMessage.channel, signalingMessage.from);
-
-      // get the appropriate webrtc peer connection for further processing
-      const peerConnection = this.userContextService.getUserWebrtcContext(signalingMessage.from)[AppConstants.CONNECTION];
-
-      /**
-       * if there is no new connection initialized, then register webrtc event listeners
-       * 
-       */
-      if (initializedConnection) {
-        await this.webrtcService.registerWebrtcEventListeners(peerConnection, signalingMessage.from);
-      }
-
-      this.coreWebrtcService.mediaContextInit(signalingMessage.channel, signalingMessage.from);
-
-      /**
-       * handle the received webrtc offer 'sdp', set the remote description and
-       * generate the answer sebsequently for sending it to the other user
-       *
-       * 'answerContainer' will contain the genrated answer sdp and few other
-       * properties which app utilizes to compose an answer signaling message
-       * to be sent to other user
-       *
-       */
-      const answerContainer: any = await this.coreWebrtcService.handleOffer(signalingMessage);
-
-      /**
-       * send the composed 'answer' signaling message to the other user from whom
-       * we've received the offer message
-       *
-       */
-      this.webrtcService.sendPayload({
-        type: AppConstants.ANSWER,
-        answer: answerContainer.answerPayload.answer,
-        channel: answerContainer.answerPayload.channel,
-        from: this.userContextService.username,
-        to: signalingMessage.from
-      });
-
-      /**
-       * set some values values in the media call context which will be used to
-       * compose appropriate view on UI for the user
-       *
-       * 'channel' property in the signaling message will specify the kind of
-       * media stream we will be relaying over this webrtc peer connection
-       *
-       * channel: 1. screen - set in messages for screen sharing
-       *          2. sound - set in messages for system sound sharing
-       *          3. video - set in messages for video calling
-       *          4. audio - set in messages for audio calling
-       *
-       *
-       */
-      switch (signalingMessage.channel) {
-        case AppConstants.SCREEN:
-          this.talkWindowContextService.updateBindingFlag('isScreenSharing', true, signalingMessage.channel);
-          break;
-
-        case AppConstants.SOUND:
-          this.talkWindowContextService.updateBindingFlag('isSoundSharing', true, signalingMessage.channel);
-          break;
-      }
-    } catch (e) {
-      LoggerUtil.log(e);
-    }
+    });
   }
 
   /**
@@ -515,7 +483,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * webrtc context
        *
        */
-      await this.coreWebrtcService.rtcConnectionInit(signalingMessage.channel, signalingMessage.from);
+      await this.coreWebrtcService.rtcConnectionInit(signalingMessage.from);
 
       // get the appropriate webrtc peer connection for further processing
       const peerConnection = await this.coreAppUtilService.getAppropriatePeerConnection(signalingMessage.from, signalingMessage.channel, true);
@@ -851,7 +819,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * webrtc context
        *
        */
-      await this.coreWebrtcService.rtcConnectionInit(channel, userToChat);
+      await this.coreWebrtcService.rtcConnectionInit(userToChat);
       const peerConnection = userContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.SENDER];
 
       /**
@@ -1070,7 +1038,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           sent: true
         });
 
-        //check if there is an open data channel exist
+        //check if there is an open data channel
         if (this.coreAppUtilService.isDataChannelConnected(webrtcContext, AppConstants.TEXT)) {
           // LoggerUtil.log('Found an open data channel already.');
 
@@ -1097,7 +1065,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
             type: AppConstants.TEXT
           });
 
-          // when datachannel request has already been raised, then just queue the messages
+          // when data channel open request has already been raised, then just queue the messages
           if (this.coreAppUtilService.isDataChannelConnecting(webrtcContext, AppConstants.TEXT)) {
 
             /**
@@ -1115,12 +1083,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
             }
 
             //set up new data channel
-            const dataChannel: any = await this.webrtcService.setUpDataChannel(createDataChannelType);
-
-            // register datachannel onmessage listener
-            dataChannel.onmessage = (msgEvent: any) => {
-              this.webrtcService.onDataChannelMessage(msgEvent.data);
-            };
+            await this.webrtcService.setUpDataChannel(createDataChannelType);
           }
         }
       }
@@ -1207,13 +1170,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           }
 
           //open data channel here
-          dataChannel = await this.webrtcService.setUpDataChannel(createDataChannelType);
-          LoggerUtil.log('registered message listener on file datachannel');
-
-          // remote datachannel onmessage listener
-          dataChannel.onmessage = (msgEvent: any) => {
-            this.webrtcService.onDataChannelMessage(msgEvent.data);
-          };
+          this.webrtcService.setUpDataChannel(createDataChannelType);
         }
       }
 
@@ -2361,44 +2318,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     }
 
     //set up new data channel
-    const dataChannel: any = await this.webrtcService.setUpDataChannel(createDataChannelType);
-
-    // register datachannel onmessage listener
-    dataChannel.onmessage = (msgEvent: any) => {
-      this.webrtcService.onDataChannelMessage(msgEvent.data);
-    };
-
-    // datachannel onopen listener
-    dataChannel.onopen = () => {
-      LoggerUtil.log(AppConstants.REMOTE_CONTROL + ' data channel has been opened');
-
-      /**
-       * set remote access flag
-       */
-      this.talkWindowContextService.bindingFlags.isAccessingRemote = true;
-
-      //register event listners for remote access
-      this.webRemoteAccessService.registerRemoteAccessEventListeners(this.remoteVideoCanvas);
-
-      /**
-       * Remote machine can be accessed only in full screen mode as of now,
-       * this will probably be changed afterwards
-       * 
-       * @TODO see if this can be changed by calculating the relative coordinates
-       * on canvas
-       * 
-       */
-      this.handleVideoFullScreen(true);
-
-      /**
-       * calculate the remote access params
-       */
-      this.webRemoteAccessService.calculateRemoteAccessParameters(this.talkWindowContextService.remoteAccessContext['remoteWidth'],
-        this.talkWindowContextService.remoteAccessContext['remoteHeight'],
-        this.remoteVideoDiv.nativeElement.clientWidth,
-        this.remoteVideoDiv.nativeElement.clientHeight,
-        this.remoteVideo, this.remoteVideoCanvas);
-    }; // Here ends onopen listener
+    this.webrtcService.setUpDataChannel(createDataChannelType);
   }
 
   /**
@@ -2432,6 +2352,34 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
             break;
 
           case AppConstants.REMOTE_CONTROL:
+            LoggerUtil.log(AppConstants.REMOTE_CONTROL + ' data channel has been opened');
+
+            /**
+             * set remote access flag
+             */
+            this.talkWindowContextService.bindingFlags.isAccessingRemote = true;
+
+            //register event listners for remote access
+            this.webRemoteAccessService.registerRemoteAccessEventListeners(this.remoteVideoCanvas);
+
+            /**
+             * Remote machine can be accessed only in full screen mode as of now,
+             * this will probably be changed afterwards
+             * 
+             * @TODO see if this can be changed by calculating the relative coordinates
+             * on canvas
+             * 
+             */
+            this.handleVideoFullScreen(true);
+
+            /**
+             * calculate the remote access params
+             */
+            this.webRemoteAccessService.calculateRemoteAccessParameters(this.talkWindowContextService.remoteAccessContext['remoteWidth'],
+              this.talkWindowContextService.remoteAccessContext['remoteHeight'],
+              this.remoteVideoDiv.nativeElement.clientWidth,
+              this.remoteVideoDiv.nativeElement.clientHeight,
+              this.remoteVideo, this.remoteVideoCanvas);
         }
         break;
 
