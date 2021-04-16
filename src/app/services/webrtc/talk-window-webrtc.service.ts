@@ -10,7 +10,7 @@ import { CoreAppUtilityService } from '../util/core-app-utility.service';
 import { TalkWindowContextService } from '../context/talk-window-context.service';
 import { MessageService } from '../message/message.service';
 import { CreateDataChannelType } from '../contracts/CreateDataChannelType';
-import { WebrctCallbackContextType as CallbackContextType } from '../contracts/WebrtcCallbackContextType';
+import { CallbackContextType } from '../contracts/WebrtcCallbackContextType';
 
 /**
  * this service contains all the webrtc related reusable logic chunks which app
@@ -138,34 +138,13 @@ export class TalkWindowWebrtcService {
          * 
          * process onnegotiationneeded event here
          */
-        peerConnection.onnegotiationneeded = async () => {
+        peerConnection.onnegotiationneeded = async (event) => {
           LoggerUtil.log(userToChat + ' webrtc connection needs renegotiation');
-
-          // peerConnection.createOffer().then((offer: any) => {
-          //   peerConnection.setLocalDescription(offer);
-
-          //   /**
-          //    * 
-          //    * send the offer payload
-          //    */
-          //   this.sendPayload({
-          //     type: AppConstants.OFFER,
-          //     from: this.userContextService.username,
-          //     to: this.userContextService.username,
-          //     channel: AppConstants.CONNECTION,
-          //     offer: offer,
-          //     renegotiate: true
-          //   });
-          // }).catch((error: any) => {
-          //   LoggerUtil.log('There is an error while sending renegotiation offer to ' + userToChat);
-          //   LoggerUtil.log(error);
-          // });
-
         };
 
         /**
          * 
-         * @param ev 
+         * process onsignalingstatechange event here
          * 
          */
         peerConnection.onsignalingstatechange = () => {
@@ -278,61 +257,100 @@ export class TalkWindowWebrtcService {
          */
         this.registerDataChannelEvents(peerConnection, userToChat);
 
-        // switch (channel) {
+        /**
+         * register ontrack listner for 'audio','video' and 'screen' on reciver
+         * peer connection
+         *
+         */
+        peerConnection.ontrack = async (event: any) => {
+          let channel: string;
+          const kind: string = event.track.kind;
 
-        //   default:
-        //     /**
-        //      * register ontrack listner for 'audio','video' and 'screen' on reciver
-        //      * peer connection
-        //      *
-        //      */
-        //     peerConnection.ontrack = async (event: any) => {
-        //       LoggerUtil.log(channel + ' stream received');
-        //       switch (channel) {
-        //         case AppConstants.AUDIO:
-        //           /**
-        //            * reduce audio volume to 0 initially and then increase it after
-        //            * a timeout as there is received audio sometimes makes a noisy
-        //            * start
-        //            *
-        //            */
-        //           this.talkWindowSetRemoteVolumeFn(0.0);
-        //           setTimeout(() => { this.talkWindowSetRemoteVolumeFn(1.0); }, 2000);
+          /**
+           * 
+           * derive the channel here
+           */
+          if (kind === AppConstants.AUDIO) {
+            switch (this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL]) {
+              case AppConstants.VIDEO:
+                channel = AppConstants.AUDIO;
+                break;
+              case AppConstants.AUDIO:
+                channel = AppConstants.AUDIO;
+                break;
+              case AppConstants.SOUND:
+                channel = AppConstants.SOUND;
+                break;
+            }
+          } else {
+            //kind === AppConstants.VIDEO
+            switch (this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL]) {
+              case AppConstants.VIDEO:
+                channel = AppConstants.VIDEO;
+                break;
+              case AppConstants.SCREEN:
+                channel = AppConstants.SCREEN;
+                break;
+            }
+          }
+          LoggerUtil.log(channel + ' stream track received');
 
-        //           /**
-        //            * update 'haveRemoteAudioStream' media call context flag to
-        //            * keep track that a remote audio stream has been received
-        //            *
-        //            */
-        //           this.talkWindowContextService.updateBindingFlag('haveRemoteAudioStream', true, channel);
-        //           break;
+          switch (channel) {
+            case AppConstants.AUDIO:
+              /**
+               * reduce audio volume to 0 initially and then increase it after
+               * a timeout as there is received audio sometimes makes a noisy
+               * start
+               *
+               */
+              this.talkWindowSetRemoteVolumeFn(0.0);
+              setTimeout(() => { this.talkWindowSetRemoteVolumeFn(1.0); }, 2000);
 
-        //         case AppConstants.VIDEO:
+              /**
+               * update 'haveRemoteAudioStream' media call context flag to
+               * keep track that a remote audio stream has been received
+               *
+               */
+              this.talkWindowContextService.updateBindingFlag('haveRemoteAudioStream', true, channel);
+              break;
 
-        //           /**
-        //            * update 'haveRemoteVideoStream' media call context flag to
-        //            * keep track that a remote video stream has been received
-        //            *
-        //            */
-        //           this.talkWindowContextService.updateBindingFlag('haveRemoteVideoStream', true, channel);
-        //           break;
+            case AppConstants.VIDEO:
 
-        //         case AppConstants.SCREEN:
+              /**
+               * update 'haveRemoteVideoStream' media call context flag to
+               * keep track that a remote video stream has been received
+               *
+               */
+              this.talkWindowContextService.updateBindingFlag('haveRemoteVideoStream', true, channel);
+              break;
 
-        //           /**
-        //            * update 'haveRemoteVideoStream' media call context flag to
-        //            * keep track that a remote video stream has been received
-        //            *
-        //            */
-        //           this.talkWindowContextService.updateBindingFlag('haveRemoteVideoStream', true, channel);
-        //       }
-        //       /**
-        //        * attach remote media stream in appropriate media tag on UI
-        //        *
-        //        */
-        //       this.talkWindowOnMediaStreamReceivedFn(new MediaStream([event.track]), channel, false);
-        //     }
-        // }
+            case AppConstants.SCREEN:
+
+              /**
+               * update 'haveRemoteVideoStream' media call context flag to
+               * keep track that a remote video stream has been received
+               *
+               */
+              this.talkWindowContextService.updateBindingFlag('haveRemoteVideoStream', true, channel);
+          }
+          /**
+           * attach remote media stream in appropriate media tag on UI
+           *
+           */
+          this.talkWindowOnMediaStreamReceivedFn(new MediaStream([event.track]), channel, false);
+
+          /**
+           * 
+           * send remote track received event message to other peer 
+           */
+          this.sendPayload({
+            type: AppConstants.WEBRTC_EVENT,
+            channel: channel,
+            event: AppConstants.WEBRTC_EVENTS.REMOTE_TRACK_RECEIVED,
+            from: this.userContextService.username,
+            to: userToChat
+          });
+        }
         resolve();
       } catch (error) {
         LoggerUtil.log('there is an error while registering events on peer connection');
@@ -488,14 +506,11 @@ export class TalkWindowWebrtcService {
         if (this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME]) {
 
           /**
-           * 
-           * a. get the username of the user to whom media stream request has
-           * been made
+           *
            *
            * b. get the media stream request type from media call context
            *
            */
-          const userToChat = this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME];
           const channel = this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL];
 
           /**
@@ -1503,7 +1518,7 @@ export class TalkWindowWebrtcService {
            * to be sent to other user
            *
            */
-          const offerContainer: any = await this.coreWebrtcService.generateOffer(peerConnection, createDataChannelType.channel);
+          const offerContainer: any = await this.coreWebrtcService.getDataChannelOffer(peerConnection, createDataChannelType.channel);;
           const dataChannel: any = offerContainer.dataChannel;
           LoggerUtil.log('registered message listener on ' + createDataChannelType.channel + ' data channel');
 

@@ -5,9 +5,9 @@ import { environment } from '../../../environments/environment';
  */
 export class LoggerUtil {
 
-  public static log(msgToLog: any) {
+  public static log(message: any) {
     if (!environment.production || environment.is_native_app) {
-      console.log(msgToLog);
+      console.log(message);
     }
   }
 }

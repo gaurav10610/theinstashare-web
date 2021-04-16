@@ -132,28 +132,27 @@ export class CoreWebrtcService {
    * the basis of supplied media type
    *
    * @param peerConnection webrtc peer connection for which offer has to be generated
+   * 
+   * @param channel channel for generating webrtc offer
    *
-   * @param mediaChannel webrtc connection's media type for connection means the
-   * type of media data that we will relay on this connection e.g 'text','video'
-   * or 'audio'
+   * @param requiredMediaTracks required media tracks which needs to captured and has to be added on the peer connection
    *
    * @return a promise containing generated offer payload
    *
    */
-  generateOffer(peerConnection: any, mediaChannel: string) {
+  generateOfferWithMediaTracks(peerConnection: any, channel: string, requiredMediaTracks: string[]) {
     return new Promise(async (resolve, reject) => {
       try {
-        /**
-         * @TODO convert to switch statement later
-         */
-        if (mediaChannel === AppConstants.TEXT || mediaChannel === AppConstants.FILE || mediaChannel === AppConstants.REMOTE_CONTROL) {
-          const offerPayload = await this.getDataChannelOffer(peerConnection, mediaChannel);
-          resolve(offerPayload);
-        } else {
-          const stream: any = await this.getMediaStream(mediaChannel);
-          const offerPayload = await this.getMediaStreamOffer(peerConnection, stream, mediaChannel);
-          resolve(offerPayload);
+        const mediaStreams: any[] = [];
+        for (let i = 0; i < requiredMediaTracks.length; i++) {
+          const stream: any = await this.getMediaStream(requiredMediaTracks[i]);
+          mediaStreams.push({
+            channel: requiredMediaTracks[i],
+            stream: stream
+          });
         }
+        const offerPayload = await this.getMediaStreamOffer(peerConnection, channel, mediaStreams);
+        resolve(offerPayload);
       } catch (error) {
         LoggerUtil.log('There is an error while generating offer on peer connection');
         reject(error);
@@ -174,7 +173,7 @@ export class CoreWebrtcService {
    * @return a promise containing generated offer payload
    *
    */
-  private getDataChannelOffer(peerConnection: any, mediaChannel: string) {
+  public getDataChannelOffer(peerConnection: any, mediaChannel: string) {
     return new Promise(async (resolve, reject) => {
       /**
        * open data channe here
@@ -203,35 +202,40 @@ export class CoreWebrtcService {
    *
    * @param peerConnection webrtc peer connection for which offer has to be generated
    *
-   * @param mediaStream captured media stream that needs to be attached
+   * @param channel channel for generating webrtc offer
    *
-   * @param mediaChannel webrtc connection's media type for connection means the
-   * type of media data that we will relay on this connection e.g 'text','video'
-   * or 'audio'
+   * @param mediaStreams this contains media stream captured for each media channel
    *
    * @return a promise containing generated offer payload
    */
-  private getMediaStreamOffer(peerConnection: any, mediaStream: any, mediaChannel: string) {
+  private getMediaStreamOffer(peerConnection: any, channel: string, mediaStreams: any) {
     return new Promise((resolve, reject) => {
-      switch (mediaChannel) {
-        case AppConstants.AUDIO:
-          peerConnection.addTrack(mediaStream.getAudioTracks()[0]);
-          break;
-        case AppConstants.SOUND:
-          peerConnection.addTrack(mediaStream.getAudioTracks()[0]);
-          break;
-        default:
-          peerConnection.addTrack(mediaStream.getVideoTracks()[0]);
-      }
+      mediaStreams.forEach((streamContext: any) => {
+
+        /**
+         * 
+         * add media stream track on the webrtc peer connecion
+         */
+        switch (channel) {
+          case AppConstants.AUDIO:
+            peerConnection.addTrack(streamContext.stream.getAudioTracks()[0]);
+            break;
+          case AppConstants.SOUND:
+            peerConnection.addTrack(streamContext.stream.getAudioTracks()[0]);
+            break;
+          default:
+            peerConnection.addTrack(streamContext.stream.getVideoTracks()[0]);
+        }
+      });
       peerConnection.createOffer().then((offer: any) => {
         peerConnection.setLocalDescription(offer);
         resolve({
           offerPayload: {
             type: AppConstants.OFFER,
             offer: offer,
-            channel: mediaChannel
+            channel: channel
           },
-          stream: mediaStream
+          mediaStreams: mediaStreams
         });
       }).catch((error: any) => {
         LoggerUtil.log('There is an error while generating offer on peer connection.');
@@ -334,6 +338,78 @@ export class CoreWebrtcService {
             answer: answer,
             channel: mediaChannel
           }
+        });
+      }).catch((error: any) => {
+        LoggerUtil.log('there is an error while generating answer');
+        reject(error);
+      }); // Here ends create answer
+    });
+  }
+
+  /**
+  * this will generate appropriate answer on provided webrtc peer connection on
+  * the basis of supplied media type
+  *
+  * @param offer received webrtc offer
+  *
+  * @param peerConnection webrtc peer connection for which answer has to be generated
+  *
+  * @param mediaChannel media channel for which the webrtc answer needs to be generated
+  * 
+  * @param requiredMediaTracks required media tracks which needs to be captured and added on webrtc connection
+  *
+  * @return a promise with generated answer
+  */
+  generateAnswerWithTracks(peerConnection: any, offer: RTCSessionDescriptionInit, channel: string, requiredMediaTracks: string[]) {
+    return new Promise(async (resolve, reject) => {
+      peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+      const mediaStreams: any[] = [];
+      for (let i = 0; i < requiredMediaTracks.length; i++) {
+        const stream: any = await this.getMediaStream(requiredMediaTracks[i]);
+        mediaStreams.push({
+          channel: requiredMediaTracks[i],
+          stream: stream
+        });
+      }
+
+      mediaStreams.forEach((streamContext: any) => {
+
+        /**
+         * 
+         * add media stream track on the webrtc peer connecion
+         */
+        switch (channel) {
+          case AppConstants.AUDIO:
+            peerConnection.addTrack(streamContext.stream.getAudioTracks()[0]);
+            break;
+          case AppConstants.SOUND:
+            peerConnection.addTrack(streamContext.stream.getAudioTracks()[0]);
+            break;
+          default:
+            peerConnection.addTrack(streamContext.stream.getVideoTracks()[0]);
+        }
+      });
+
+      peerConnection.createAnswer().then(async (newAnswer: any) => {
+
+        /**
+         * before setting local session description on webrtc peer connection, app
+         * will modify the max bitrate that webrtc peer connection can use
+         *
+         */
+        const maxBitrate = this.coreAppUtilService.getMaxBitrateForSdpModification(channel);
+        const sdpMediaType = this.coreAppUtilService.getMediaTypeForSdpModification(channel);
+        const modifiedSdp: any = await this.setMediaBitrate(newAnswer.sdp, sdpMediaType, maxBitrate);
+        const answer: any = new RTCSessionDescription({ type: 'answer', sdp: modifiedSdp });
+
+        peerConnection.setLocalDescription(answer);
+        resolve({
+          answerPayload: {
+            type: AppConstants.ANSWER,
+            answer: answer,
+            channel: channel
+          },
+          mediaStreams: mediaStreams
         });
       }).catch((error: any) => {
         LoggerUtil.log('there is an error while generating answer');

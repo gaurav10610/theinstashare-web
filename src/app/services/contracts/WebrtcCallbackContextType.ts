@@ -1,4 +1,4 @@
-export interface WebrctCallbackContextType {
+export interface CallbackContextType {
 
     /**
      * 

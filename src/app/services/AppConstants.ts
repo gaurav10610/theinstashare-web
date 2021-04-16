@@ -7,7 +7,8 @@ export class AppConstants {
   public static DATACHANNEL = 'dataChannel';
 
   public static WEBRTC_EVENTS = {
-    CHANNEL_OPEN: 'channelOpen'
+    CHANNEL_OPEN: 'channelOpen',
+    REMOTE_TRACK_RECEIVED: 'remoteTrack'
   };
 
   // User's chatMessages
