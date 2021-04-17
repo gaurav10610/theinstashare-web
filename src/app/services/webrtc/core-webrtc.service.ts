@@ -102,17 +102,6 @@ export class CoreWebrtcService {
   }
 
   /**
-   * this will handle the processing of any 'offer' type message received
-   *
-   * @param signalingMessage received signaling message
-   *
-   */
-  async handleOffer(signalingMessage: any) {
-    const peerConnection: any = this.userContextService.getUserWebrtcContext(signalingMessage.from)[AppConstants.CONNECTION];
-    return this.generateAnswer(peerConnection, signalingMessage.offer, signalingMessage.channel);
-  }
-
-  /**
    * this will handle the processing of any 'candidate' type message received
    *
    * @param signalingMessage received signaling message
@@ -210,7 +199,8 @@ export class CoreWebrtcService {
    */
   private getMediaStreamOffer(peerConnection: any, channel: string, mediaStreams: any) {
     return new Promise((resolve, reject) => {
-      mediaStreams.forEach((streamContext: any) => {
+      for (let i = 0; i < mediaStreams.length; i++) {
+        const streamContext = mediaStreams[i];
 
         /**
          * 
@@ -218,15 +208,19 @@ export class CoreWebrtcService {
          */
         switch (channel) {
           case AppConstants.AUDIO:
-            peerConnection.addTrack(streamContext.stream.getAudioTracks()[0]);
+            streamContext[AppConstants.TRACK] = streamContext.stream.getAudioTracks()[0];
+            streamContext[AppConstants.TRACK_SENDER] = peerConnection.addTrack(streamContext.stream.getAudioTracks()[0]);
             break;
           case AppConstants.SOUND:
-            peerConnection.addTrack(streamContext.stream.getAudioTracks()[0]);
+            streamContext[AppConstants.TRACK] = streamContext.stream.getAudioTracks()[0];
+            streamContext[AppConstants.TRACK_SENDER] = peerConnection.addTrack(streamContext.stream.getAudioTracks()[0]);
             break;
           default:
-            peerConnection.addTrack(streamContext.stream.getVideoTracks()[0]);
+            streamContext[AppConstants.TRACK] = streamContext.stream.getVideoTracks()[0];
+            streamContext[AppConstants.TRACK_SENDER] = peerConnection.addTrack(streamContext.stream.getVideoTracks()[0]);
         }
-      });
+      }
+
       peerConnection.createOffer().then((offer: any) => {
         peerConnection.setLocalDescription(offer);
         resolve({
@@ -366,29 +360,27 @@ export class CoreWebrtcService {
       const mediaStreams: any[] = [];
       for (let i = 0; i < requiredMediaTracks.length; i++) {
         const stream: any = await this.getMediaStream(requiredMediaTracks[i]);
-        mediaStreams.push({
-          channel: requiredMediaTracks[i],
-          stream: stream
-        });
-      }
-
-      mediaStreams.forEach((streamContext: any) => {
-
+        const streamContext: any = {};
         /**
          * 
          * add media stream track on the webrtc peer connecion
          */
         switch (channel) {
           case AppConstants.AUDIO:
-            peerConnection.addTrack(streamContext.stream.getAudioTracks()[0]);
+            streamContext[AppConstants.TRACK] = stream.getAudioTracks()[0];
+            streamContext[AppConstants.TRACK_SENDER] = peerConnection.addTrack(stream.getAudioTracks()[0]);
             break;
           case AppConstants.SOUND:
-            peerConnection.addTrack(streamContext.stream.getAudioTracks()[0]);
+            streamContext[AppConstants.TRACK] = stream.getAudioTracks()[0];
+            streamContext[AppConstants.TRACK_SENDER] = peerConnection.addTrack(stream.getAudioTracks()[0]);
             break;
           default:
-            peerConnection.addTrack(streamContext.stream.getVideoTracks()[0]);
+            streamContext[AppConstants.TRACK] = stream.getVideoTracks()[0];
+            streamContext[AppConstants.TRACK_SENDER] = peerConnection.addTrack(stream.getVideoTracks()[0]);
         }
-      });
+        streamContext[AppConstants.CHANNEL] = requiredMediaTracks[i];
+        mediaStreams.push(streamContext);
+      }
 
       peerConnection.createAnswer().then(async (newAnswer: any) => {
 
@@ -445,75 +437,21 @@ export class CoreWebrtcService {
   }
 
   /**
-   * this is the cleanup routine for cleaning webrtc peer connections which carries
-   * media data i.e 'audio' or 'video' media tracks
-   *
-   * @param channel webrtc connection's media type for connection means the
-   * type of media data that we will relay on this connection e.g 'text','video'
-   * or 'audio'
-   *
-   * @param mediaContext appropriate webrtc media context from user's webrtc context
-   * 
-   * @param isSenderConnection boolean flag to distinguish between sender and
-   * receive audio/video peer connections
-   *
-   * @return a promise
-   */
-  cleanWebrtcMediaConnection(channel: string, mediaContext: any, isSenderConnection: boolean) {
-    return new Promise<void>((resolve) => {
-      const connectionType = this.coreAppUtilService.getConnectionIdentifier(channel, isSenderConnection);
-      if (mediaContext[connectionType]) {
-        LoggerUtil.log('cleaning ' + channel + ' ' + connectionType + ' connection');
-
-        /**
-         * call the webrtc peer connection cleanup routine
-         */
-        this.cleanRTCPeerConnection(mediaContext[connectionType], true);
-
-        /**
-         * if we're cleaning the sender webrtc peer connection then stop the
-         * local stream capturing
-         *
-         */
-        if (isSenderConnection && (!this.userContextService.isNativeApp && channel !== AppConstants.SOUND)) {
-          this.stopLocalStream(mediaContext[AppConstants.STREAM]);
-        }
-      }
-      resolve();
-    });
-  }
-
-  /**
-   * this will stop capturing supplied local stream
-   *
-   * @param stream local media stream that needs to be stoppped
-   *
-   */
-  stopLocalStream(stream: any) {
-    stream.getTracks().forEach((track: any) => {
-      track.stop();
-    });
-  }
-
-  /**
    * this is just cleanup subroutine for cleaning any webrtc peer connection
    *
    * @param peerConnection webrtc peer connection that needs to be cleaned
    *
-   * @param isMediaConnection flag to specify if the connection that needs to be
-   * cleaned was meant to carry media data i.e 'audio' or 'video' media stream tracks
-   *
    * @return a promise
    */
-  cleanRTCPeerConnection(peerConnection: any, isMediaConnection: boolean) {
+  cleanRTCPeerConnection(peerConnection: any) {
     return new Promise<void>((resolve) => {
-      if (isMediaConnection) {
-        peerConnection.ontrack = null;
-      }
+      peerConnection.ondatachannel = null;
+      peerConnection.ontrack = null;
       peerConnection.onicecandidate = null;
       peerConnection.onconnectionstatechange = null;
+      peerConnection.onsignalingstatechange = null;
+      peerConnection.onnegotiationneeded = null;
       peerConnection.close();
-      peerConnection = null;
       resolve();
     });
   }
@@ -526,11 +464,11 @@ export class CoreWebrtcService {
    * @return a promise
    */
   cleanDataChannel(dataChannel: any) {
-    return new Promise(() => {
+    return new Promise<void>((resolve) => {
       dataChannel.onerror = null;
       dataChannel.onmessage = null;
       dataChannel.close();
-      dataChannel = null;
+      resolve();
     });
   }
 

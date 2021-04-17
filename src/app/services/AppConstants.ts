@@ -55,7 +55,9 @@ export class AppConstants {
 
   public static DECLINE = 'decline';
 
-  public static STREAM = 'stream';
+  public static TRACK = 'track';
+
+  public static TRACK_SENDER = 'trackSender';
 
   public static MODAL_TEXT = 'modalText';
 

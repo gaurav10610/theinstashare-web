@@ -1,3 +1,4 @@
+import { APP_BASE_HREF } from '@angular/common';
 import { Injectable } from '@angular/core';
 import { AppConstants } from '../AppConstants';
 import { UserContextService } from '../context/user.context.service';
@@ -216,7 +217,7 @@ export class CoreAppUtilityService {
    * @param channel: media type audio/video/text 
    * 
    */
-  getMaxBitrateForSdpModification(channel) {
+  getMaxBitrateForSdpModification(channel: string) {
     let bitrate = 500;
     switch (channel) {
       case AppConstants.VIDEO:
@@ -242,5 +243,25 @@ export class CoreAppUtilityService {
         break;
     }
     return bitrate;
+  }
+
+  /**
+   * 
+   * check if provided channel uses data channel
+   * 
+   * @param channel type of media i.e 'text', 'file' or 'remoteControl'
+   */
+  isDataChannel(channel: string): boolean {
+    return [AppConstants.TEXT, AppConstants.FILE, AppConstants.REMOTE_CONTROL].indexOf(channel) > -1;
+  }
+
+  /**
+   * 
+   * check if provided channel uses data channel
+   * 
+   * @param channel type of media i.e 'audio', 'video' etc
+   */
+  isMediaChannel(channel: string): boolean {
+    return [AppConstants.VIDEO, AppConstants.AUDIO, AppConstants.SCREEN, AppConstants.SOUND].indexOf(channel) > -1;
   }
 }
