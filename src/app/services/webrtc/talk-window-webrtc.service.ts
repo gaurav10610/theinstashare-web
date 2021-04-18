@@ -678,6 +678,21 @@ export class TalkWindowWebrtcService {
           this.coreWebrtcService.cleanDataChannel(mediaChannelContext[AppConstants.DATACHANNEL]);
           mediaChannelContext[AppConstants.DATACHANNEL] = undefined;
           mediaChannelContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.NOT_CONNECTED;
+
+          if (channel === AppConstants.REMOTE_CONTROL) {
+            /**
+             * if user is accessing remote machine then remove all the event listners 
+             * remove all event listeners from canvas
+             */
+            if (this.talkWindowContextService.bindingFlags.isAccessingRemote) {
+              this.talkWindowContextService.bindingFlags.isAccessingRemote = false;
+              this.appUtilService.removeRemoteAccessEventListeners(this.talkWindowContextService.canvasUnlistenFunctions);
+            }
+
+            if (this.talkWindowContextService.bindingFlags.haveSharedRemoteAccess) {
+              this.talkWindowContextService.bindingFlags.haveSharedRemoteAccess = false;
+            }
+          }
         }
         resolve();
       } catch (error: any) {
@@ -802,71 +817,6 @@ export class TalkWindowWebrtcService {
       this.coreWebrtcService.cleanRTCPeerConnection(webrtcContext[AppConstants.CONNECTION]);
       webrtcContext[AppConstants.CONNECTION] = undefined;
       webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.NOT_CONNECTED;
-      resolve();
-    });
-  }
-
-  /**
-   * this will handle any data webrtc peer connection's(connections that were
-   * meant to carry remote access related data via data channel) disconnect state event
-   * 
-   * @param autoDisconnected this will be set when connection is auto disconnected
-   * and not disconnected deliberetely though some user action
-   *
-   * @param channel webrtc connection's media type for connection means the
-   * type of media data that we will relay on this connection e.g 'text','video'
-   * , 'audio' or 'remoteControl'
-   *
-   * @param username username of the user with whom this connection was connected
-   * 
-   * @param sendDisonnectNotification flag to specify whether to send disconnect notification 
-   * to other user
-   *
-   * @return a promise
-   */
-  remoteAccessConnectionDisconnectHandler(autoDisconnected: boolean, channel: string, username: string,
-    sendDisonnectNotification: boolean, popupContext?: any) {
-    return new Promise<void>(async (resolve) => {
-      LoggerUtil.log("ending remote access session");
-
-      /**
-       * if connection is deliberetely closed through some user action then remove
-       * the disconnect listener from peer connection
-       *
-       */
-      if (!autoDisconnected) {
-        const peerConnection: any = await this.coreAppUtilService.getAppropriatePeerConnection(username, AppConstants.REMOTE_CONTROL, true);
-        if (peerConnection) {
-          peerConnection.onconnectionstatechange = null;
-        }
-      }
-
-      /**
-       * if user is accessing remote machine then remove all the event listners 
-       * remove all event listeners from canvas
-       */
-      if (this.talkWindowContextService.bindingFlags.isAccessingRemote) {
-        this.talkWindowContextService.bindingFlags.isAccessingRemote = false;
-        this.appUtilService.removeRemoteAccessEventListeners(this.talkWindowContextService.canvasUnlistenFunctions);
-      }
-
-      if (this.talkWindowContextService.bindingFlags.haveSharedRemoteAccess) {
-        this.talkWindowContextService.bindingFlags.haveSharedRemoteAccess = false;
-      }
-
-      this.processMediaStreamDisconnect(channel, username, sendDisonnectNotification, popupContext);
-      // this.appUtilService.appRef.tick();
-
-      /**
-       * disconnect remote control connection
-       */
-      let mediaContext: any = this.coreAppUtilService.getNestedValue(
-        this.userContextService.getUserWebrtcContext(username), AppConstants.MEDIA_CONTEXT);
-      if (mediaContext[channel]) {
-        await this.coreWebrtcService.cleanDataChannel(mediaContext[channel].dataChannel);
-        await this.coreWebrtcService.cleanRTCPeerConnection(mediaContext[channel][AppConstants.SENDER]);
-        delete mediaContext[channel];
-      }
       resolve();
     });
   }
