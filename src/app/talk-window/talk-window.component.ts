@@ -1504,12 +1504,12 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      *
      */
     this.talkWindowContextService.bindingFlags.isOnMute = !this.talkWindowContextService.bindingFlags.isOnMute;
-    const webrtcContext = this.userContextService.getUserWebrtcContext(this.userContextService.userToChat);
+    const webrtcContext: any = this.userContextService.getUserWebrtcContext(this.userContextService.userToChat);
 
     /**
      * get user's local audio track and then enable/disable the track
      */
-    const localAudioTrack: any = webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.AUDIO].stream.getAudioTracks()[0];
+    const localAudioTrack: any = webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.AUDIO][AppConstants.TRACK];
     localAudioTrack.enabled = !this.talkWindowContextService.bindingFlags.isOnMute;
     this.talkWindowUtilService.appRef.tick();
   }
@@ -1589,18 +1589,18 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      *
      */
     const currentCamera = this.userContextService.defaultCamera;
+    const userToChat: string = this.userContextService.userToChat;
     this.userContextService.defaultCamera = currentCamera === 'user' ? 'environment' : 'user';
-    const userContext = this.userContextService.getUserWebrtcContext(this.userContextService.userToChat);
+    const webrtcContext: any = this.userContextService.getUserWebrtcContext(userToChat);
 
     /**
      * as video stream from different camera has to be captured then we also
-     * need to renegotiate the webrtc connections again and for that firly
-     * existing media streaming needs to be stopped
+     * need to renegotiate the webrtc connection again and for that firstly
+     * existing media stream track needs to be stopped
      *
      */
-    //this.coreWebrtcService.stopLocalMediaStream(userContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][AppConstants.STREAM]);
-
-    const peerConnection = userContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][AppConstants.SENDER];
+    webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][AppConstants.TRACK].stop();
+    webrtcContext[AppConstants.CONNECTION].removeTrack(webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][AppConstants.TRACK_SENDER]);
 
     /**
      *
@@ -1611,35 +1611,36 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      * to be sent to other user
      *
      */
-    // const offerContainer: any = await this.coreWebrtcService.generateOfferWithMediaTracks(peerConnection, AppConstants.VIDEO);
+    const offerContainer: any = await this.coreWebrtcService
+      .generateOfferWithMediaTracks(webrtcContext[AppConstants.CONNECTION], AppConstants.VIDEO, [AppConstants.VIDEO]);
 
-    // /**
-    //  * send the composed 'offer' signaling message to the other user
-    //  *
-    //  * @property 'renegotiate' will be set in the 'offer' signaling message in
-    //  * order to notify receiver that, this offer message is meant for renegotiating
-    //  * an existing webrtc connection
-    //  *
-    //  */
-    // this.webrtcService.sendPayload({
-    //   type: offerContainer.offerPayload.type,
-    //   offer: offerContainer.offerPayload.offer,
-    //   channel: offerContainer.offerPayload.channel,
-    //   from: this.userContextService.username,
-    //   to: this.userContextService.userToChat,
-    //   seekReturnOffer: false,
-    //   renegotiate: true
-    // });
+    /**
+     * send the composed 'offer' signaling message to the other user
+     *
+     * @property 'renegotiate' will be set in the 'offer' signaling message in
+     * order to notify receiver that, this offer message is meant for renegotiating
+     * an existing webrtc connection
+     *
+     */
+    this.webrtcService.sendPayload({
+      type: offerContainer.offerPayload.type,
+      offer: offerContainer.offerPayload.offer,
+      channel: offerContainer.offerPayload.channel,
+      from: this.userContextService.username,
+      to: this.userContextService.userToChat,
+      renegotiate: true
+    });
 
-    // /**
-    //  * set the local media stream in user's webrtc context
-    //  */
-    // userContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][AppConstants.STREAM] = offerContainer.stream;
+    /**
+     * set the local media stream track in user's webrtc context
+     */
+    webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][AppConstants.TRACK] = offerContainer.mediaStreams[0][AppConstants.TRACK];
+    webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][AppConstants.TRACK_SENDER] = offerContainer.mediaStreams[0][AppConstants.TRACK_SENDER];
 
-    // /**
-    //  * render the local media stream appropriate media tag on UI
-    //  */
-    // this.onMediaStreamReceived(offerContainer.stream, AppConstants.VIDEO, true);
+    /**
+     * render the local media stream appropriate media tag on UI
+     */
+    this.onMediaStreamReceived(offerContainer.mediaStreams[0][AppConstants.STREAM], AppConstants.VIDEO, true);
   }
 
   /**
@@ -2014,7 +2015,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * 
    * @param fileName name of the received file
    */
-  downloadFile(contentId: string, fileName: string, event) {
+  downloadFile(contentId: string, fileName: string, event: any) {
     event.stopImmediatePropagation();
     const downloadAnchor = this.renderer.createElement('a');
     this.renderer.setProperty(downloadAnchor, 'href', this.talkWindowContextService.sharedContent[contentId]);
