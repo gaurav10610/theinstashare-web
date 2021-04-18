@@ -16,7 +16,6 @@ import { MessageService } from '../services/message/message.service';
 import { CreateDataChannelType } from '../services/contracts/CreateDataChannelType';
 import { StartMediaStreamType } from '../services/contracts/startMediaStreamType';
 import { CallbackContextType } from '../services/contracts/WebrtcCallbackContextType';
-import { APP_BASE_HREF } from '@angular/common';
 
 @Component({
   selector: 'app-talk-window',
@@ -308,7 +307,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           break;
 
         default:
-          LoggerUtil.log('received unknown message type: ' + signalingMessage.type);
+          LoggerUtil.log('received unknown signaling message with type: ' + signalingMessage.type);
       }
       this.talkWindowUtilService.appRef.tick();
     } catch (err) {
@@ -451,21 +450,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
                *
                */
               switch (streamContext.channel) {
-                case AppConstants.SOUND:
-                  this.talkWindowContextService.updateBindingFlag('isSoundSharing', true, answerContainer.channel);
-                  break;
-
-                case AppConstants.SCREEN:
-                  this.talkWindowContextService.updateBindingFlag('isScreenSharing', true, streamContext.channel);
-                  this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', true, streamContext.channel);
-
-                  /**
-                   * set local media stream in appropriate media tag on UI
-                   *
-                   */
-                  this.onMediaStreamReceived(streamContext[AppConstants.STREAM], AppConstants.VIDEO, true);
-                  break;
-
                 case AppConstants.AUDIO:
                   this.talkWindowContextService.updateBindingFlag('haveLocalAudioStream', true, streamContext.channel);
                   break;
@@ -747,7 +731,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          * Currently, this property is set for audio and video calls as screen
          * sharing and system sound sharing is one way streaming
          */
-        this.webrtcService.sendPayload({
+        let offerPayload = {
           type: offerContainer.offerPayload.type,
           offer: offerContainer.offerPayload.offer,
           channel: offerContainer.offerPayload.channel,
@@ -755,7 +739,15 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           to: username,
           renegotiate: true,
           seekReturnTracks: startMediaStreamType.requiredMediaTracks
-        });
+        };
+
+        /**
+         * screen and sound streaming is one way only so don't seek any tracks in return
+         */
+        if (startMediaStreamType.channel === AppConstants.SCREEN || startMediaStreamType.channel === AppConstants.SOUND) {
+          delete offerPayload['seekReturnTracks'];
+        }
+        this.webrtcService.sendPayload(offerPayload);
 
         /**
          * 
@@ -2231,7 +2223,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       /**
        * @value 'decline' means that, the sent remote access request has been
        * declined so if user himself/herself has already disconnected the
-       * request then do nothing else dislay appropriate modal popup message
+       * request then do nothing else display appropriate modal popup message
        * on UI
        *
        */

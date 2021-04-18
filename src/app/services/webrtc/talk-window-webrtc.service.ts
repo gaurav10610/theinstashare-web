@@ -335,6 +335,17 @@ export class TalkWindowWebrtcService {
           this.talkWindowContextService.updateBindingFlag('haveRemoteAudioStream', true, channel);
           break;
 
+          case AppConstants.SOUND:
+  
+            /**
+             * update 'haveRemoteAudioStream' media call context flag to
+             * keep track that a remote audio stream has been received
+             *
+             */
+            this.talkWindowContextService.updateBindingFlag('haveRemoteAudioStream', true, channel);
+            this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
+            break;          
+
         case AppConstants.VIDEO:
 
           /**
@@ -353,6 +364,8 @@ export class TalkWindowWebrtcService {
            *
            */
           this.talkWindowContextService.updateBindingFlag('haveRemoteVideoStream', true, channel);
+          this.talkWindowContextService.updateBindingFlag('isScreenSharing', true, channel);
+          this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
       }
       /**
        * attach remote media stream in appropriate media tag on UI
