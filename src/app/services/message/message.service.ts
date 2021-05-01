@@ -28,7 +28,8 @@ export class MessageService {
     'reconnect_screen': 'reconnecting screen stream ',
     'noconnect_audio': 'unable to connect audio stream',
     'noconnect_video': 'unable to connect video stream',
-    'noconnect_screen': 'unable to connect screen stream'
+    'noconnect_screen': 'unable to connect screen stream',
+    'noconnect_sound': 'unable to connect sound stream'
   }
 
   /**

@@ -138,6 +138,8 @@ export class AppConstants {
 
   public static APPLICATION = 'application';
 
+  public static TIMEOUT_JOB = 'timeout_job';
+
   /* User status constants*/
   public static USER_STATUSES = {
     BUSY: 'busy',

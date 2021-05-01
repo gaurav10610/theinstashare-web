@@ -335,7 +335,6 @@ export class TalkWindowWebrtcService {
            *
            */
           this.talkWindowContextService.updateBindingFlag('haveRemoteAudioStream', true, channel);
-          this.talkWindowContextService.updateBindingFlag('isSoundSharing', true, channel);
           this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
           break;
 
@@ -357,7 +356,6 @@ export class TalkWindowWebrtcService {
            *
            */
           this.talkWindowContextService.updateBindingFlag('haveRemoteVideoStream', true, channel);
-          this.talkWindowContextService.updateBindingFlag('isScreenSharing', true, channel);
           this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
       }
       /**
@@ -377,6 +375,33 @@ export class TalkWindowWebrtcService {
         from: this.userContextService.username,
         to: userToChat
       });
+
+      const webrtcContext: any = this.userContextService.getUserWebrtcContext(userToChat);
+      let connected: boolean = false;
+      /**
+       * 
+       * remove the timeout cleanup job
+       */
+      if (channel === AppConstants.SCREEN || AppConstants.SOUND) {
+        connected = true;
+      } else if (channel === AppConstants.AUDIO) {
+        if (this.talkWindowContextService.bindingFlags.haveLocalAudioStream
+          && this.talkWindowContextService.bindingFlags.haveRemoteAudioStream) {
+          connected = true;
+        }
+      } else {
+        //channel === 'video'
+        if (this.talkWindowContextService.bindingFlags.haveLocalVideoStream
+          && this.talkWindowContextService.bindingFlags.haveRemoteVideoStream) {
+          connected = true;
+        }
+      }
+      if (connected) {
+        if (webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TIMEOUT_JOB]) {
+          LoggerUtil.log('media stream connection for ' + channel + ' is connected so removing timeout cleaning job');
+          clearTimeout(webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TIMEOUT_JOB]);
+        }
+      }
     }
   }
 
@@ -696,6 +721,85 @@ export class TalkWindowWebrtcService {
         reject(error);
       }
     });
+  }
+
+  /**
+   * this will check whether the media streaming is connected after specified amount of time,
+   * if connected well and good else this will clean up the media call context followed by media context 
+   * cleanup 
+   * 
+   * @param username username of the user with whom media streaming has to be done
+   * 
+   * @param channel media type of stream
+   */
+  cleanMediaContextIfNotConnected(username: string, channel: string) {
+    /**
+     * initialize webrtc context if not yet initialized
+     */
+    if (!this.userContextService.hasUserWebrtcContext(username)) {
+      this.userContextService.initializeUserWebrtcContext(username);
+    }
+    this.coreWebrtcService.mediaContextInit(channel, username);
+    const webrtcContext: any = this.userContextService.getUserWebrtcContext(username);
+    webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TIMEOUT_JOB] = setTimeout(() => {
+      let connected: boolean = false;
+      switch (channel) {
+        case AppConstants.SCREEN:
+          if (this.talkWindowContextService.bindingFlags.haveLocalVideoStream
+            || this.talkWindowContextService.bindingFlags.haveRemoteVideoStream) {
+            connected = true;
+          }
+          break;
+
+        case AppConstants.SOUND:
+          if (this.talkWindowContextService.bindingFlags.haveLocalAudioStream
+            || this.talkWindowContextService.bindingFlags.haveRemoteAudioStream) {
+            connected = true;
+          }
+          break;
+
+        case AppConstants.AUDIO:
+          if (this.talkWindowContextService.bindingFlags.haveLocalAudioStream
+            && this.talkWindowContextService.bindingFlags.haveRemoteAudioStream) {
+            connected = true;
+          }
+          break;
+
+        case AppConstants.VIDEO:
+          if (this.talkWindowContextService.bindingFlags.haveLocalVideoStream
+            && this.talkWindowContextService.bindingFlags.haveRemoteVideoStream) {
+            connected = true;
+          }
+          break;
+      }
+
+      /**
+       * 
+       * if not connected after the timeout then clean the media context for the specified channel
+       */
+      if (!connected) {
+        this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
+        const popupContext: any = this.messageService.buildPopupContext(AppConstants.POPUP_TYPE.UNABLE_TO_CONNECT, channel);
+        this.appUtilService.addPopupContext(popupContext);
+        const mediaContext: any = webrtcContext[AppConstants.MEDIA_CONTEXT];
+
+        /**
+         * 
+         * clean up the media stream request context
+         */
+        this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME] = undefined;
+        this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL] = undefined;
+        setTimeout(() => { this.appUtilService.removePopupContext([popupContext.type]); }, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
+
+        // remove the track from peer connection
+        if (mediaContext[channel][AppConstants.TRACK_SENDER]) {
+          webrtcContext[AppConstants.CONNECTION].removeTrack(mediaContext[channel][AppConstants.TRACK_SENDER]);
+        }
+        this.cleanMediaStreamContext(channel, mediaContext[channel]);
+      } else {
+        LoggerUtil.log('media stream connection for ' + channel + ' channel found connected after timeout');
+      }
+    }, AppConstants.CONNECTION_TIMEOUT);
   }
 
   /***

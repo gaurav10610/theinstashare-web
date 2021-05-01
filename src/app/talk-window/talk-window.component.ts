@@ -1310,6 +1310,14 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       modalText: 'connecting....',
       channel: channel
     });
+
+    /**
+     * configure timeout job
+     */
+    this.webrtcService.cleanMediaContextIfNotConnected(userToChat, channel);
+    if (channel === AppConstants.VIDEO && !this.talkWindowContextService.bindingFlags.isAudioCalling) {
+      this.webrtcService.cleanMediaContextIfNotConnected(userToChat, AppConstants.AUDIO);
+    }
   }
 
   /**
@@ -1534,6 +1542,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         if (mediaType === AppConstants.VIDEO && !this.talkWindowContextService.bindingFlags.isAudioCalling) {
           requiredMediaTracks.push(AppConstants.AUDIO);
         }
+        requiredMediaTracks.forEach(channel => {
+          this.webrtcService.cleanMediaContextIfNotConnected(signalingMessage.from, channel);
+        });
 
         /**
          * get the media type from media call context for which user has
@@ -2260,7 +2271,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   handleWebrtcEvent(signalingMessage: any) {
     LoggerUtil.log('handling webrtc event: ' + signalingMessage.event);
-    const webrtcContext = this.userContextService.getUserWebrtcContext(signalingMessage.from);
+    const webrtcContext: any = this.userContextService.getUserWebrtcContext(signalingMessage.from);
 
     switch (signalingMessage.event) {
 
@@ -2315,6 +2326,18 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
       case AppConstants.WEBRTC_EVENTS.REMOTE_TRACK_RECEIVED:
         this.talkWindowUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + signalingMessage.channel]);
+
+        /**
+         * 'screen' & 'sound' media streaming is one-way so remove the timeout cleanup job once media stream
+         *  track is received on the other end
+         * 
+         */
+        if (signalingMessage.channel === AppConstants.SCREEN || signalingMessage.channel === AppConstants.SOUND) {
+          if (webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.TIMEOUT_JOB]) {
+            LoggerUtil.log('media stream connection for ' + signalingMessage.channel + ' is connected so removing timeout cleaning job');
+            clearTimeout(webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.TIMEOUT_JOB]);
+          }
+        }
         break;
       default:
       //do nothing here
