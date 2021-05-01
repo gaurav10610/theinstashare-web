@@ -71,7 +71,7 @@ export class CoreAppUtilityService {
    *
    */
   isDataChannelConnected(webrtcContext: any, channel: string) {
-    return this.getNestedValue(webrtcContext, AppConstants.MEDIA_CONTEXT, channel, AppConstants.DATACHANNEL, 'readyState') === 'open';
+    return this.getNestedValue(webrtcContext, AppConstants.MEDIA_CONTEXT, channel, AppConstants.CONNECTION_STATE) === AppConstants.CONNECTION_STATES.CONNECTED;
   }
 
   /**

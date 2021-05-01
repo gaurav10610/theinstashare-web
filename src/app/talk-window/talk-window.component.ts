@@ -14,7 +14,7 @@ import { CoreAppUtilityService } from '../services/util/core-app-utility.service
 import { TalkWindowContextService } from '../services/context/talk-window-context.service';
 import { MessageService } from '../services/message/message.service';
 import { CreateDataChannelType } from '../services/contracts/CreateDataChannelType';
-import { StartMediaStreamType } from '../services/contracts/startMediaStreamType';
+import { StartMediaStreamType } from '../services/contracts/StartMediaStreamType';
 import { CallbackContextType } from '../services/contracts/WebrtcCallbackContextType';
 
 @Component({
@@ -381,7 +381,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
         /**
          * 
-         * if this offer message is for renegotiating an already connection connection
+         * if this offer message is for renegotiating an already established connection
          * 
          */
         if (signalingMessage.renegotiate) {
@@ -742,7 +742,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         };
 
         /**
-         * screen and sound streaming is one way only so don't seek any tracks in return
+         * screen and sound streaming is one way only, so don't seek any tracks in return
          */
         if (startMediaStreamType.channel === AppConstants.SCREEN || startMediaStreamType.channel === AppConstants.SOUND) {
           delete offerPayload['seekReturnTracks'];
@@ -774,41 +774,23 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
            *
            *
            */
-          switch (streamContext.channel) {
-            case AppConstants.SOUND:
-              this.talkWindowContextService.updateBindingFlag('isSoundSharing', true, streamContext.channel);
-              break;
-
-            case AppConstants.SCREEN:
-              this.talkWindowContextService.updateBindingFlag('isScreenSharing', true, streamContext.channel);
-              this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', true, streamContext.channel);
-
-              /**
-               * set local media stream in appropriate media tag on UI
-               *
-               */
-              this.onMediaStreamReceived(streamContext[AppConstants.STREAM], AppConstants.VIDEO, true);
-              break;
-
-            case AppConstants.AUDIO:
-              this.talkWindowContextService.updateBindingFlag('haveLocalAudioStream', true, streamContext.channel);
-              break;
-
-            case AppConstants.VIDEO:
-              this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', true, streamContext.channel);
-
-              /**
-               * set local media stream in appropriate media tag on UI
-               *
-               */
-              this.onMediaStreamReceived(streamContext[AppConstants.STREAM], AppConstants.VIDEO, true);
+          if (streamContext.channel === AppConstants.SCREEN || streamContext.channel === AppConstants.VIDEO) {
+            this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', false, streamContext.channel);
+          } else if (streamContext.channel === AppConstants.SOUND || streamContext.channel === AppConstants.AUDIO) {
+            this.talkWindowContextService.updateBindingFlag('haveLocalAudioStream', false, streamContext.channel);
+          }
+          /**
+           * set local media stream in appropriate media tag on UI
+           */
+          if (streamContext.channel === AppConstants.VIDEO) {
+            this.onMediaStreamReceived(streamContext[AppConstants.STREAM], AppConstants.VIDEO, true);
           }
         });
       } else {
 
         /**
          * 
-         * if webrtc connection is not in connetcted state then add the setup data channel function 
+         * if webrtc connection is not in connetcted state then add the startMediaStream(...) function 
          * along with the calling context in the webrtc on connect queue
          */
         const webrtcCallbackContextType: CallbackContextType = {
@@ -977,6 +959,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
           // when data channel open request has already been raised, then just queue the messages
           if (this.coreAppUtilService.isDataChannelConnecting(webrtcContext, AppConstants.TEXT)) {
+            LoggerUtil.log('text data channel is in connecting state for user: ' + userToChat);
 
             /**
              * do nothing here as message has been queued and will be sent when
@@ -1801,7 +1784,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         webrtcContext[AppConstants.CONNECTION].removeTrack(webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TRACK_SENDER]);
       }
       await this.webrtcService.cleanMediaStreamContext(channel, webrtcContext[AppConstants.MEDIA_CONTEXT][channel]);
-
       //clean the the connections from user's webrtc context
       delete webrtcContext[AppConstants.MEDIA_CONTEXT][channel];
     }

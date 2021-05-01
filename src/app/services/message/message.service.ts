@@ -13,20 +13,22 @@ export class MessageService {
    * 
    */
   private messageMappings = {
-    'disconnecting_screen': 'disconnecting screen stream connection',
-    'disconnecting_audio': 'disconnecting audio stream connection',
-    'disconnecting_video': 'disconnecting video stream connection',
-    'disconnecting_remoteControl': 'disconnecting remote access connection',
-    'disconnect_screen': 'screen stream connection disconnected by ',
-    'disconnect_audio': 'audio stream connection disconnected by ',
-    'disconnect_video': 'video stream connection disconnected by ',
+    'disconnecting_screen': 'disconnecting screen stream',
+    'disconnecting_audio': 'disconnecting audio stream',
+    'disconnecting_video': 'disconnecting video stream',
+    'disconnecting_sound': 'disconnecting sound stream',
+    'disconnecting_remoteControl': 'disconnecting remote access',
+    'disconnect_screen': 'screen stream disconnected by ',
+    'disconnect_audio': 'audio stream disconnected by ',
+    'disconnect_video': 'video stream disconnected by ',
+    'disconnect_sound': 'sound stream disconnected by ',
     'connect_remoteControl': 'remote access has been requested to ',
-    'reconnect_audio': 'reconnecting audio stream connection ',
-    'reconnect_video': 'reconnecting video stream connection ',
-    'reconnect_screen': 'reconnecting screen stream connection ',
-    'noconnect_audio': 'unable to establish audio stream connection',
-    'noconnect_video': 'unable to establish video stream connection',
-    'noconnect_screen': 'unable to establish screen stream connection'
+    'reconnect_audio': 'reconnecting audio stream',
+    'reconnect_video': 'reconnecting video stream',
+    'reconnect_screen': 'reconnecting screen stream ',
+    'noconnect_audio': 'unable to connect audio stream',
+    'noconnect_video': 'unable to connect video stream',
+    'noconnect_screen': 'unable to connect screen stream'
   }
 
   /**
@@ -39,13 +41,10 @@ export class MessageService {
    * @param messageSuffix optional suffix for modal text
    */
   buildPopupContext(popupType: string, channel: string, messageSuffix?: string) {
-    let modalText: string = this.getModalText(popupType + '_' + channel);
-    if (messageSuffix) {
-      modalText = modalText + messageSuffix;
-    }
+    const modalText: string = this.getModalText(popupType + '_' + channel);
     return {
       type: popupType + channel,
-      modalText: modalText,
+      modalText: messageSuffix ? (modalText + messageSuffix) : modalText,
       channel: channel
     };
   }

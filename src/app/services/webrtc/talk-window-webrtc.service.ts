@@ -11,6 +11,7 @@ import { TalkWindowContextService } from '../context/talk-window-context.service
 import { MessageService } from '../message/message.service';
 import { CreateDataChannelType } from '../contracts/CreateDataChannelType';
 import { CallbackContextType } from '../contracts/WebrtcCallbackContextType';
+import { MediaContextUpdateEventType } from '../contracts/MediaContextUpdateEventType';
 
 /**
  * this service contains all the webrtc related reusable logic chunks which app
@@ -135,7 +136,6 @@ export class TalkWindowWebrtcService {
   registerWebrtcEventListeners(peerConnection: any, userToChat: any) {
     return new Promise<void>((resolve, reject) => {
       LoggerUtil.log('registering webrtc events on webrtc connection for ' + userToChat);
-      LoggerUtil.log(this.userContextService.getUserWebrtcContext(userToChat));
       try {
 
 
@@ -201,34 +201,25 @@ export class TalkWindowWebrtcService {
           switch (peerConnection.connectionState) {
             case 'disconnected':
 
+              const popupContext: any = {
+                type: AppConstants.POPUP_TYPE.DISCONNECT + AppConstants.CONNECTION,
+                channel: AppConstants.CONNECTION,
+                modalText: 'disconnected from ' + userToChat
+              };
+
               /**
                * 
                * handle the webrtc disconnection here 
                */
-              this.webrtcConnectionDisconnectHandler(userToChat);
+              await this.webrtcConnectionDisconnectHandler(userToChat, [popupContext]);
               break;
 
             case 'connected':
               /**
                * 
                * make the connection status as 'connected' in the user's webrtc context
-               * 
                */
               webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTED;
-
-              /**
-               * 
-               * execute all the callback functions wih provided callback context
-               * 
-               */
-              while (!webrtcContext[AppConstants.WEBRTC_ON_CONNECT_QUEUE].isEmpty()) {
-                const callback: CallbackContextType = <CallbackContextType>webrtcContext[AppConstants.WEBRTC_ON_CONNECT_QUEUE].dequeue();
-                try {
-                  callback.callbackFunction(callback.callbackContext);
-                } catch (e) {
-                  LoggerUtil.log(e);
-                }
-              }
           }
         }
 
@@ -249,7 +240,8 @@ export class TalkWindowWebrtcService {
               type: AppConstants.CANDIDATE,
               candidate: event.candidate,
               from: this.userContextService.username,
-              to: userToChat
+              to: userToChat,
+              channel: AppConstants.CONNECTION
             };
             this.sendPayload(iceCandidatePayload);
           }
@@ -335,16 +327,17 @@ export class TalkWindowWebrtcService {
           this.talkWindowContextService.updateBindingFlag('haveRemoteAudioStream', true, channel);
           break;
 
-          case AppConstants.SOUND:
-  
-            /**
-             * update 'haveRemoteAudioStream' media call context flag to
-             * keep track that a remote audio stream has been received
-             *
-             */
-            this.talkWindowContextService.updateBindingFlag('haveRemoteAudioStream', true, channel);
-            this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
-            break;          
+        case AppConstants.SOUND:
+
+          /**
+           * update 'haveRemoteAudioStream' media call context flag to
+           * keep track that a remote audio stream has been received
+           *
+           */
+          this.talkWindowContextService.updateBindingFlag('haveRemoteAudioStream', true, channel);
+          this.talkWindowContextService.updateBindingFlag('isSoundSharing', true, channel);
+          this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
+          break;
 
         case AppConstants.VIDEO:
 
@@ -646,30 +639,20 @@ export class TalkWindowWebrtcService {
           /**
            * configure appropriate flags in media call context
            */
-          switch (channel) {
-            case AppConstants.SCREEN:
-              this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', false, channel);
-              this.talkWindowContextService.updateBindingFlag('haveRemoteVideoStream', false, channel);
-              this.talkWindowContextService.updateBindingFlag('isScreenSharing', false, channel);
-              break;
-
-            case AppConstants.SOUND:
-              this.talkWindowContextService.updateBindingFlag('isSoundSharing', false, channel);
-              break;
-
-            case AppConstants.AUDIO:
-              this.talkWindowContextService.updateBindingFlag('haveLocalAudioStream', false, channel);
-              this.talkWindowContextService.updateBindingFlag('haveRemoteAudioStream', false, channel);
-              break;
-
-            case AppConstants.VIDEO:
-              this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', false, channel);
-              this.talkWindowContextService.updateBindingFlag('haveRemoteVideoStream', false, channel);
+          if (channel === AppConstants.SCREEN || channel === AppConstants.VIDEO) {
+            this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', false, channel);
+            this.talkWindowContextService.updateBindingFlag('haveRemoteVideoStream', false, channel);
+          } else if (channel === AppConstants.SOUND || channel === AppConstants.AUDIO) {
+            this.talkWindowContextService.updateBindingFlag('haveLocalAudioStream', false, channel);
+            this.talkWindowContextService.updateBindingFlag('haveRemoteAudioStream', false, channel);
           }
+          /**
+           * @TODO see if this even needed
+           */
           this.appUtilService.appRef.tick();
         }
         resolve();
-      } catch (error: any) {
+      } catch (error) {
         LoggerUtil.log('there is an error occured while cleaning media channel context for channel: ' + channel);
         reject(error);
       }
@@ -708,7 +691,7 @@ export class TalkWindowWebrtcService {
           }
         }
         resolve();
-      } catch (error: any) {
+      } catch (error) {
         LoggerUtil.log('there is an error occured while cleaning data channel context for channel: ' + channel);
         reject(error);
       }
@@ -749,9 +732,7 @@ export class TalkWindowWebrtcService {
     if (popupContexts) {
       popupContexts.forEach((popupContext: any) => {
         this.appUtilService.addPopupContext(popupContext);
-        setTimeout(() => {
-          this.appUtilService.removePopupContext([popupContext.type]);
-        }, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
+        setTimeout(() => { this.appUtilService.removePopupContext([popupContext.type]); }, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
       });
     }
   }
@@ -794,9 +775,7 @@ export class TalkWindowWebrtcService {
       if (popupContexts) {
         popupContexts.forEach((popupContext: any) => {
           this.appUtilService.addPopupContext(popupContext);
-          setTimeout(() => {
-            this.appUtilService.removePopupContext([popupContext.type]);
-          }, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
+          setTimeout(() => { this.appUtilService.removePopupContext([popupContext.type]); }, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
         });
       }
 
@@ -808,13 +787,14 @@ export class TalkWindowWebrtcService {
        */
       Object.keys(mediaContext).forEach(channel => {
 
+        /**
+         * 
+         * choose appropriate clean up routine for each open channel 
+         */
         if (this.coreAppUtilService.isDataChannel(channel)) {
           this.cleanDataChannelContext(channel, mediaContext[channel]);
-          if (channel === AppConstants.TEXT) {
-            delete webrtcContext[AppConstants.MESSAGE_QUEUE];
-          } else if (channel === AppConstants.FILE) {
-            delete webrtcContext[AppConstants.FILE_QUEUE];
-          }
+          delete webrtcContext[AppConstants.MESSAGE_QUEUE];
+          delete webrtcContext[AppConstants.FILE_QUEUE];
         } else if (this.coreAppUtilService.isMediaChannel(channel)) {
 
           // remove the track from peer connection
@@ -1103,106 +1083,43 @@ export class TalkWindowWebrtcService {
    * this is just a logical wrapper function used for setting properties in media call 
    * context to trigger cascading processing 
    * 
-   * @param  eventObj : event object
+   * @param  eventObject : event object
    */
-  mediaCallContextUpdateHandler(eventObj: any) {
-    LoggerUtil.log('media context for property: ' + eventObj.property + ' with value: ' + eventObj.value);
-    switch (eventObj.property) {
-      case 'isSoundSharing':
-        if (eventObj.value) {
-          this.talkWindowContextService.bindingFlags.isAudioSharing = eventObj.value;
-        } else {
-          if (!this.talkWindowContextService.bindingFlags.haveLocalAudioStream &&
-            !this.talkWindowContextService.bindingFlags.haveRemoteAudioStream) {
-            this.talkWindowContextService.bindingFlags.isAudioSharing = eventObj.value;
-          }
-        }
-        break;
-
+  mediaCallContextUpdateHandler(eventObject: MediaContextUpdateEventType) {
+    LoggerUtil.log('media context for property: ' + eventObject.property + ' with value: ' + eventObject.value);
+    const propertyValue: boolean = <boolean>eventObject.value;
+    switch (eventObject.property) {
       case 'haveLocalAudioStream':
-        if (eventObj.value) {
-          this.talkWindowContextService.bindingFlags.isAudioCalling = eventObj.value;
-          this.talkWindowContextService.bindingFlags.isAudioSharing = eventObj.value;
-        } else {
-          setTimeout(() => {
-            if (!this.talkWindowContextService.bindingFlags.haveLocalAudioStream &&
-              !this.talkWindowContextService.bindingFlags.haveRemoteAudioStream) {
-              this.talkWindowContextService.bindingFlags.isAudioCalling = eventObj.value;
-            }
-            if (!this.talkWindowContextService.bindingFlags.isSoundSharing) {
-              this.talkWindowContextService.bindingFlags.isAudioSharing = eventObj.value;
-            }
-            this.appUtilService.removePopupContext([
-              AppConstants.POPUP_TYPE.DISCONNECTING + eventObj.channel
-            ]);
-          }, 2000);
+        if (eventObject.channel === AppConstants.SOUND) {
+          this.talkWindowContextService.bindingFlags.isSoundSharing = propertyValue;
+          this.talkWindowContextService.bindingFlags.isAudioSharing = propertyValue;
         }
         break;
 
       case 'haveRemoteAudioStream':
-        if (eventObj.value) {
-          this.talkWindowContextService.bindingFlags.isAudioCalling = eventObj.value;
-          this.talkWindowContextService.bindingFlags.isAudioSharing = eventObj.value;
-        } else {
-          setTimeout(() => {
-            if (!this.talkWindowContextService.bindingFlags.haveLocalAudioStream &&
-              !this.talkWindowContextService.bindingFlags.haveRemoteAudioStream) {
-              this.talkWindowContextService.bindingFlags.isAudioCalling = eventObj.value;
-            }
-            if (!this.talkWindowContextService.bindingFlags.isSoundSharing) {
-              this.talkWindowContextService.bindingFlags.isAudioSharing = eventObj.value;
-            }
-            this.appUtilService.removePopupContext([
-              AppConstants.POPUP_TYPE.DISCONNECTING + eventObj.channel
-            ]);
-          }, 2000);
+        this.talkWindowContextService.bindingFlags.isAudioSharing = propertyValue;
+        if (eventObject.channel === AppConstants.SOUND) {
+          this.talkWindowContextService.bindingFlags.isSoundSharing = propertyValue;
+        } else if (eventObject.channel === AppConstants.AUDIO) {
+          this.talkWindowContextService.bindingFlags.isAudioCalling = propertyValue;
         }
         break;
 
       case 'haveLocalVideoStream':
-        if (eventObj.value) {
-          this.talkWindowContextService.bindingFlags.isVideoCalling = eventObj.value;
-          this.talkWindowContextService.bindingFlags.isVideoSharing = eventObj.value;
-        } else {
-          setTimeout(() => {
-            if (!this.talkWindowContextService.bindingFlags.haveLocalVideoStream &&
-              !this.talkWindowContextService.bindingFlags.haveRemoteVideoStream) {
-              this.talkWindowContextService.bindingFlags.isVideoCalling = eventObj.value;
-              this.talkWindowContextService.bindingFlags.isVideoSharing = eventObj.value;
-            }
-            this.appUtilService.removePopupContext([
-              AppConstants.POPUP_TYPE.DISCONNECTING + eventObj.channel
-            ]);
-            this.appUtilService.appRef.tick();
-          }, 2000);
-          if (!this.userContextService.isMobile && this.talkWindowContextService.bindingFlags.isFullScreenMode) {
-            this.talkWindowSetCentralIconsPopupFn(false);
-            this.talkWindowContextService.bindingFlags.isFullScreenMode = false;
-          }
+        if (eventObject.channel === AppConstants.SCREEN) {
+          this.talkWindowContextService.bindingFlags.isScreenSharing = propertyValue;
+          this.talkWindowContextService.bindingFlags.isVideoSharing = propertyValue;
         }
         break;
 
       case 'haveRemoteVideoStream':
-        if (eventObj.value) {
-          this.talkWindowContextService.bindingFlags.isVideoCalling = eventObj.value;
-          this.talkWindowContextService.bindingFlags.isVideoSharing = eventObj.value;
-        } else {
-          setTimeout(() => {
-            if (!this.talkWindowContextService.bindingFlags.haveLocalVideoStream &&
-              !this.talkWindowContextService.bindingFlags.haveRemoteVideoStream) {
-              this.talkWindowContextService.bindingFlags.isVideoCalling = eventObj.value;
-              this.talkWindowContextService.bindingFlags.isVideoSharing = eventObj.value;
-            }
-            this.appUtilService.removePopupContext([
-              AppConstants.POPUP_TYPE.DISCONNECTING + eventObj.channel
-            ]);
-            this.appUtilService.appRef.tick();
-          }, 2000);
-          if (!this.userContextService.isMobile && this.talkWindowContextService.bindingFlags.isFullScreenMode) {
-            this.talkWindowSetCentralIconsPopupFn(false);
-            this.talkWindowContextService.bindingFlags.isFullScreenMode = false;
-          }
+        this.talkWindowContextService.bindingFlags.isVideoSharing = propertyValue;
+        if (eventObject.channel === AppConstants.SCREEN) {
+          this.talkWindowContextService.bindingFlags.isScreenSharing = propertyValue;
+        } else if (eventObject.channel === AppConstants.VIDEO) {
+          this.talkWindowContextService.bindingFlags.isVideoCalling = propertyValue;
         }
+        break;
     }
     this.appUtilService.appRef.tick();
   }
@@ -1272,7 +1189,7 @@ export class TalkWindowWebrtcService {
                 type: AppConstants.OFFER,
                 offer: offer
               });
-            }).catch((error: any) => {
+            }).catch((error) => {
               LoggerUtil.log(error);
               reject('There is an error while generating offer on peer connection');
             });
@@ -1292,7 +1209,7 @@ export class TalkWindowWebrtcService {
                 type: AppConstants.ANSWER,
                 answer: answer
               });
-            }).catch((error: any) => {
+            }).catch((error) => {
               LoggerUtil.log('there is an error while generating answer');
               reject(error);
             }); // Here ends create answer
@@ -1347,7 +1264,7 @@ export class TalkWindowWebrtcService {
            * to be sent to other user
            *
            */
-          const offerContainer: any = await this.coreWebrtcService.getDataChannelOffer(peerConnection, createDataChannelType.channel);;
+          const offerContainer: any = await this.coreWebrtcService.getDataChannelOffer(peerConnection, createDataChannelType.channel);
           const dataChannel: any = offerContainer.dataChannel;
           LoggerUtil.log('registered message listener on ' + createDataChannelType.channel + ' data channel');
 
@@ -1373,6 +1290,7 @@ export class TalkWindowWebrtcService {
            */
           webrtcContext[AppConstants.MEDIA_CONTEXT][createDataChannelType.channel][AppConstants.DATACHANNEL] = dataChannel;
         } else {
+          LoggerUtil.log('webrtc connection is not in connected state for user: ' + createDataChannelType.username);
           /**
            * 
            * if webrtc connection is not in connetcted state then add the setup data channel function 
