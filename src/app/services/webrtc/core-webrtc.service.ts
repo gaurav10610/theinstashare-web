@@ -16,70 +16,74 @@ export class CoreWebrtcService {
   /**
    * initializing a webrtc peer connection and store it user's webrtc connection
    *
+   * @param username username of the user with whom connection has to be established
+   *
+   */
+  rtcConnectionInit(username: string) {
+    return new Promise<boolean>((resolve, reject) => {
+      try {
+        let initializedConnection = false;
+        const PeerConnection = RTCPeerConnection || webkitRTCPeerConnection;
+        const webrtcContext = this.userContextService.getUserWebrtcContext(username);
+
+        let connectionStatus = webrtcContext[AppConstants.CONNECTION_STATE];
+        /**
+         * 
+         * @TODO Fix this flow afterwards  
+         * 
+         */
+        if (connectionStatus === AppConstants.CONNECTION_STATES.NOT_CONNECTED) {
+          initializedConnection = true;
+          //initialize a new webrtc peer connection
+          webrtcContext[AppConstants.CONNECTION] = new PeerConnection(AppConstants.STUN_CONFIG);
+          webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.NOT_CONNECTED;
+        }
+        resolve(initializedConnection);
+      } catch (error) {
+        LoggerUtil.log(error);
+        reject('there is an error while initializing peer connection');
+      }
+    });
+  }
+
+  /**
+   * initializing a webrtc peer connection and store it user's webrtc connection
+   *
    * @param channel webrtc cnonection's media type for connection means the type
    * of media data that we will relay on this connection e.g 'text','video' or 'audio'
    *
    * @param username username of the user with whom connection has to be established
    *
-   * @param needSender boolean value to determine whether sender or receive peer
-   * connection has to be initialized. Applicable only for media webrtc connection
-   * i.e connections other than 'data' or 'file'
-   *
    */
-  rtcConnectionInit(channel: string, username: string, needSendPeer: boolean) {
-    return new Promise<void>((resolve, reject) => {
-      try {
-        const PeerConnection = RTCPeerConnection || webkitRTCPeerConnection;
-        const userContext = this.userContextService.getUserWebrtcContext(username);
+  mediaContextInit(channel: string, username: string) {
 
-        /**
-         * initialize empty connections container if it does not exist yet
-         *
-         */
-        if (userContext[AppConstants.CONNECTIONS][channel] === undefined) {
-          userContext[AppConstants.CONNECTIONS][channel] = {};
-        }
+    const webrtcContext = this.userContextService.getUserWebrtcContext(username);
 
-        const connectionType: string = this.coreAppUtilService.getConnectionIdentifier(channel, needSendPeer);
+    /**
+     * initialize empty connections container if it does not exist yet
+     *
+     */
+    if (webrtcContext[AppConstants.MEDIA_CONTEXT][channel] === undefined) {
+      webrtcContext[AppConstants.MEDIA_CONTEXT][channel] = {};
 
-        //initialize a new webrtc peer connection
-        userContext[AppConstants.CONNECTIONS][channel][connectionType] = new PeerConnection(AppConstants.STUN_CONFIG);
-
-        /**
-         * 
-         * @TODO optimize switch statements here
-         * 
-         */
-        switch (channel) {
-          case AppConstants.DATA:
-            userContext[AppConstants.CONNECTIONS][channel].state = AppConstants.CHANNEL_STATUS.NEW;
-            userContext[AppConstants.CONNECTIONS][channel][AppConstants.DATACHANNEL] = undefined;
-            break;
-
-          case AppConstants.FILE:
-            userContext[AppConstants.CONNECTIONS][channel].state = AppConstants.CHANNEL_STATUS.NEW;
-            userContext[AppConstants.CONNECTIONS][channel][AppConstants.DATACHANNEL] = undefined;
-            userContext[AppConstants.CONNECTIONS][channel][AppConstants.IMAGE] = [];
-            userContext[AppConstants.CONNECTIONS][channel][AppConstants.AUDIO] = [];
-            userContext[AppConstants.CONNECTIONS][channel][AppConstants.VIDEO] = [];
-            userContext[AppConstants.CONNECTIONS][channel][AppConstants.LAST_USED] = undefined;
-            userContext[AppConstants.CONNECTIONS][channel][AppConstants.RECURRING_JOB_ID] = undefined;
-            break;
-
-          case AppConstants.REMOTE_CONTROL:
-            userContext[AppConstants.CONNECTIONS][channel].state = AppConstants.CHANNEL_STATUS.NEW;
-            userContext[AppConstants.CONNECTIONS][channel][AppConstants.DATACHANNEL] = undefined;
-            break;
-
-          default:
-          //do nothing here
-        }
-        resolve();
-      } catch (error) {
-        LoggerUtil.log('there is an error while initializing peer connection');
-        reject(error);
+      /**
+       * 
+       * @TODO refactor it afterwards
+       */
+      if (channel === AppConstants.TEXT || channel === AppConstants.FILE || channel === AppConstants.REMOTE_CONTROL) {
+        webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.NOT_CONNECTED;
       }
-    });
+    }
+
+    if (channel === AppConstants.FILE) {
+      if (webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.IMAGE] === undefined) {
+        webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.IMAGE] = [];
+        webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.AUDIO] = [];
+        webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.VIDEO] = [];
+        webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.LAST_USED] = undefined;
+        webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.RECURRING_JOB_ID] = undefined;
+      }
+    }
   }
 
   /**
@@ -87,27 +91,14 @@ export class CoreWebrtcService {
    *
    * @param signalingMessage received signaling message
    *
+   *  @TODO remove the Promise afterwards
    */
   handleAnswer(signalingMessage: any) {
     return new Promise<void>(async (resolve) => {
-      const peerConnection = await this.coreAppUtilService
-        .getAppropriatePeerConnection(signalingMessage.from, signalingMessage.channel, true);
-      // set remote description on peer connection
+      const peerConnection = this.userContextService.getUserWebrtcContext(signalingMessage.from)[AppConstants.CONNECTION];
       peerConnection.setRemoteDescription(new RTCSessionDescription(signalingMessage.answer));
       resolve();
     });
-  }
-
-  /**
-   * this will handle the processing of any 'offer' type message received
-   *
-   * @param signalingMessage received signaling message
-   *
-   */
-  async handleOffer(signalingMessage: any) {
-    const peerConnection = await this.coreAppUtilService
-      .getAppropriatePeerConnection(signalingMessage.from, signalingMessage.channel, false);
-    return this.generateAnswer(peerConnection, signalingMessage.offer, signalingMessage.channel);
   }
 
   /**
@@ -115,12 +106,11 @@ export class CoreWebrtcService {
    *
    * @param signalingMessage received signaling message
    *
+   * @TODO remove the Promise afterwards
    */
   handleCandidate(signalingMessage: any) {
-    return new Promise<void>(async (resolve) => {
-      const peerConnection: any = await this.coreAppUtilService.getAppropriatePeerConnection(signalingMessage.from,
-        signalingMessage.channel, !signalingMessage.isSender);
-      // set ice candidate on peer connection
+    return new Promise<void>((resolve) => {
+      const peerConnection: any = this.userContextService.getUserWebrtcContext(signalingMessage.from)[AppConstants.CONNECTION];
       peerConnection.addIceCandidate(new RTCIceCandidate(signalingMessage.candidate));
       resolve();
     });
@@ -131,28 +121,56 @@ export class CoreWebrtcService {
    * the basis of supplied media type
    *
    * @param peerConnection webrtc peer connection for which offer has to be generated
+   * 
+   * @param channel channel for generating webrtc offer
    *
-   * @param mediaChannel webrtc connection's media type for connection means the
-   * type of media data that we will relay on this connection e.g 'text','video'
-   * or 'audio'
+   * @param requiredMediaTracks required media tracks which needs to captured and has to be added on the peer connection
    *
    * @return a promise containing generated offer payload
    *
    */
-  generateOffer(peerConnection: any, mediaChannel: string) {
+  generateOfferWithMediaTracks(peerConnection: any, channel: string, requiredMediaTracks: string[]) {
     return new Promise(async (resolve, reject) => {
       try {
-        /**
-         * @TODO convert to switch statement later afterwards
-         */
-        if (mediaChannel === AppConstants.DATA || mediaChannel === AppConstants.FILE || mediaChannel === AppConstants.REMOTE_CONTROL) {
-          const offerPayload = await this.getDataChannelOffer(peerConnection, mediaChannel);
-          resolve(offerPayload);
-        } else {
-          const stream: any = await this.getMediaStream(mediaChannel);
-          const offerPayload = await this.getMediaStreamOffer(peerConnection, stream, mediaChannel);
-          resolve(offerPayload);
+        const mediaStreams: any[] = [];
+        for (let i = 0; i < requiredMediaTracks.length; i++) {
+          const stream: any = await this.getMediaStream(requiredMediaTracks[i]);
+          const streamContext: any = {};
+          streamContext[AppConstants.STREAM] = stream;
+          /**
+           * 
+           * add media stream track on the webrtc peer connecion
+           */
+          switch (requiredMediaTracks[i]) {
+            case AppConstants.AUDIO:
+              streamContext[AppConstants.TRACK] = stream.getAudioTracks()[0];
+              streamContext[AppConstants.TRACK_SENDER] = peerConnection.addTrack(stream.getAudioTracks()[0]);
+              break;
+            case AppConstants.SOUND:
+              streamContext[AppConstants.TRACK] = stream.getAudioTracks()[0];
+              streamContext[AppConstants.TRACK_SENDER] = peerConnection.addTrack(stream.getAudioTracks()[0]);
+              break;
+            default:
+              streamContext[AppConstants.TRACK] = stream.getVideoTracks()[0];
+              streamContext[AppConstants.TRACK_SENDER] = peerConnection.addTrack(stream.getVideoTracks()[0]);
+          }
+          streamContext[AppConstants.CHANNEL] = requiredMediaTracks[i];
+          mediaStreams.push(streamContext);
         }
+        peerConnection.createOffer().then((offer: any) => {
+          peerConnection.setLocalDescription(offer);
+          resolve({
+            offerPayload: {
+              type: AppConstants.OFFER,
+              offer: offer,
+              channel: channel
+            },
+            mediaStreams: mediaStreams
+          });
+        }).catch((error: any) => {
+          LoggerUtil.log('There is an error while generating offer on peer connection.');
+          reject(error);
+        });
       } catch (error) {
         LoggerUtil.log('There is an error while generating offer on peer connection');
         reject(error);
@@ -173,12 +191,12 @@ export class CoreWebrtcService {
    * @return a promise containing generated offer payload
    *
    */
-  private getDataChannelOffer(peerConnection: any, mediaChannel: string) {
+  public getDataChannelOffer(peerConnection: any, mediaChannel: string) {
     return new Promise(async (resolve, reject) => {
       /**
        * open data channe here
        */
-      const dataChannel = await this.openDataChannel(peerConnection);
+      const dataChannel = await this.openDataChannel(peerConnection, mediaChannel);
       peerConnection.createOffer().then((offer: any) => {
         peerConnection.setLocalDescription(offer);
         resolve({
@@ -188,49 +206,6 @@ export class CoreWebrtcService {
             channel: mediaChannel
           },
           dataChannel: dataChannel
-        });
-      }).catch((error: any) => {
-        LoggerUtil.log('There is an error while generating offer on peer connection.');
-        reject(error);
-      });
-    });
-  }
-
-  /**
-   * this will attach a media stream on the webrtc peer connection and then
-   * generate an offer after that
-   *
-   * @param peerConnection webrtc peer connection for which offer has to be generated
-   *
-   * @param mediaStream captured media stream that needs to be attached
-   *
-   * @param mediaChannel webrtc connection's media type for connection means the
-   * type of media data that we will relay on this connection e.g 'text','video'
-   * or 'audio'
-   *
-   * @return a promise containing generated offer payload
-   */
-  private getMediaStreamOffer(peerConnection: any, mediaStream: any, mediaChannel: string) {
-    return new Promise((resolve, reject) => {
-      switch (mediaChannel) {
-        case AppConstants.AUDIO:
-          peerConnection.addTrack(mediaStream.getAudioTracks()[0]);
-          break;
-        case AppConstants.SOUND:
-          peerConnection.addTrack(mediaStream.getAudioTracks()[0]);
-          break;
-        default:
-          peerConnection.addTrack(mediaStream.getVideoTracks()[0]);
-      }
-      peerConnection.createOffer().then((offer: any) => {
-        peerConnection.setLocalDescription(offer);
-        resolve({
-          offerPayload: {
-            type: AppConstants.OFFER,
-            offer: offer,
-            channel: mediaChannel
-          },
-          stream: mediaStream
         });
       }).catch((error: any) => {
         LoggerUtil.log('There is an error while generating offer on peer connection.');
@@ -324,7 +299,7 @@ export class CoreWebrtcService {
         const maxBitrate = this.coreAppUtilService.getMaxBitrateForSdpModification(mediaChannel);
         const sdpMediaType = this.coreAppUtilService.getMediaTypeForSdpModification(mediaChannel);
         const modifiedSdp: any = await this.setMediaBitrate(newAnswer.sdp, sdpMediaType, maxBitrate);
-        const answer: any = new RTCSessionDescription({ type: 'answer', sdp: modifiedSdp });;
+        const answer: any = new RTCSessionDescription({ type: 'answer', sdp: modifiedSdp });
 
         peerConnection.setLocalDescription(answer);
         resolve({
@@ -342,19 +317,92 @@ export class CoreWebrtcService {
   }
 
   /**
+  * this will generate appropriate answer on provided webrtc peer connection on
+  * the basis of supplied media type
+  *
+  * @param offer received webrtc offer
+  *
+  * @param peerConnection webrtc peer connection for which answer has to be generated
+  *
+  * @param mediaChannel media channel for which the webrtc answer needs to be generated
+  * 
+  * @param requiredMediaTracks required media tracks which needs to be captured and added on webrtc connection
+  *
+  * @return a promise with generated answer
+  */
+  generateAnswerWithTracks(peerConnection: any, offer: RTCSessionDescriptionInit, channel: string, requiredMediaTracks: string[]) {
+    return new Promise(async (resolve, reject) => {
+      peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+      const mediaStreams: any[] = [];
+      for (let i = 0; i < requiredMediaTracks.length; i++) {
+        const stream: any = await this.getMediaStream(requiredMediaTracks[i]);
+        const streamContext: any = {};
+        streamContext[AppConstants.STREAM] = stream;
+        /**
+         * 
+         * add media stream track on the webrtc peer connecion
+         */
+        switch (requiredMediaTracks[i]) {
+          case AppConstants.AUDIO:
+            streamContext[AppConstants.TRACK] = stream.getAudioTracks()[0];
+            streamContext[AppConstants.TRACK_SENDER] = peerConnection.addTrack(stream.getAudioTracks()[0]);
+            break;
+          case AppConstants.SOUND:
+            streamContext[AppConstants.TRACK] = stream.getAudioTracks()[0];
+            streamContext[AppConstants.TRACK_SENDER] = peerConnection.addTrack(stream.getAudioTracks()[0]);
+            break;
+          default:
+            streamContext[AppConstants.TRACK] = stream.getVideoTracks()[0];
+            streamContext[AppConstants.TRACK_SENDER] = peerConnection.addTrack(stream.getVideoTracks()[0]);
+        }
+        streamContext[AppConstants.CHANNEL] = requiredMediaTracks[i];
+        mediaStreams.push(streamContext);
+      }
+
+      peerConnection.createAnswer().then(async (newAnswer: any) => {
+
+        /**
+         * before setting local session description on webrtc peer connection, app
+         * will modify the max bitrate that webrtc peer connection can use
+         *
+         */
+        const maxBitrate = this.coreAppUtilService.getMaxBitrateForSdpModification(channel);
+        const sdpMediaType = this.coreAppUtilService.getMediaTypeForSdpModification(channel);
+        const modifiedSdp: any = await this.setMediaBitrate(newAnswer.sdp, sdpMediaType, maxBitrate);
+        const answer: any = new RTCSessionDescription({ type: 'answer', sdp: modifiedSdp });
+
+        peerConnection.setLocalDescription(answer);
+        resolve({
+          answerPayload: {
+            type: AppConstants.ANSWER,
+            answer: answer,
+            channel: channel
+          },
+          mediaStreams: mediaStreams
+        });
+      }).catch((error: any) => {
+        LoggerUtil.log('there is an error while generating answer');
+        reject(error);
+      }); // Here ends create answer
+    });
+  }
+
+  /**
    * this will open a data channel on supplied webrtc peer connection
    *
    * @param peerConnection webrtc peer connection on data channel has to be opened
+   * 
+   * @param channelId webrtc data channel id
    *
    * @return newly opened webrtc datachannel
    */
-  openDataChannel(peerConnection: any) {
+  openDataChannel(peerConnection: any, channelId: string) {
     return new Promise((resolve, reject) => {
       try {
         if (peerConnection == null) {
           reject('peer connection is not yet initialized to open data channel');
         }
-        const dataChannel = peerConnection.createDataChannel('myDataChannel');
+        const dataChannel = peerConnection.createDataChannel(channelId);
         dataChannel.onerror = (error: any) => {
           LoggerUtil.log(error);
         };
@@ -366,75 +414,21 @@ export class CoreWebrtcService {
   }
 
   /**
-   * this is the cleanup routine for cleaning webrtc peer connections which carries
-   * media data i.e 'audio' or 'video' media tracks
-   *
-   * @param channel webrtc connection's media type for connection means the
-   * type of media data that we will relay on this connection e.g 'text','video'
-   * or 'audio'
-   *
-   * @param mediaContext appropriate webrtc media context from user's webrtc context
-   * 
-   * @param isSenderConnection boolean flag to distinguish between sender and
-   * receive audio/video peer connections
-   *
-   * @return a promise
-   */
-  cleanWebrtcMediaConnection(channel: string, mediaContext: any, isSenderConnection: boolean) {
-    return new Promise<void>((resolve) => {
-      const connectionType = this.coreAppUtilService.getConnectionIdentifier(channel, isSenderConnection);
-      if (mediaContext[connectionType]) {
-        LoggerUtil.log('cleaning ' + channel + ' ' + connectionType + ' connection');
-
-        /**
-         * call the webrtc peer connection cleanup routine
-         */
-        this.cleanRTCPeerConnection(mediaContext[connectionType], true);
-
-        /**
-         * if we're cleaning the sender webrtc peer connection then stop the
-         * local stream capturing
-         *
-         */
-        if (isSenderConnection && (!this.userContextService.isNativeApp && channel !== AppConstants.SOUND)) {
-          this.stopLocalStream(mediaContext[AppConstants.STREAM]);
-        }
-      }
-      resolve();
-    });
-  }
-
-  /**
-   * this will stop capturing supplied local stream
-   *
-   * @param stream local media stream that needs to be stoppped
-   *
-   */
-  stopLocalStream(stream: any) {
-    stream.getTracks().forEach((track: any) => {
-      track.stop();
-    });
-  }
-
-  /**
    * this is just cleanup subroutine for cleaning any webrtc peer connection
    *
    * @param peerConnection webrtc peer connection that needs to be cleaned
    *
-   * @param isMediaConnection flag to specify if the connection that needs to be
-   * cleaned was meant to carry media data i.e 'audio' or 'video' media stream tracks
-   *
    * @return a promise
    */
-  cleanRTCPeerConnection(peerConnection: any, isMediaConnection: boolean) {
+  cleanRTCPeerConnection(peerConnection: any) {
     return new Promise<void>((resolve) => {
-      if (isMediaConnection) {
-        peerConnection.ontrack = null;
-      }
+      peerConnection.ondatachannel = null;
+      peerConnection.ontrack = null;
       peerConnection.onicecandidate = null;
       peerConnection.onconnectionstatechange = null;
+      peerConnection.onsignalingstatechange = null;
+      peerConnection.onnegotiationneeded = null;
       peerConnection.close();
-      peerConnection = null;
       resolve();
     });
   }
@@ -447,11 +441,11 @@ export class CoreWebrtcService {
    * @return a promise
    */
   cleanDataChannel(dataChannel: any) {
-    return new Promise(() => {
+    return new Promise<void>((resolve) => {
       dataChannel.onerror = null;
       dataChannel.onmessage = null;
       dataChannel.close();
-      dataChannel = null;
+      resolve();
     });
   }
 

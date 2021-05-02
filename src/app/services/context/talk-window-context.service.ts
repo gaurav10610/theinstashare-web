@@ -1,4 +1,5 @@
 import { EventEmitter, Injectable } from '@angular/core';
+import { MediaContextUpdateEventType } from '../contracts/MediaContextUpdateEventType';
 import { UserContextService } from './user.context.service';
 
 @Injectable({
@@ -158,15 +159,14 @@ export class TalkWindowContextService {
    * @param senderUpdate
    * 
    */
-  updateBindingFlag(propertyName: string, propertyValue: any, channel: string, senderUpdate: boolean) {
+  updateBindingFlag(propertyName: string, propertyValue: any, channel: string) {
     this.bindingFlags[propertyName] = propertyValue;
-    const eventObj = {
+    const eventObject: MediaContextUpdateEventType = {
       property: propertyName,
       value: propertyValue,
-      channel: channel,
-      senderUpdate: senderUpdate
+      channel: channel
     };
-    this.mediaContextUpdateEventEmitter.emit(eventObj);
+    this.mediaContextUpdateEventEmitter.emit(eventObject);
   }
 
   getUserStatus(username: string) {

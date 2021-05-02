@@ -1,3 +1,4 @@
+import { APP_BASE_HREF } from '@angular/common';
 import { Injectable } from '@angular/core';
 import { AppConstants } from '../AppConstants';
 import { UserContextService } from '../context/user.context.service';
@@ -54,7 +55,7 @@ export class CoreAppUtilityService {
    *
    */
   getConnectionIdentifier(channel: string, needSendPeer: boolean) {
-    return (channel === AppConstants.DATA || channel === AppConstants.FILE || needSendPeer)
+    return (channel === AppConstants.TEXT || channel === AppConstants.FILE || needSendPeer)
       ? AppConstants.SENDER : AppConstants.RECEIVER;
   }
 
@@ -69,8 +70,8 @@ export class CoreAppUtilityService {
    * or 'audio'
    *
    */
-  isDataChannelOpen(webrtcContext: any, channel: string) {
-    return this.getNestedValue(webrtcContext, AppConstants.CONNECTIONS, channel, AppConstants.DATACHANNEL, 'readyState') === 'open';
+  isDataChannelConnected(webrtcContext: any, channel: string) {
+    return this.getNestedValue(webrtcContext, AppConstants.MEDIA_CONTEXT, channel, AppConstants.CONNECTION_STATE) === AppConstants.CONNECTION_STATES.CONNECTED;
   }
 
   /**
@@ -85,7 +86,7 @@ export class CoreAppUtilityService {
    *
    */
   isDataChannelConnecting(webrtcContext: any, channel: string) {
-    return this.getNestedValue(webrtcContext, AppConstants.CONNECTIONS, channel, 'state') === AppConstants.CHANNEL_STATUS.CONNECTING;
+    return this.getNestedValue(webrtcContext, AppConstants.MEDIA_CONTEXT, channel, AppConstants.CONNECTION_STATE) === AppConstants.CONNECTION_STATES.CONNECTING;
   }
 
   /**
@@ -93,40 +94,24 @@ export class CoreAppUtilityService {
    * provide user is in connected state the user who's username is passed as
    * an argument
    *
-   * @param channel webrtc connection's media type for connection means the
-   * type of media data that we will relay on this connection e.g 'text','video'
-   * or 'audio'
-   *
-   * @param username username of the user with whom the connection's state need
-   * needs to be tested
-   *
-   * @param isSenderConnection boolean flag to distinguish between sender and
-   * receive audio video peer connections
+   * @param webrtcContext user's webrtc context
    *
    * @return a boolean result
+   * 
    */
-  isConnectedWithUser(channel: string, username: string, isSenderConnection: boolean) {
-    return new Promise<boolean>(async (resolve) => {
-      const peerConnection: any = await this.getAppropriatePeerConnection(username, channel, isSenderConnection);
-      if (peerConnection) {
+  isWebrtcConnectionConnected(webrtcContext: any) {
+    return this.getNestedValue(webrtcContext, AppConstants.CONNECTION_STATE) === AppConstants.CONNECTION_STATES.CONNECTING;
+  }
 
-        /**
-         * check peer connection state here
-         * 
-         * for macOS chrome 'connectionState' doesn't seems to change so for now checking 
-         * 'iceConnectionSate' instead
-         */
-        if (peerConnection.connectionState === 'connected'
-          || peerConnection.iceConnectionState === 'connected'
-          || peerConnection.iceConnectionState === 'completed') {
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      } else {
-        resolve(false);
-      }
-    });
+  /**
+   * check if webrtc connection with a user is in connecting state using it's provided
+   * webrtc context
+   *
+   * @param webrtcContext user's webrtc context
+   *
+   */
+  isWebrtcConnectionConnecting(webrtcContext: any) {
+    return this.getNestedValue(webrtcContext, AppConstants.CONNECTION_STATE) === AppConstants.CONNECTION_STATES.CONNECTING;
   }
 
   /**
@@ -141,9 +126,9 @@ export class CoreAppUtilityService {
   getAppropriatePeerConnection(username: string, channel: string, needSender: boolean) {
     return new Promise<any>((resolve) => {
       const webrtcContext = this.userContextService.getUserWebrtcContext(username);
-      if (this.getNestedValue(webrtcContext, AppConstants.CONNECTIONS, channel)) {
+      if (this.getNestedValue(webrtcContext, AppConstants.MEDIA_CONTEXT, channel)) {
         const connectionType: string = this.getConnectionIdentifier(channel, needSender);
-        resolve(webrtcContext[AppConstants.CONNECTIONS][channel][connectionType]);
+        resolve(webrtcContext[AppConstants.MEDIA_CONTEXT][channel][connectionType]);
       } else {
         resolve(undefined);
       }
@@ -218,7 +203,7 @@ export class CoreAppUtilityService {
   getMediaTypeForSdpModification(channel: string) {
     if (channel === AppConstants.VIDEO || channel === AppConstants.SCREEN) {
       return AppConstants.VIDEO;
-    } else if (channel === AppConstants.FILE || channel === AppConstants.DATA
+    } else if (channel === AppConstants.FILE || channel === AppConstants.TEXT
       || channel === AppConstants.REMOTE_CONTROL) {
       return AppConstants.APPLICATION;
     } else if (channel === AppConstants.AUDIO || channel === AppConstants.SOUND) {
@@ -232,7 +217,7 @@ export class CoreAppUtilityService {
    * @param channel: media type audio/video/text 
    * 
    */
-  getMaxBitrateForSdpModification(channel) {
+  getMaxBitrateForSdpModification(channel: string) {
     let bitrate = 500;
     switch (channel) {
       case AppConstants.VIDEO:
@@ -253,10 +238,30 @@ export class CoreAppUtilityService {
       case AppConstants.REMOTE_CONTROL:
         bitrate = AppConstants.MEDIA_BITRATES.REMOTE_CONTROL;
         break;
-      case AppConstants.DATA:
+      case AppConstants.TEXT:
         bitrate = AppConstants.MEDIA_BITRATES.DATA;
         break;
     }
     return bitrate;
+  }
+
+  /**
+   * 
+   * check if provided channel uses data channel
+   * 
+   * @param channel type of media i.e 'text', 'file' or 'remoteControl'
+   */
+  isDataChannel(channel: string): boolean {
+    return [AppConstants.TEXT, AppConstants.FILE, AppConstants.REMOTE_CONTROL].indexOf(channel) > -1;
+  }
+
+  /**
+   * 
+   * check if provided channel uses data channel
+   * 
+   * @param channel type of media i.e 'audio', 'video' etc
+   */
+  isMediaChannel(channel: string): boolean {
+    return [AppConstants.VIDEO, AppConstants.AUDIO, AppConstants.SCREEN, AppConstants.SOUND].indexOf(channel) > -1;
   }
 }

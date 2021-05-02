@@ -1,4 +1,4 @@
-import { Injectable, EventEmitter } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { AppConstants } from '../AppConstants';
 import { QueueStorage } from '../util/QueueStorage';
 import { environment } from '../../../environments/environment';
@@ -70,11 +70,17 @@ export class UserContextService {
    */
   initializeUserWebrtcContext(username: string) {
     this.setUserWebrtcContext(username, {
-      msgQueue: new QueueStorage(),
-      connections: {},
+      mediaContext: {},
+      connection: undefined,
+      connectionState: AppConstants.CONNECTION_STATES.NOT_CONNECTED,
       unreadCount: 0,
-      reconnect: true //this flag is used in case of disconnect, whether to reconnect or not
+      reconnect: true, //this flag is used in case of disconnect, whether to reconnect or not
+      webrtcOnConnectQueue: new QueueStorage()
     });
+  }
+
+  initializeMessageQueue(username: string) {
+    this.getUserWebrtcContext(username)[AppConstants.MESSAGE_QUEUE] = new QueueStorage();
   }
 
   initializeFileQueue(username: string) {

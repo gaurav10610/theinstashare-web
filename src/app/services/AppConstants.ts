@@ -4,10 +4,12 @@
  **/
 export class AppConstants {
 
-  // WebRTC connections
-  public static CONNECTIONS = 'connections';
-
   public static DATACHANNEL = 'dataChannel';
+
+  public static WEBRTC_EVENTS = {
+    CHANNEL_OPEN: 'channelOpen',
+    REMOTE_TRACK_RECEIVED: 'remoteTrack'
+  };
 
   // User's chatMessages
   public static CHAT_MESSAGES = 'chatMessages';
@@ -15,7 +17,9 @@ export class AppConstants {
   // User's message queue
   public static MESSAGE_QUEUE = 'msgQueue';
 
-  public static FILE_QUEUE = 'FileQueue';
+  public static FILE_QUEUE = 'fileQueue';
+
+  public static WEBRTC_ON_CONNECT_QUEUE = 'webrtcOnConnectQueue';
 
   // OFFER constant
   public static OFFER = 'offer';
@@ -51,7 +55,11 @@ export class AppConstants {
 
   public static DECLINE = 'decline';
 
+  public static TRACK = 'track';
+
   public static STREAM = 'stream';
+
+  public static TRACK_SENDER = 'trackSender';
 
   public static MODAL_TEXT = 'modalText';
 
@@ -67,8 +75,10 @@ export class AppConstants {
 
   public static RECEIVER = 'receiver';
 
+  public static WEBRTC_EVENT = 'rtcEvent';
+
   // TEXT constant
-  public static DATA = 'data';
+  public static TEXT = 'text';
 
   public static FILE = 'file';
 
@@ -109,6 +119,12 @@ export class AppConstants {
   // RTC server constant
   public static RTC_SERVER = 'rtc_server';
 
+  public static MEDIA_CONTEXT = 'mediaContext';
+
+  public static CONNECTION = 'connection';
+
+  public static CONNECTION_STATE = 'connectionState';
+
   // Signaling RTC constant
   public static SIGNALING_RTC = 'signaling_rtc';
 
@@ -122,17 +138,13 @@ export class AppConstants {
 
   public static APPLICATION = 'application';
 
+  public static TIMEOUT_JOB = 'timeout_job';
+
   /* User status constants*/
   public static USER_STATUSES = {
     BUSY: 'busy',
     AVAILABLE: 'available',
     OFFLINE: 'offline'
-  };
-
-  public static CHANNEL_STATUS = {
-    NEW: 1,
-    CONNECTING: 2,
-    OPEN: 3
   };
 
   //This will contains the max bitrates for webrtc connections
@@ -209,10 +221,10 @@ export class AppConstants {
     iceServers:
       [
         {
-          urls: 'stun:numb.viagenie.ca:3478'
+          urls: 'stun:stun.l.google.com:19302'
         },
         {
-          urls: 'stun:stun.l.google.com:19302'
+          urls: 'stun:numb.viagenie.ca:3478'
         },
         {
           urls: 'turn:numb.viagenie.ca:3478',
@@ -267,7 +279,8 @@ export class AppConstants {
     UNABLE_TO_CONNECT: 'noconnect',
     DISCONNECT: 'disconnect',
     DISCONNECTING: 'disconnecting',
-    WARNING: 'warning'
+    WARNING: 'warning',
+    CONNECTION_TIMEOUT: 'timeout'
   }
 
   public static CHAT_MESSAGE_STATUS = {
@@ -298,5 +311,12 @@ export class AppConstants {
     MOUSE_DOWN: 'mouseDown',
     MOUSE_UP: 'mouseUp',
     SELECT: 'select'
+  };
+
+  public static CONNECTION_STATES = {
+    CONNECTING: 'connecting',
+    CONNECTED: 'connected',
+    NOT_CONNECTED: 'notconnected',
+    CLEANING: 'cleaning'
   };
 }
