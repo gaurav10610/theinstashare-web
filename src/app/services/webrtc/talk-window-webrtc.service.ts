@@ -497,7 +497,15 @@ export class TalkWindowWebrtcService {
          *                                                                                                                                                                                                [description]
          */
         if (this.talkWindowContextService.bindingFlags.isDndOn || this.talkWindowContextService.popupContext.size !== 0) {
-          this.sendCallInviteResponse(signalingMessage.channel, signalingMessage.from, false, AppConstants.CALL_REQUEST);
+          this.sendPayload({
+            type: AppConstants.CALL_REQUEST,
+            channel: signalingMessage.channel,
+            from: this.userContextService.username,
+            to: signalingMessage.from,
+            request: AppConstants.DECLINE,
+            os: this.appUtilService.getOSType(),
+            devicePixelRatio: window.devicePixelRatio
+          });
         } else {
 
           this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME] = signalingMessage.from;
@@ -915,30 +923,6 @@ export class TalkWindowWebrtcService {
       webrtcContext[AppConstants.CONNECTION] = undefined;
       webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.NOT_CONNECTED;
       resolve();
-    });
-  }
-
-  /**
-   * this will be used to respond back to any media stream request received
-   *
-   * @param channel type of received media stream request
-   *
-   * @param username username of the user from whom we've received the request
-   *
-   * @param acceptFlag flag to distinguish whether to accept the request or decline
-   * 
-   * @param responseType type of response which needed to be sent i.e 'remoteAccess' or 'callRequest'
-   * 
-   */
-  sendCallInviteResponse(channel: string, username: string, acceptFlag: boolean, responseType: string) {
-    this.sendPayload({
-      type: responseType,
-      channel: channel,
-      from: this.userContextService.username,
-      to: username,
-      request: acceptFlag ? AppConstants.ACCEPT : AppConstants.DECLINE,
-      os: this.appUtilService.getOSType(),
-      devicePixelRatio: window.devicePixelRatio
     });
   }
 

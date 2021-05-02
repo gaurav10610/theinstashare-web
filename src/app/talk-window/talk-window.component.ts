@@ -1308,7 +1308,15 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     /**
      * send media stream request's acceptance response to the other user
      */
-    this.webrtcService.sendCallInviteResponse(channel, userToChat, true, responseType);
+    this.webrtcService.sendPayload({
+      type: responseType,
+      channel: channel,
+      from: this.userContextService.username,
+      to: userToChat,
+      request: AppConstants.ACCEPT,
+      os: this.talkWindowUtilService.getOSType(),
+      devicePixelRatio: window.devicePixelRatio
+    });
 
     /**
      * remove media stream request modal popup from screen
@@ -1362,7 +1370,15 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      */
     if (action === AppConstants.DECLINE) {
       // Sending call request as decline to user
-      this.webrtcService.sendCallInviteResponse(channel, userToChat, false, responseType);
+      this.webrtcService.sendPayload({
+        type: responseType,
+        channel: channel,
+        from: this.userContextService.username,
+        to: userToChat,
+        request: AppConstants.DECLINE,
+        os: this.talkWindowUtilService.getOSType(),
+        devicePixelRatio: window.devicePixelRatio
+      });
     }
 
     /**
@@ -1983,7 +1999,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     } catch (error) {
       this.renderer.setProperty(mediaElementRef.nativeElement, 'src', URL.createObjectURL(mediaStream));
     }
-    setTimeout(() => { this.talkWindowUtilService.appRef.tick(); }, 2000);
+    setTimeout(() => { this.talkWindowUtilService.appRef.tick(); }, 1000);
   }
 
 
