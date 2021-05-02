@@ -279,7 +279,8 @@ export class AppConstants {
     UNABLE_TO_CONNECT: 'noconnect',
     DISCONNECT: 'disconnect',
     DISCONNECTING: 'disconnecting',
-    WARNING: 'warning'
+    WARNING: 'warning',
+    CONNECTION_TIMEOUT: 'timeout'
   }
 
   public static CHAT_MESSAGE_STATUS = {

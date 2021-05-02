@@ -221,12 +221,8 @@ export class TalkWindowUtilityService {
    */
   flagPopupMessage(popupContext: any, popTimeout?: number) {
     this.addPopupContext(popupContext);
-    const timer = popTimeout ? popTimeout : AppConstants.ERROR_FLAG_TIMEOUT;
-    setTimeout(() => {
-      this.removePopupContext([
-        popupContext.type
-      ]);
-    }, timer);
+    const timer: number = popTimeout ? popTimeout : AppConstants.ERROR_FLAG_TIMEOUT;
+    setTimeout(() => { this.removePopupContext([popupContext.type]); }, timer);
   }
 
   /**

@@ -1187,7 +1187,7 @@ export class TalkWindowWebrtcService {
    * this is just a logical wrapper function used for setting properties in media call 
    * context to trigger cascading processing 
    * 
-   * @param  eventObject : event object
+   * @param  eventObject : media context update event object
    */
   mediaCallContextUpdateHandler(eventObject: MediaContextUpdateEventType) {
     LoggerUtil.log('media context for property: ' + eventObject.property + ' with value: ' + eventObject.value);
@@ -1214,6 +1214,12 @@ export class TalkWindowWebrtcService {
           this.talkWindowContextService.bindingFlags.isScreenSharing = propertyValue;
           this.talkWindowContextService.bindingFlags.isVideoSharing = propertyValue;
         }
+        //close the full screen mode and hide modal popup
+        if (!this.userContextService.isMobile
+          && this.talkWindowContextService.bindingFlags.isFullScreenMode) {
+          this.talkWindowContextService.bindingFlags.isFullScreenMode = false;
+          this.talkWindowSetCentralIconsPopupFn(false);
+        }
         break;
 
       case 'haveRemoteVideoStream':
@@ -1222,6 +1228,12 @@ export class TalkWindowWebrtcService {
           this.talkWindowContextService.bindingFlags.isScreenSharing = propertyValue;
         } else if (eventObject.channel === AppConstants.VIDEO) {
           this.talkWindowContextService.bindingFlags.isVideoCalling = propertyValue;
+        }
+        //close the full screen mode and hide modal popup
+        if (!this.userContextService.isMobile
+          && this.talkWindowContextService.bindingFlags.isFullScreenMode) {
+          this.talkWindowContextService.bindingFlags.isFullScreenMode = false;
+          this.talkWindowSetCentralIconsPopupFn(false);
         }
         break;
     }
@@ -1348,7 +1360,6 @@ export class TalkWindowWebrtcService {
           this.userContextService.initializeUserWebrtcContext(createDataChannelType.username);
         }
         this.coreWebrtcService.mediaContextInit(createDataChannelType.channel, createDataChannelType.username);
-
         const webrtcContext: any = this.userContextService.getUserWebrtcContext(createDataChannelType.username);
 
         /**

@@ -110,8 +110,9 @@
 
           <div [ngClass]="{'img-column pointer-cursor circle-icon':true, 
             'crimson-color':talkWindowContextService.bindingFlags.isSoundSharing, 
-            'sgreen-color':!talkWindowContextService.bindingFlags.isSoundSharing}" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing && 
-            (userContextService.isNativeApp || talkWindowContextService.bindingFlags.isSoundSharing)"
+            'sgreen-color':!talkWindowContextService.bindingFlags.isSoundSharing}"
+            *ngIf="talkWindowContextService.bindingFlags.isScreenSharing && 
+            talkWindowContextService.bindingFlags.haveLocalVideoStream && (userContextService.isNativeApp || talkWindowContextService.bindingFlags.isSoundSharing)"
             (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isSoundSharing ? 'stop-sound' : 'sound')">
             <i id="profile_sound-icon" class="fas fa-play-circle" aria-hidden="true"></i>
           </div>

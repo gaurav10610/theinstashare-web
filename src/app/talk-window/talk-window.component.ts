@@ -722,6 +722,22 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           .generateOfferWithMediaTracks(peerConnection, startMediaStreamType.channel, startMediaStreamType.requiredMediaTracks);
 
         /**
+         * clean the media context and close stream capturing if connection timeout has occured
+         */
+        if (this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL] === undefined) {
+          const popupMessage: any = this.messageService.buildPopupContext(AppConstants.POPUP_TYPE.CONNECTION_TIMEOUT, 'all');
+          this.talkWindowUtilService.flagPopupMessage(popupMessage);
+
+          offerContainer.mediaStreams.forEach((streamContext: any) => {
+            streamContext[AppConstants.TRACK].stop();
+            webrtcContext[AppConstants.CONNECTION].removeTrack(streamContext[AppConstants.TRACK_SENDER]);
+            this.webrtcService.cleanMediaStreamContext(streamContext[AppConstants.CHANNEL],
+              webrtcContext[AppConstants.MEDIA_CONTEXT][streamContext[AppConstants.CHANNEL]]);
+          });
+          return;
+        }
+
+        /**
          *  compose 'offer' signaling message
          *
          * @property 'seekReturnTracks' will be used by receiving peer user to
@@ -775,9 +791,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
            *
            */
           if (streamContext.channel === AppConstants.SCREEN || streamContext.channel === AppConstants.VIDEO) {
-            this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', false, streamContext.channel);
+            this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', true, streamContext.channel);
           } else if (streamContext.channel === AppConstants.SOUND || streamContext.channel === AppConstants.AUDIO) {
-            this.talkWindowContextService.updateBindingFlag('haveLocalAudioStream', false, streamContext.channel);
+            this.talkWindowContextService.updateBindingFlag('haveLocalAudioStream', true, streamContext.channel);
           }
           /**
            * set local media stream in appropriate media tag on UI
