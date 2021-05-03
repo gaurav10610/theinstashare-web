@@ -264,4 +264,19 @@ export class CoreAppUtilityService {
   isMediaChannel(channel: string): boolean {
     return [AppConstants.VIDEO, AppConstants.AUDIO, AppConstants.SCREEN, AppConstants.SOUND].indexOf(channel) > -1;
   }
+
+  /**
+   * this will check if a certain value is in the specified array or not
+   * 
+   * @param value value to check in the array
+   * @param array array of values
+   * @returns boolean specifying whether value exist in array or not
+   * 
+   */
+  checkMember(value: any, array: any[]): boolean {
+    const index: number = array.indexOf(value);
+    if (index > -1)
+      return true;
+    return false;
+  }
 }

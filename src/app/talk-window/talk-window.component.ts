@@ -710,7 +710,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         const peerConnection: any = webrtcContext[AppConstants.CONNECTION];
 
         let offerContainer: any;
-
         try {
           /**
            *
@@ -721,7 +720,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
            * to be sent to other user
            *
            */
-          const offerContainer: any = await this.coreWebrtcService
+          offerContainer = await this.coreWebrtcService
             .generateOfferWithMediaTracks(peerConnection, startMediaStreamType.channel, startMediaStreamType.requiredMediaTracks);
         } catch (error) {
           LoggerUtil.log('unable to capture video stream from choosen camera');
