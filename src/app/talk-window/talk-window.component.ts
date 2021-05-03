@@ -709,17 +709,27 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       if (webrtcContext[AppConstants.CONNECTION_STATE] === AppConstants.CONNECTION_STATES.CONNECTED) {
         const peerConnection: any = webrtcContext[AppConstants.CONNECTION];
 
-        /**
-         *
-         * generate the appropriate 'offer' for sending it to the other user
-         *
-         * 'offerContainer' will contain the genrated offer sdp and few other
-         * properties which app utilizes to compose an offer signaling message
-         * to be sent to other user
-         *
-         */
-        const offerContainer: any = await this.coreWebrtcService
-          .generateOfferWithMediaTracks(peerConnection, startMediaStreamType.channel, startMediaStreamType.requiredMediaTracks);
+        let offerContainer: any;
+
+        try {
+          /**
+           *
+           * generate the appropriate 'offer' for sending it to the other user
+           *
+           * 'offerContainer' will contain the genrated offer sdp and few other
+           * properties which app utilizes to compose an offer signaling message
+           * to be sent to other user
+           *
+           */
+          const offerContainer: any = await this.coreWebrtcService
+            .generateOfferWithMediaTracks(peerConnection, startMediaStreamType.channel, startMediaStreamType.requiredMediaTracks);
+        } catch (error) {
+          LoggerUtil.log('unable to capture video stream from choosen camera');
+          this.talkWindowUtilService.flagError('unable to capture video stream from camera, please check permissions');
+          this.webrtcService.cleanMediaStreamContext(startMediaStreamType.channel,
+            webrtcContext[AppConstants.MEDIA_CONTEXT][startMediaStreamType.channel]);
+          return;
+        }
 
         /**
          * clean the media context and close stream capturing if connection timeout has occured
@@ -1614,31 +1624,39 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      * flip the default camera to capture video
      *
      */
-    const currentCamera = this.userContextService.defaultCamera;
+    const lastSelectedCamera: string = this.userContextService.defaultCamera;
     const userToChat: string = this.userContextService.userToChat;
-    this.userContextService.defaultCamera = currentCamera === 'user' ? 'environment' : 'user';
+    this.userContextService.defaultCamera = lastSelectedCamera === 'user' ? 'environment' : 'user';
     const webrtcContext: any = this.userContextService.getUserWebrtcContext(userToChat);
 
+    let offerContainer: any;
+    try {
+      /**
+       *
+       * generate the appropriate 'offer' for sending it to the other user
+       *
+       * 'offerContainer' will contain the genrated offer sdp and few other
+       * properties which app utilizes to compose an offer signaling message
+       * to be sent to other user
+       *
+       */
+      offerContainer = await this.coreWebrtcService
+        .generateOfferWithMediaTracks(webrtcContext[AppConstants.CONNECTION], AppConstants.VIDEO, [AppConstants.VIDEO]);
+    } catch (error) {
+      LoggerUtil.log('unable to capture video stream from choosen camera');
+      this.talkWindowUtilService.flagError('unable to capture video stream from camera, please check permissions');
+      this.userContextService.defaultCamera = lastSelectedCamera;
+      return;
+    }
+
     /**
-     * as video stream from different camera has to be captured then we also
+     * as video stream from different camera is captured then we also
      * need to renegotiate the webrtc connection again and for that firstly
      * existing media stream track needs to be stopped
      *
      */
     webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][AppConstants.TRACK].stop();
     webrtcContext[AppConstants.CONNECTION].removeTrack(webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][AppConstants.TRACK_SENDER]);
-
-    /**
-     *
-     * generate the appropriate 'offer' for sending it to the other user
-     *
-     * 'offerContainer' will contain the genrated offer sdp and few other
-     * properties which app utilizes to compose an offer signaling message
-     * to be sent to other user
-     *
-     */
-    const offerContainer: any = await this.coreWebrtcService
-      .generateOfferWithMediaTracks(webrtcContext[AppConstants.CONNECTION], AppConstants.VIDEO, [AppConstants.VIDEO]);
 
     /**
      * send the composed 'offer' signaling message to the other user
