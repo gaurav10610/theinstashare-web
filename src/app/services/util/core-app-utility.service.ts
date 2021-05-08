@@ -252,7 +252,7 @@ export class CoreAppUtilityService {
    * @param channel type of media i.e 'text', 'file' or 'remoteControl'
    */
   isDataChannel(channel: string): boolean {
-    return [AppConstants.TEXT, AppConstants.FILE, AppConstants.REMOTE_CONTROL].indexOf(channel) > -1;
+    return this.checkMember(channel, [AppConstants.TEXT, AppConstants.FILE, AppConstants.REMOTE_CONTROL]);
   }
 
   /**
@@ -262,7 +262,7 @@ export class CoreAppUtilityService {
    * @param channel type of media i.e 'audio', 'video' etc
    */
   isMediaChannel(channel: string): boolean {
-    return [AppConstants.VIDEO, AppConstants.AUDIO, AppConstants.SCREEN, AppConstants.SOUND].indexOf(channel) > -1;
+    return this.checkMember(channel, [AppConstants.VIDEO, AppConstants.AUDIO, AppConstants.SCREEN, AppConstants.SOUND]);
   }
 
   /**
@@ -274,9 +274,6 @@ export class CoreAppUtilityService {
    * 
    */
   checkMember(value: any, array: any[]): boolean {
-    const index: number = array.indexOf(value);
-    if (index > -1)
-      return true;
-    return false;
+    return array.indexOf(value) > -1;
   }
 }

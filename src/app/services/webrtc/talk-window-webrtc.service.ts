@@ -201,17 +201,12 @@ export class TalkWindowWebrtcService {
           switch (peerConnection.connectionState) {
             case 'disconnected':
 
-              const popupContext: any = {
+              // handle the webrtc disconnection here 
+              await this.webrtcConnectionDisconnectHandler(userToChat, [{
                 type: AppConstants.POPUP_TYPE.DISCONNECT + AppConstants.CONNECTION,
                 channel: AppConstants.CONNECTION,
                 modalText: 'disconnected from ' + userToChat
-              };
-
-              /**
-               * 
-               * handle the webrtc disconnection here 
-               */
-              await this.webrtcConnectionDisconnectHandler(userToChat, [popupContext]);
+              }]);
               break;
 
             case 'connected':
@@ -247,16 +242,10 @@ export class TalkWindowWebrtcService {
           }
         }
 
-        /**
-         * 
-         * register data channel related event handlers
-         */
+        // register data channel related event handlers
         this.registerDataChannelEvents(peerConnection, userToChat);
 
-        /**
-         * 
-         * register media track related event handlers
-         */
+        // register media track related event handlers
         this.registerMediaTrackEvents(peerConnection, userToChat);
         resolve();
       } catch (error) {
@@ -426,7 +415,6 @@ export class TalkWindowWebrtcService {
       this.coreWebrtcService.mediaContextInit(channel, userToChat);
       LoggerUtil.log(channel + ' data channel has been received');
       const webrtcContext: any = this.userContextService.getUserWebrtcContext(userToChat);
-
       webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.DATACHANNEL] = dataChannel;
 
       /**
@@ -466,6 +454,7 @@ export class TalkWindowWebrtcService {
          */
         if (channel === AppConstants.REMOTE_CONTROL) {
           this.talkWindowContextService.bindingFlags.haveSharedRemoteAccess = true;
+          this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + AppConstants.REMOTE_CONTROL]);
         }
         if (channel === AppConstants.TEXT) {
           this.sendQueuedMessagesOnChannel(userToChat);
@@ -826,7 +815,7 @@ export class TalkWindowWebrtcService {
    * 
    * @param popupContexts list of informational modal popup context that needs to be shown
    */
-  processMediaStreamDisconnect(channel: string, username: string, sendDisonnectNotification: boolean, popupContexts?: any[]) {
+  processChannelStreamDisconnect(channel: string, username: string, sendDisonnectNotification: boolean, popupContexts?: any[]) {
     LoggerUtil.log('stopping ' + channel + ' stream session with ' + username);
 
     /**
@@ -881,6 +870,7 @@ export class TalkWindowWebrtcService {
        */
       this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME] = undefined;
       this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL] = undefined;
+      this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME] = undefined;
 
       /**
        * if popup context has been supplied then add it in popup context and register

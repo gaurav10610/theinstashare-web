@@ -566,7 +566,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       if (webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TRACK_SENDER]) {
         webrtcContext[AppConstants.CONNECTION].removeTrack(webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TRACK_SENDER]);
       }
-      this.webrtcService.processMediaStreamDisconnect(channel, userToChat, true, [stopAudioPopupContext]);
+      this.webrtcService.processChannelStreamDisconnect(channel, userToChat, true, [stopAudioPopupContext]);
       await this.webrtcService.cleanMediaStreamContext(channel, webrtcContext[AppConstants.MEDIA_CONTEXT][channel]);
       delete webrtcContext[AppConstants.MEDIA_CONTEXT][channel];
 
@@ -588,7 +588,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
            * 
            * @TODO verify it afterwards if notification is really necessary or not
            */
-          this.webrtcService.processMediaStreamDisconnect(AppConstants.SOUND, userToChat, true, [stopAudioPopupContext]);
+          this.webrtcService.processChannelStreamDisconnect(AppConstants.SOUND, userToChat, true, [stopAudioPopupContext]);
           await this.webrtcService.cleanMediaStreamContext(AppConstants.SOUND, webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.SOUND]);
           delete webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.SOUND];
         }
@@ -603,7 +603,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
            */
           const remoteAccessPopupContext = this.messageService
             .buildPopupContext(AppConstants.POPUP_TYPE.DISCONNECTING, AppConstants.REMOTE_CONTROL);
-          this.webrtcService.processMediaStreamDisconnect(channel, userToChat, true, [remoteAccessPopupContext]);
+          this.webrtcService.processChannelStreamDisconnect(channel, userToChat, true, [remoteAccessPopupContext]);
           await this.webrtcService.cleanDataChannelContext(AppConstants.REMOTE_CONTROL, webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.REMOTE_CONTROL]);
           delete webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.REMOTE_CONTROL];
         }
@@ -1243,14 +1243,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   async acceptCall(channel: string) {
 
-    /**
-     * stop the request caller tune
-     */
+    // stop the request caller tune
     this.playOrStopTune('caller', false);
 
-    /**
-     * in case user hasn't selected anybody for chat yet then set chat window
-     */
+    // in case user hasn't selected anybody for chat yet then set chat window
     this.setChatWindow(false);
 
     let userToChat: string;
@@ -1287,9 +1283,16 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         Object.keys(webrtcContext[AppConstants.MEDIA_CONTEXT]).forEach((connectionType) => {
           if (connectionType !== AppConstants.TEXT) {
             if (this.coreAppUtilService.isDataChannel(connectionType)) {
-              this.webrtcService.cleanDataChannelContext(connectionType, webrtcContext[AppConstants.MEDIA_CONTEXT][connectionType]);
-              if (connectionType === AppConstants.FILE) {
+              if (connectionType !== AppConstants.TEXT) {
+                this.webrtcService.cleanDataChannelContext(connectionType, webrtcContext[AppConstants.MEDIA_CONTEXT][connectionType]);
                 delete webrtcContext[AppConstants.FILE_QUEUE];
+
+                // process remote control disconnection here
+                if (connectionType === AppConstants.REMOTE_CONTROL) {
+                  const popupContext: any = this.messageService.buildPopupContext(AppConstants.POPUP_TYPE.DISCONNECTING, connectionType);
+                  this.webrtcService.processChannelStreamDisconnect(channel, this.userContextService.userToChat, false, [popupContext]);
+                  this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME] = undefined;
+                }
               }
             } else if (this.coreAppUtilService.isMediaChannel(connectionType)) {
 
@@ -1298,7 +1301,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
                 webrtcContext[AppConstants.CONNECTION].removeTrack(webrtcContext[AppConstants.MEDIA_CONTEXT][connectionType][AppConstants.TRACK_SENDER]);
               }
               //send disconnect notification
-              this.webrtcService.processMediaStreamDisconnect(connectionType, this.userContextService.userToChat, true);
+              this.webrtcService.processChannelStreamDisconnect(connectionType, this.userContextService.userToChat, true);
               this.webrtcService.cleanMediaStreamContext(connectionType, webrtcContext[AppConstants.MEDIA_CONTEXT][connectionType]);
             }
           }
@@ -1346,8 +1349,13 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
     /**
      * configure timeout job
+     * 
+     * @TODO fix it afterwards, handle remote control as well
+     * 
      */
-    this.webrtcService.cleanMediaContextIfNotConnected(userToChat, channel);
+    if (channel !== AppConstants.REMOTE_CONTROL) {
+      this.webrtcService.cleanMediaContextIfNotConnected(userToChat, channel);
+    }
     if (channel === AppConstants.VIDEO && !this.talkWindowContextService.bindingFlags.isAudioCalling) {
       this.webrtcService.cleanMediaContextIfNotConnected(userToChat, AppConstants.AUDIO);
     }
@@ -1825,7 +1833,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       .buildPopupContext(AppConstants.POPUP_TYPE.DISCONNECT, channel, username);
 
     if (channel === AppConstants.REMOTE_CONTROL) {
-      this.webrtcService.processMediaStreamDisconnect(channel, username, false, [popupContext]);
+      this.webrtcService.processChannelStreamDisconnect(channel, username, false, [popupContext]);
+      this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME] = undefined;
       await this.webrtcService.cleanDataChannelContext(AppConstants.REMOTE_CONTROL, webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.REMOTE_CONTROL]);
       delete webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.REMOTE_CONTROL];
     } else {
@@ -1838,7 +1847,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME] = undefined;
       this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL] = undefined;
 
-      this.webrtcService.processMediaStreamDisconnect(channel, username, false, [popupContext]);
+      this.webrtcService.processChannelStreamDisconnect(channel, username, false, [popupContext]);
       // remove the track from peer connection
       if (webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TRACK_SENDER]) {
         webrtcContext[AppConstants.CONNECTION].removeTrack(webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TRACK_SENDER]);
@@ -2136,20 +2145,18 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * stop remote access
        */
       case 'stop':
-        /**
-         * display appropriate modal popup message on UI & disconnect the the remote 
-         * access connection
-         *
-         */
+        // display disconnecting modal popup message on UI 
         popupContext = this.messageService
           .buildPopupContext(AppConstants.POPUP_TYPE.DISCONNECTING, AppConstants.REMOTE_CONTROL);
-        /**
-         * 
-         * 
-         * @TODO fix it afterwards
-         */
-        // this.webrtcService.remoteAccessConnectionDisconnectHandler(false, AppConstants.REMOTE_CONTROL,
-        //   this.userContextService.userToChat, true, popupContext);
+
+        const userToChat: string = this.userContextService.userToChat;
+        const mediaContext: any = this.userContextService.getUserWebrtcContext(userToChat)[AppConstants.MEDIA_CONTEXT];
+        this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME] = undefined;
+        this.webrtcService.processChannelStreamDisconnect(AppConstants.REMOTE_CONTROL, userToChat, true, [popupContext]);
+
+        // process the disconnection here
+        this.webrtcService.cleanDataChannelContext(AppConstants.REMOTE_CONTROL, mediaContext[AppConstants.REMOTE_CONTROL]);
+        delete mediaContext[AppConstants.REMOTE_CONTROL];
         break;
 
       default:
@@ -2255,11 +2262,12 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
               this.talkWindowContextService.remoteAccessContext['remoteWidth'] * signalingMessage.devicePixelRatio;
           }
 
-          /**
-           * @TODO start establishing remote access connection here 
-           * 
-           */
-          this.setUpRemoteAccessConnection();
+          // create remote access data channel request
+          const createDataChannelType: CreateDataChannelType = {
+            username: userToChat,
+            channel: AppConstants.REMOTE_CONTROL
+          }
+          this.webrtcService.setUpDataChannel(createDataChannelType);
         }
         break;
 
@@ -2297,19 +2305,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   async setUpRemoteAccessConnection() {
 
-    /**
-     * get username of the user with whom remote access connection needs to be established
-     *  
-     */
-    const userToChat: string = this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME];
 
-    const createDataChannelType: CreateDataChannelType = {
-      username: userToChat,
-      channel: AppConstants.REMOTE_CONTROL
-    }
-
-    //set up new data channel
-    this.webrtcService.setUpDataChannel(createDataChannelType);
   }
 
   /**
@@ -2321,7 +2317,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   handleWebrtcEvent(signalingMessage: any) {
     LoggerUtil.log('handling webrtc event: ' + signalingMessage.event);
     const webrtcContext: any = this.userContextService.getUserWebrtcContext(signalingMessage.from);
-
     switch (signalingMessage.event) {
 
       /**
@@ -2329,7 +2324,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * webrtc data channel open event received from remote user's end
        */
       case AppConstants.WEBRTC_EVENTS.CHANNEL_OPEN:
-        LoggerUtil.log(signalingMessage.channel + ' data channel has been opened');
+        LoggerUtil.log(signalingMessage.channel + ' data channel has been opened with user: ' + signalingMessage.from);
         webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTED;
         switch (signalingMessage.channel) {
 
@@ -2343,12 +2338,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
           case AppConstants.REMOTE_CONTROL:
 
-            /**
-             * set remote access flag
-             */
+            // set remote access flag
             this.talkWindowContextService.bindingFlags.isAccessingRemote = true;
 
-            //register event listners for remote access
+            // register event listners for remote access
             this.webRemoteAccessService.registerRemoteAccessEventListeners(this.remoteVideoCanvas);
 
             /**
@@ -2371,6 +2364,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
               this.remoteVideoDiv.nativeElement.clientHeight,
               this.remoteVideo, this.remoteVideoCanvas);
         }
+        this.talkWindowUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + AppConstants.REMOTE_CONTROL]);
         break;
 
       case AppConstants.WEBRTC_EVENTS.REMOTE_TRACK_RECEIVED:
