@@ -201,17 +201,12 @@ export class TalkWindowWebrtcService {
           switch (peerConnection.connectionState) {
             case 'disconnected':
 
-              const popupContext: any = {
+              // handle the webrtc disconnection here 
+              await this.webrtcConnectionDisconnectHandler(userToChat, [{
                 type: AppConstants.POPUP_TYPE.DISCONNECT + AppConstants.CONNECTION,
                 channel: AppConstants.CONNECTION,
                 modalText: 'disconnected from ' + userToChat
-              };
-
-              /**
-               * 
-               * handle the webrtc disconnection here 
-               */
-              await this.webrtcConnectionDisconnectHandler(userToChat, [popupContext]);
+              }]);
               break;
 
             case 'connected':
@@ -247,16 +242,10 @@ export class TalkWindowWebrtcService {
           }
         }
 
-        /**
-         * 
-         * register data channel related event handlers
-         */
+        // register data channel related event handlers
         this.registerDataChannelEvents(peerConnection, userToChat);
 
-        /**
-         * 
-         * register media track related event handlers
-         */
+        // register media track related event handlers
         this.registerMediaTrackEvents(peerConnection, userToChat);
         resolve();
       } catch (error) {
@@ -426,7 +415,6 @@ export class TalkWindowWebrtcService {
       this.coreWebrtcService.mediaContextInit(channel, userToChat);
       LoggerUtil.log(channel + ' data channel has been received');
       const webrtcContext: any = this.userContextService.getUserWebrtcContext(userToChat);
-
       webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.DATACHANNEL] = dataChannel;
 
       /**
@@ -466,6 +454,11 @@ export class TalkWindowWebrtcService {
          */
         if (channel === AppConstants.REMOTE_CONTROL) {
           this.talkWindowContextService.bindingFlags.haveSharedRemoteAccess = true;
+          this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + AppConstants.REMOTE_CONTROL]);
+          if (webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TIMEOUT_JOB]) {
+            LoggerUtil.log(channel + ' data channel is connected so removing timeout cleaning job');
+            clearTimeout(webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TIMEOUT_JOB]);
+          }
         }
         if (channel === AppConstants.TEXT) {
           this.sendQueuedMessagesOnChannel(userToChat);
@@ -497,7 +490,15 @@ export class TalkWindowWebrtcService {
          *                                                                                                                                                                                                [description]
          */
         if (this.talkWindowContextService.bindingFlags.isDndOn || this.talkWindowContextService.popupContext.size !== 0) {
-          this.sendCallInviteResponse(signalingMessage.channel, signalingMessage.from, false, AppConstants.CALL_REQUEST);
+          this.sendPayload({
+            type: AppConstants.CALL_REQUEST,
+            channel: signalingMessage.channel,
+            from: this.userContextService.username,
+            to: signalingMessage.from,
+            request: AppConstants.DECLINE,
+            os: this.appUtilService.getOSType(),
+            devicePixelRatio: window.devicePixelRatio
+          });
         } else {
 
           this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME] = signalingMessage.from;
@@ -676,6 +677,9 @@ export class TalkWindowWebrtcService {
            */
           this.appUtilService.appRef.tick();
         }
+
+        //remove any of the popup context
+        this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
         resolve();
       } catch (error) {
         LoggerUtil.log('there is an error occured while cleaning media channel context for channel: ' + channel);
@@ -721,6 +725,43 @@ export class TalkWindowWebrtcService {
         reject(error);
       }
     });
+  }
+
+  /**
+   * this will check whether the data channel is connected after specified amount of time,
+   * if connected well and good else this will clean up the data channel call context followed 
+   * by media context cleanup 
+   * 
+   * @param username username of the user with whom media streaming has to be done
+   * @param channel media type of stream
+   * 
+   */
+  cleanChannelContextIfNotConnected(username: string, channel: string) {
+    /**
+     * initialize webrtc context if not yet initialized
+     */
+    if (!this.userContextService.hasUserWebrtcContext(username)) {
+      this.userContextService.initializeUserWebrtcContext(username);
+    }
+    this.coreWebrtcService.mediaContextInit(channel, username);
+    const webrtcContext: any = this.userContextService.getUserWebrtcContext(username);
+
+    webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TIMEOUT_JOB] = setTimeout(() => {
+      const connected: boolean = this.coreAppUtilService.isDataChannelConnected(webrtcContext, channel);
+      if (!connected) {
+        this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
+        const popupContext: any = this.messageService.buildPopupContext(AppConstants.POPUP_TYPE.UNABLE_TO_CONNECT, channel);
+        this.appUtilService.flagPopupMessage(popupContext, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
+        const mediaContext: any = webrtcContext[AppConstants.MEDIA_CONTEXT];
+
+        // clean the remote control connection
+        this.talkWindowContextService.resetRemoteAccessContext[AppConstants.USERNAME] = undefined;
+        this.cleanDataChannelContext(channel, mediaContext[channel]);
+        delete mediaContext[channel];
+      } else {
+        LoggerUtil.log(channel + ' data channel connection with ' + username + ' found connected after timeout');
+      }
+    }, AppConstants.CONNECTION_TIMEOUT);
   }
 
   /**
@@ -780,16 +821,12 @@ export class TalkWindowWebrtcService {
       if (!connected) {
         this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
         const popupContext: any = this.messageService.buildPopupContext(AppConstants.POPUP_TYPE.UNABLE_TO_CONNECT, channel);
-        this.appUtilService.addPopupContext(popupContext);
+        this.appUtilService.flagPopupMessage(popupContext, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
         const mediaContext: any = webrtcContext[AppConstants.MEDIA_CONTEXT];
 
-        /**
-         * 
-         * clean up the media stream request context
-         */
+        // clean up the media stream request context
         this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME] = undefined;
         this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL] = undefined;
-        setTimeout(() => { this.appUtilService.removePopupContext([popupContext.type]); }, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
 
         // remove the track from peer connection
         if (mediaContext[channel][AppConstants.TRACK_SENDER]) {
@@ -815,7 +852,7 @@ export class TalkWindowWebrtcService {
    * 
    * @param popupContexts list of informational modal popup context that needs to be shown
    */
-  processMediaStreamDisconnect(channel: string, username: string, sendDisonnectNotification: boolean, popupContexts?: any[]) {
+  processChannelStreamDisconnect(channel: string, username: string, sendDisonnectNotification: boolean, popupContexts?: any[]) {
     LoggerUtil.log('stopping ' + channel + ' stream session with ' + username);
 
     /**
@@ -870,6 +907,7 @@ export class TalkWindowWebrtcService {
        */
       this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME] = undefined;
       this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL] = undefined;
+      this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME] = undefined;
 
       /**
        * if popup context has been supplied then add it in popup context and register
@@ -915,30 +953,6 @@ export class TalkWindowWebrtcService {
       webrtcContext[AppConstants.CONNECTION] = undefined;
       webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.NOT_CONNECTED;
       resolve();
-    });
-  }
-
-  /**
-   * this will be used to respond back to any media stream request received
-   *
-   * @param channel type of received media stream request
-   *
-   * @param username username of the user from whom we've received the request
-   *
-   * @param acceptFlag flag to distinguish whether to accept the request or decline
-   * 
-   * @param responseType type of response which needed to be sent i.e 'remoteAccess' or 'callRequest'
-   * 
-   */
-  sendCallInviteResponse(channel: string, username: string, acceptFlag: boolean, responseType: string) {
-    this.sendPayload({
-      type: responseType,
-      channel: channel,
-      from: this.userContextService.username,
-      to: username,
-      request: acceptFlag ? AppConstants.ACCEPT : AppConstants.DECLINE,
-      os: this.appUtilService.getOSType(),
-      devicePixelRatio: window.devicePixelRatio
     });
   }
 

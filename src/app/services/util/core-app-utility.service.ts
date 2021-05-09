@@ -216,32 +216,34 @@ export class CoreAppUtilityService {
    * 
    * @param channel: media type audio/video/text 
    * 
+   * @TODO fix it afterwards
+   * 
    */
   getMaxBitrateForSdpModification(channel: string) {
-    let bitrate = 500;
-    switch (channel) {
-      case AppConstants.VIDEO:
-        bitrate = AppConstants.MEDIA_BITRATES.VIDEO;
-        break;
-      case AppConstants.SCREEN:
-        bitrate = AppConstants.MEDIA_BITRATES.SCREEN;
-        break;
-      case AppConstants.AUDIO:
-        bitrate = AppConstants.MEDIA_BITRATES.AUDIO
-        break;
-      case AppConstants.SOUND:
-        bitrate = AppConstants.MEDIA_BITRATES.SOUND
-        break;
-      case AppConstants.FILE:
-        bitrate = AppConstants.MEDIA_BITRATES.FILE;
-        break;
-      case AppConstants.REMOTE_CONTROL:
-        bitrate = AppConstants.MEDIA_BITRATES.REMOTE_CONTROL;
-        break;
-      case AppConstants.TEXT:
-        bitrate = AppConstants.MEDIA_BITRATES.DATA;
-        break;
-    }
+    let bitrate = 10000;
+    // switch (channel) {
+    //   case AppConstants.VIDEO:
+    //     bitrate = AppConstants.MEDIA_BITRATES.VIDEO;
+    //     break;
+    //   case AppConstants.SCREEN:
+    //     bitrate = AppConstants.MEDIA_BITRATES.SCREEN;
+    //     break;
+    //   case AppConstants.AUDIO:
+    //     bitrate = AppConstants.MEDIA_BITRATES.AUDIO
+    //     break;
+    //   case AppConstants.SOUND:
+    //     bitrate = AppConstants.MEDIA_BITRATES.SOUND
+    //     break;
+    //   case AppConstants.FILE:
+    //     bitrate = AppConstants.MEDIA_BITRATES.FILE;
+    //     break;
+    //   case AppConstants.REMOTE_CONTROL:
+    //     bitrate = AppConstants.MEDIA_BITRATES.REMOTE_CONTROL;
+    //     break;
+    //   case AppConstants.TEXT:
+    //     bitrate = AppConstants.MEDIA_BITRATES.DATA;
+    //     break;
+    // }
     return bitrate;
   }
 
@@ -252,7 +254,7 @@ export class CoreAppUtilityService {
    * @param channel type of media i.e 'text', 'file' or 'remoteControl'
    */
   isDataChannel(channel: string): boolean {
-    return [AppConstants.TEXT, AppConstants.FILE, AppConstants.REMOTE_CONTROL].indexOf(channel) > -1;
+    return this.checkMember(channel, [AppConstants.TEXT, AppConstants.FILE, AppConstants.REMOTE_CONTROL]);
   }
 
   /**
@@ -262,6 +264,18 @@ export class CoreAppUtilityService {
    * @param channel type of media i.e 'audio', 'video' etc
    */
   isMediaChannel(channel: string): boolean {
-    return [AppConstants.VIDEO, AppConstants.AUDIO, AppConstants.SCREEN, AppConstants.SOUND].indexOf(channel) > -1;
+    return this.checkMember(channel, [AppConstants.VIDEO, AppConstants.AUDIO, AppConstants.SCREEN, AppConstants.SOUND]);
+  }
+
+  /**
+   * this will check if a certain value is in the specified array or not
+   * 
+   * @param value value to check in the array
+   * @param array array of values
+   * @returns boolean specifying whether value exist in array or not
+   * 
+   */
+  checkMember(value: any, array: any[]): boolean {
+    return array.indexOf(value) > -1;
   }
 }

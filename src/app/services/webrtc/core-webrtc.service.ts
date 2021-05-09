@@ -134,6 +134,11 @@ export class CoreWebrtcService {
       try {
         const mediaStreams: any[] = [];
         for (let i = 0; i < requiredMediaTracks.length; i++) {
+
+          /**
+           * 
+           * @TODO check for individual stream error here and build the resolve response accordingly
+           */
           const stream: any = await this.getMediaStream(requiredMediaTracks[i]);
           const streamContext: any = {};
           streamContext[AppConstants.STREAM] = stream;
