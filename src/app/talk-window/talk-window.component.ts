@@ -1347,13 +1347,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       channel: channel
     });
 
-    /**
-     * configure timeout job
-     * 
-     * @TODO fix it afterwards, handle remote control as well
-     * 
-     */
-    if (channel !== AppConstants.REMOTE_CONTROL) {
+    // configure timeout job
+    if (channel === AppConstants.REMOTE_CONTROL) {
+      this.webrtcService.cleanChannelContextIfNotConnected(userToChat, channel);
+    } else {
       this.webrtcService.cleanMediaContextIfNotConnected(userToChat, channel);
     }
     if (channel === AppConstants.VIDEO && !this.talkWindowContextService.bindingFlags.isAudioCalling) {
@@ -2262,6 +2259,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
               this.talkWindowContextService.remoteAccessContext['remoteWidth'] * signalingMessage.devicePixelRatio;
           }
 
+          // configure cleanup job
+          this.webrtcService.cleanChannelContextIfNotConnected(userToChat, AppConstants.REMOTE_CONTROL);
+
           // create remote access data channel request
           const createDataChannelType: CreateDataChannelType = {
             username: userToChat,
@@ -2365,6 +2365,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
               this.remoteVideo, this.remoteVideoCanvas);
         }
         this.talkWindowUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + AppConstants.REMOTE_CONTROL]);
+        if (webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.TIMEOUT_JOB]) {
+          LoggerUtil.log(signalingMessage.channel + ' data channel is connected so removing timeout cleaning job');
+          clearTimeout(webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.TIMEOUT_JOB]);
+        }
         break;
 
       case AppConstants.WEBRTC_EVENTS.REMOTE_TRACK_RECEIVED:

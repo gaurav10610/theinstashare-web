@@ -74,7 +74,7 @@ export class UserContextService {
       connection: undefined,
       connectionState: AppConstants.CONNECTION_STATES.NOT_CONNECTED,
       unreadCount: 0,
-      reconnect: true, //this flag is used in case of disconnect, whether to reconnect or not
+      reconnect: true, // this flag is used in case of disconnect, whether to reconnect or not
       webrtcOnConnectQueue: new QueueStorage()
     });
   }

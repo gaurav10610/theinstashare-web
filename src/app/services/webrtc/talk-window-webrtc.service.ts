@@ -455,6 +455,10 @@ export class TalkWindowWebrtcService {
         if (channel === AppConstants.REMOTE_CONTROL) {
           this.talkWindowContextService.bindingFlags.haveSharedRemoteAccess = true;
           this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + AppConstants.REMOTE_CONTROL]);
+          if (webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TIMEOUT_JOB]) {
+            LoggerUtil.log(channel + ' data channel is connected so removing timeout cleaning job');
+            clearTimeout(webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TIMEOUT_JOB]);
+          }
         }
         if (channel === AppConstants.TEXT) {
           this.sendQueuedMessagesOnChannel(userToChat);
@@ -724,6 +728,43 @@ export class TalkWindowWebrtcService {
   }
 
   /**
+   * this will check whether the data channel is connected after specified amount of time,
+   * if connected well and good else this will clean up the data channel call context followed 
+   * by media context cleanup 
+   * 
+   * @param username username of the user with whom media streaming has to be done
+   * @param channel media type of stream
+   * 
+   */
+  cleanChannelContextIfNotConnected(username: string, channel: string) {
+    /**
+     * initialize webrtc context if not yet initialized
+     */
+    if (!this.userContextService.hasUserWebrtcContext(username)) {
+      this.userContextService.initializeUserWebrtcContext(username);
+    }
+    this.coreWebrtcService.mediaContextInit(channel, username);
+    const webrtcContext: any = this.userContextService.getUserWebrtcContext(username);
+
+    webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TIMEOUT_JOB] = setTimeout(() => {
+      const connected: boolean = this.coreAppUtilService.isDataChannelConnected(webrtcContext, channel);
+      if (!connected) {
+        this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
+        const popupContext: any = this.messageService.buildPopupContext(AppConstants.POPUP_TYPE.UNABLE_TO_CONNECT, channel);
+        this.appUtilService.flagPopupMessage(popupContext, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
+        const mediaContext: any = webrtcContext[AppConstants.MEDIA_CONTEXT];
+
+        // clean the remote control connection
+        this.talkWindowContextService.resetRemoteAccessContext[AppConstants.USERNAME] = undefined;
+        this.cleanDataChannelContext(channel, mediaContext[channel]);
+        delete mediaContext[channel];
+      } else {
+        LoggerUtil.log(channel + ' data channel connection with ' + username + ' found connected after timeout');
+      }
+    }, AppConstants.CONNECTION_TIMEOUT);
+  }
+
+  /**
    * this will check whether the media streaming is connected after specified amount of time,
    * if connected well and good else this will clean up the media call context followed by media context 
    * cleanup 
@@ -780,16 +821,12 @@ export class TalkWindowWebrtcService {
       if (!connected) {
         this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
         const popupContext: any = this.messageService.buildPopupContext(AppConstants.POPUP_TYPE.UNABLE_TO_CONNECT, channel);
-        this.appUtilService.addPopupContext(popupContext);
+        this.appUtilService.flagPopupMessage(popupContext, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
         const mediaContext: any = webrtcContext[AppConstants.MEDIA_CONTEXT];
 
-        /**
-         * 
-         * clean up the media stream request context
-         */
+        // clean up the media stream request context
         this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME] = undefined;
         this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL] = undefined;
-        setTimeout(() => { this.appUtilService.removePopupContext([popupContext.type]); }, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
 
         // remove the track from peer connection
         if (mediaContext[channel][AppConstants.TRACK_SENDER]) {

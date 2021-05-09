@@ -30,7 +30,8 @@ export class MessageService {
     'noconnect_video': 'unable to connect video stream',
     'noconnect_screen': 'unable to connect screen stream',
     'noconnect_sound': 'unable to connect sound stream',
-    'timeout_all':'connection timeout has occured please try again'
+    'noconnect_remoteControl': 'unable to establish remote control connection',
+    'timeout_all': 'connection timeout has occured please try again'
   }
 
   /**
