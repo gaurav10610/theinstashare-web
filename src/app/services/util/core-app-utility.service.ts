@@ -216,32 +216,34 @@ export class CoreAppUtilityService {
    * 
    * @param channel: media type audio/video/text 
    * 
+   * @TODO fix it afterwards
+   * 
    */
   getMaxBitrateForSdpModification(channel: string) {
-    let bitrate = 500;
-    switch (channel) {
-      case AppConstants.VIDEO:
-        bitrate = AppConstants.MEDIA_BITRATES.VIDEO;
-        break;
-      case AppConstants.SCREEN:
-        bitrate = AppConstants.MEDIA_BITRATES.SCREEN;
-        break;
-      case AppConstants.AUDIO:
-        bitrate = AppConstants.MEDIA_BITRATES.AUDIO
-        break;
-      case AppConstants.SOUND:
-        bitrate = AppConstants.MEDIA_BITRATES.SOUND
-        break;
-      case AppConstants.FILE:
-        bitrate = AppConstants.MEDIA_BITRATES.FILE;
-        break;
-      case AppConstants.REMOTE_CONTROL:
-        bitrate = AppConstants.MEDIA_BITRATES.REMOTE_CONTROL;
-        break;
-      case AppConstants.TEXT:
-        bitrate = AppConstants.MEDIA_BITRATES.DATA;
-        break;
-    }
+    let bitrate = 10000;
+    // switch (channel) {
+    //   case AppConstants.VIDEO:
+    //     bitrate = AppConstants.MEDIA_BITRATES.VIDEO;
+    //     break;
+    //   case AppConstants.SCREEN:
+    //     bitrate = AppConstants.MEDIA_BITRATES.SCREEN;
+    //     break;
+    //   case AppConstants.AUDIO:
+    //     bitrate = AppConstants.MEDIA_BITRATES.AUDIO
+    //     break;
+    //   case AppConstants.SOUND:
+    //     bitrate = AppConstants.MEDIA_BITRATES.SOUND
+    //     break;
+    //   case AppConstants.FILE:
+    //     bitrate = AppConstants.MEDIA_BITRATES.FILE;
+    //     break;
+    //   case AppConstants.REMOTE_CONTROL:
+    //     bitrate = AppConstants.MEDIA_BITRATES.REMOTE_CONTROL;
+    //     break;
+    //   case AppConstants.TEXT:
+    //     bitrate = AppConstants.MEDIA_BITRATES.DATA;
+    //     break;
+    // }
     return bitrate;
   }
 
