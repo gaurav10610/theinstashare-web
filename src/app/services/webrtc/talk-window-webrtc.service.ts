@@ -12,6 +12,7 @@ import { MessageService } from '../message/message.service';
 import { CreateDataChannelType } from '../contracts/CreateDataChannelType';
 import { CallbackContextType } from '../contracts/WebrtcCallbackContextType';
 import { MediaContextUpdateEventType } from '../contracts/MediaContextUpdateEventType';
+import { CoreDataChannelService } from '../data-channel/core-data-channel.service';
 
 /**
  * this service contains all the webrtc related reusable logic chunks which app
@@ -58,11 +59,11 @@ export class TalkWindowWebrtcService {
     private userContextService: UserContextService,
     private talkWindowContextService: TalkWindowContextService,
     private appUtilService: TalkWindowUtilityService,
-    private signalingService: SignalingService,
     private remoteAccessService: NativeRemoteAccessService,
     private coreAppUtilService: CoreAppUtilityService,
     private coreWebrtcService: CoreWebrtcService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private coreDataChannelService: CoreDataChannelService
   ) { }
 
   /**
@@ -238,7 +239,7 @@ export class TalkWindowWebrtcService {
               to: userToChat,
               channel: AppConstants.CONNECTION
             };
-            this.sendPayload(iceCandidatePayload);
+            this.coreDataChannelService.sendPayload(iceCandidatePayload);
           }
         }
 
@@ -357,7 +358,7 @@ export class TalkWindowWebrtcService {
        * 
        * send remote track received event message to other peer 
        */
-      this.sendPayload({
+      this.coreDataChannelService.sendPayload({
         type: AppConstants.WEBRTC_EVENT,
         channel: channel,
         event: AppConstants.WEBRTC_EVENTS.REMOTE_TRACK_RECEIVED,
@@ -439,7 +440,7 @@ export class TalkWindowWebrtcService {
          * 
          * send onopen data channel event message to other peer 
          */
-        this.sendPayload({
+        this.coreDataChannelService.sendPayload({
           type: AppConstants.WEBRTC_EVENT,
           channel: channel,
           event: AppConstants.WEBRTC_EVENTS.CHANNEL_OPEN,
@@ -490,7 +491,7 @@ export class TalkWindowWebrtcService {
          *                                                                                                                                                                                                [description]
          */
         if (this.talkWindowContextService.bindingFlags.isDndOn || this.talkWindowContextService.popupContext.size !== 0) {
-          this.sendPayload({
+          this.coreDataChannelService.sendPayload({
             type: AppConstants.CALL_REQUEST,
             channel: signalingMessage.channel,
             from: this.userContextService.username,
@@ -859,7 +860,7 @@ export class TalkWindowWebrtcService {
      * send appropriate media stream disconnect message to other peer
      */
     if (sendDisonnectNotification) {
-      this.sendPayload({
+      this.coreDataChannelService.sendPayload({
         type: AppConstants.DISCONNECT,
         channel: channel,
         from: this.userContextService.getUserName(),
@@ -954,81 +955,6 @@ export class TalkWindowWebrtcService {
       webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.NOT_CONNECTED;
       resolve();
     });
-  }
-
-  /**
-   * this will clean any registered timeout job using timeout job id saved in
-   * timer context for supplied media type's sender or receiver peer connection
-   *
-   * @param username username of the user with whom this connection was connected
-   *
-   * @param channel webrtc connection's media type for connection means the
-   * type of media data that we will relay on this connection e.g 'text','video'
-   * or 'audio'
-   *
-   * @param isSenderConnection boolean flag to distinguish between sender and
-   * receive audio/video peer connections
-   *
-   * @return a promise
-   */
-
-  /**
-   * this will send the signaling message on the dataChannel if found open else
-   * send it via signaling server i.e socket server
-   *
-   * @param signalingMessage json signaling message payload nedded to be sent
-   */
-  sendPayload(signalingMessage: any) {
-    const webrtcContext: any = this.userContextService.getUserWebrtcContext(signalingMessage.to);
-
-    /**
-     * if there is already an open data channel b/w users then send signaling
-     * payload via data channel only by wrapping whole message in a top container
-     * and adding a 'via' property in top container so that data channel on the
-     * other can know that this message is a signaling payload
-     *
-     * 
-     * @TODO see if this can be removed
-     */
-    if (this.coreAppUtilService.isDataChannelConnected(webrtcContext, AppConstants.TEXT)) {
-      LoggerUtil.log('sent payload via data channel : ' + JSON.stringify(signalingMessage));
-      signalingMessage['via'] = 'dataChannel';
-      webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.TEXT].dataChannel.send(JSON.stringify({
-        type: AppConstants.SIGNALING,
-        message: signalingMessage
-      }));
-    } else {
-
-      /**
-       * if there is no open data channel found then just route/send message via
-       * signaling server
-       *
-       */
-      LoggerUtil.log('sent payload via signaling server ' + JSON.stringify(signalingMessage));
-      signalingMessage['via'] = 'signaling server';
-      this.signalingService.sendPayload(signalingMessage);
-    }
-  }
-
-  /**
-   * this will send a json message via data channel of specified channel
-   * 
-   * @param jsonMessage message that needs to be sent via data channel
-   * 
-   * @param channel webrtc connection's media type for connection means the
-   * type of media data that we will relay on this connection e.g 'text','video'
-   * or 'audio'
-   * 
-   */
-  sendMessageOnDataChannel(jsonMessage: any, channel: string) {
-    try {
-      LoggerUtil.log(jsonMessage);
-      const webrtcContext: any = this.userContextService.getUserWebrtcContext(jsonMessage.to);
-      webrtcContext[AppConstants.MEDIA_CONTEXT][channel].dataChannel.send(JSON.stringify(jsonMessage));
-    } catch (e) {
-      LoggerUtil.log('error occured while sending following message via data channel');
-      LoggerUtil.log(JSON.stringify(jsonMessage));
-    }
   }
 
   /**
@@ -1312,7 +1238,7 @@ export class TalkWindowWebrtcService {
                * 
                * send the offer payload
                */
-              this.sendPayload({
+              this.coreDataChannelService.sendPayload({
                 from: this.userContextService.username,
                 to: username,
                 channel: AppConstants.CONNECTION,
@@ -1332,7 +1258,7 @@ export class TalkWindowWebrtcService {
                * 
                * send the answer payload
                */
-              this.sendPayload({
+              this.coreDataChannelService.sendPayload({
                 from: this.userContextService.username,
                 to: username,
                 channel: AppConstants.CONNECTION,
@@ -1405,7 +1331,7 @@ export class TalkWindowWebrtcService {
           /**
            * send the composed 'offer' signaling message to the other user
            */
-          this.sendPayload({
+          this.coreDataChannelService.sendPayload({
             type: offerContainer.offerPayload.type,
             offer: offerContainer.offerPayload.offer,
             channel: offerContainer.offerPayload.channel,

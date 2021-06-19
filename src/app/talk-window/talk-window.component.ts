@@ -16,6 +16,7 @@ import { MessageService } from '../services/message/message.service';
 import { CreateDataChannelType } from '../services/contracts/CreateDataChannelType';
 import { StartMediaStreamType } from '../services/contracts/StartMediaStreamType';
 import { CallbackContextType } from '../services/contracts/WebrtcCallbackContextType';
+import { CoreDataChannelService } from '../services/data-channel/core-data-channel.service';
 
 @Component({
   selector: 'app-talk-window',
@@ -36,7 +37,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     private webRemoteAccessService: WebRemoteAccessService,
     private coreWebrtcService: CoreWebrtcService,
     private coreAppUtilService: CoreAppUtilityService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private coreDataChannelService: CoreDataChannelService
   ) { }
 
   showLoader: boolean = false;
@@ -413,7 +415,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
              * we've received the offer message
              *
              */
-            this.webrtcService.sendPayload({
+            this.coreDataChannelService.sendPayload({
               type: AppConstants.ANSWER,
               answer: answerContainer.answerPayload.answer,
               channel: answerContainer.answerPayload.channel,
@@ -482,7 +484,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
              * we've received the offer message
              *
              */
-            this.webrtcService.sendPayload({
+            this.coreDataChannelService.sendPayload({
               type: AppConstants.ANSWER,
               answer: answerContainer.answerPayload.answer,
               channel: answerContainer.answerPayload.channel,
@@ -666,7 +668,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      * send the media call request to the currently selected user
      *
      */
-    this.webrtcService.sendPayload({
+    this.coreDataChannelService.sendPayload({
       type: AppConstants.CALL_REQUEST,
       channel: channel,
       from: this.userContextService.username,
@@ -772,7 +774,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         if (startMediaStreamType.channel === AppConstants.SCREEN || startMediaStreamType.channel === AppConstants.SOUND) {
           delete offerPayload['seekReturnTracks'];
         }
-        this.webrtcService.sendPayload(offerPayload);
+        this.coreDataChannelService.sendPayload(offerPayload);
 
         /**
          * 
@@ -1320,7 +1322,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     /**
      * send media stream request's acceptance response to the other user
      */
-    this.webrtcService.sendPayload({
+    this.coreDataChannelService.sendPayload({
       type: responseType,
       channel: channel,
       from: this.userContextService.username,
@@ -1384,7 +1386,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      */
     if (action === AppConstants.DECLINE) {
       // Sending call request as decline to user
-      this.webrtcService.sendPayload({
+      this.coreDataChannelService.sendPayload({
         type: responseType,
         channel: channel,
         from: this.userContextService.username,
@@ -1670,7 +1672,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      * an existing webrtc connection
      *
      */
-    this.webrtcService.sendPayload({
+    this.coreDataChannelService.sendPayload({
       type: offerContainer.offerPayload.type,
       offer: offerContainer.offerPayload.offer,
       channel: offerContainer.offerPayload.channel,
@@ -2129,7 +2131,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          * send remote access request to the selected user
          * 
          */
-        this.webrtcService.sendPayload({
+        this.coreDataChannelService.sendPayload({
           from: this.userContextService.getUserName(),
           to: this.userContextService.userToChat,
           type: AppConstants.REMOTE_ACCESS_REQUEST,
