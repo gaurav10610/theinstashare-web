@@ -4,6 +4,9 @@
     class="{{stopNotification || signalingService.signalingRouter.connected ? 'top-snackbar' : 'top-snackbar snackbar-show'}}">
     <p>Connection lost from server...</p>
   </div>
+  <div id="error_snackbar" [ngClass]="{'top-snackbar':true,'snackbar-show':errors.length !== 0}">
+    <p *ngFor="let error of errors">{{error}}</p>
+  </div>
   <div style="text-align:center;margin-top: 15px;color:#217093">
     <img src="{{assetsPath + 'images/icons/app-icon.png'}}" class="desktop-icon mobile-icon" alt="" />
     <p>Peer to Peer Media Streaming Service</p>

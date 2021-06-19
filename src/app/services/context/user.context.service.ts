@@ -46,6 +46,10 @@ export class UserContextService {
    */
   screenStream: MediaStream = undefined;
 
+  isCameraAccessible: boolean = false;
+
+  isMicrophoneAccessible: boolean = false;
+
   /**
    * this will return the userContext
    * 

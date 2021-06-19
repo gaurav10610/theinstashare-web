@@ -5,5 +5,9 @@ import { Injectable } from '@angular/core';
 })
 export class CoreFileSharingService {
 
-  constructor() { }
+  fileReader: any;
+
+  constructor() {
+    this.fileReader = new FileReader();
+  }
 }

@@ -1,12 +1,9 @@
 import { Injectable } from '@angular/core';
 import { AppConstants } from '../AppConstants';
 import { UserContextService } from '../context/user.context.service';
-import { CreateDataChannelType } from '../contracts/CreateDataChannelType';
-import { CallbackContextType } from '../contracts/WebrtcCallbackContextType';
 import { LoggerUtil } from '../logging/LoggerUtil';
 import { SignalingService } from '../signaling/signaling.service';
 import { CoreAppUtilityService } from '../util/core-app-utility.service';
-import { CoreWebrtcService } from '../webrtc/core-webrtc.service';
 
 @Injectable({
   providedIn: 'root'
