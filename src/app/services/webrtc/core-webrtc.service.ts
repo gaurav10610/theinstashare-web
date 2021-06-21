@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { AppConstants } from '../AppConstants';
 import { UserContextService } from '../context/user.context.service';
 import { LoggerUtil } from '../logging/LoggerUtil';
+import { CoreMediaCaptureService } from '../media-capture/core-media-capture.service';
 import { CoreAppUtilityService } from '../util/core-app-utility.service';
 
 @Injectable({
@@ -11,7 +12,9 @@ export class CoreWebrtcService {
 
   constructor(
     private userContextService: UserContextService,
-    private coreAppUtilService: CoreAppUtilityService) { }
+    private coreAppUtilService: CoreAppUtilityService,
+    private coreMediaCaptureService: CoreMediaCaptureService
+  ) { }
 
   /**
    * initializing a webrtc peer connection and store it user's webrtc connection
@@ -139,7 +142,7 @@ export class CoreWebrtcService {
            * 
            * @TODO check for individual stream error here and build the resolve response accordingly
            */
-          const stream: any = await this.getMediaStream(requiredMediaTracks[i]);
+          const stream: any = await this.coreMediaCaptureService.getMediaStream(requiredMediaTracks[i]);
           const streamContext: any = {};
           streamContext[AppConstants.STREAM] = stream;
           /**
@@ -220,64 +223,6 @@ export class CoreWebrtcService {
   }
 
   /**
-   * capture appropriate media stream for supplied media type
-   *
-   * @param mediaChannel media type i.e 'audio', 'video' etc.
-   *
-   * @return captured media stream
-   */
-  private getMediaStream(mediaChannel: string) {
-    return new Promise(async (resolve, reject) => {
-      try {
-        let stream: any;
-        let mediaDevices: any = navigator.mediaDevices;
-        let mediaContraints = await this.getMediaConstraints(mediaChannel);
-        if (mediaChannel === AppConstants.SCREEN && !this.userContextService.isNativeApp) {
-          stream = await mediaDevices.getDisplayMedia(mediaContraints);
-          this.userContextService.screenStream = stream;
-        } else if (mediaChannel === AppConstants.SOUND && !this.userContextService.isNativeApp) {
-          stream = this.userContextService.screenStream;
-        } else {
-          stream = await mediaDevices.getUserMedia(mediaContraints);
-        }
-        resolve(stream);
-      } catch (e) {
-        // this.appUtilService.flagError('error: unable to access ' + mediaChannel + ' device');
-        reject(e);
-      }
-    });
-  }
-
-  /**
-   * retreive appropriate media constraints for get user media api to capture media
-   * stream based on supplied media channel
-   *
-   * @param mediaChannel media type i.e 'audio', 'video' etc.
-   */
-  private getMediaConstraints(channel: string) {
-    return new Promise((resolve) => {
-      let constraints: any;
-      if (channel === AppConstants.AUDIO) {
-        constraints = AppConstants.AUDIO_CONSTRAINTS;
-      } else if (channel === AppConstants.VIDEO && this.userContextService.isMobile) {
-        constraints = AppConstants.MOBILE_CONSTRAINTS;
-        constraints.video.facingMode = this.userContextService.defaultCamera;
-      } else if (channel === AppConstants.VIDEO && !this.userContextService.isMobile) {
-        constraints = AppConstants.VIDEO_CONSTRAINTS;
-      } else if (channel === AppConstants.SCREEN) {
-        if (this.userContextService.isNativeApp) {
-          constraints = AppConstants.SCREEN_SHARING_CONSTRAINTS;
-        } else {
-          constraints = AppConstants.WEB_SCREEN_SHARING_CONSTRAINTS;
-        }
-      } else if (channel === AppConstants.SOUND) {
-        constraints = AppConstants.SYSTEM_SOUND_CONSTRAINTS;
-      }
-      resolve(constraints);
-    });
-  }
-
-  /**
    * this will generate appropriate answer on provided webrtc peer connection on
    * the basis of supplied media type
    *
@@ -340,7 +285,7 @@ export class CoreWebrtcService {
       peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
       const mediaStreams: any[] = [];
       for (let i = 0; i < requiredMediaTracks.length; i++) {
-        const stream: any = await this.getMediaStream(requiredMediaTracks[i]);
+        const stream: any = await this.coreMediaCaptureService.getMediaStream(requiredMediaTracks[i]);
         const streamContext: any = {};
         streamContext[AppConstants.STREAM] = stream;
         /**

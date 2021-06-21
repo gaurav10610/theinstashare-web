@@ -2,6 +2,7 @@ import { Injectable, Renderer2, RendererFactory2 } from '@angular/core';
 import { AppConstants } from '../AppConstants';
 import { TalkWindowContextService } from '../context/talk-window-context.service';
 import { UserContextService } from '../context/user.context.service';
+import { CoreDataChannelService } from '../data-channel/core-data-channel.service';
 import { LoggerUtil } from '../logging/LoggerUtil';
 import { TalkWindowUtilityService } from '../util/talk-window-utility.service';
 import { TalkWindowWebrtcService } from '../webrtc/talk-window-webrtc.service';
@@ -18,7 +19,7 @@ export class WebRemoteAccessService {
     private userContextService: UserContextService,
     private talkWindowContextService: TalkWindowContextService,
     private talkWindowUtilService: TalkWindowUtilityService,
-    private webrtcService: TalkWindowWebrtcService
+    private coreDataChannelService: CoreDataChannelService
   ) {
     this.renderer = this.rendererFactory.createRenderer(null, null);
   }
@@ -117,7 +118,7 @@ export class WebRemoteAccessService {
 
         if (this.noOfMouseDowns === 2) {
 
-          this.webrtcService.sendMessageOnDataChannel({
+          this.coreDataChannelService.sendMessageOnDataChannel({
             from: this.userContextService.username,
             to: this.userContextService.userToChat,
             type: AppConstants.REMOTE_CONTROL,
@@ -131,7 +132,7 @@ export class WebRemoteAccessService {
           this.noOfMouseDowns = 0;
         } else {
 
-          this.webrtcService.sendMessageOnDataChannel({
+          this.coreDataChannelService.sendMessageOnDataChannel({
             from: this.userContextService.username,
             to: this.userContextService.userToChat,
             type: AppConstants.REMOTE_CONTROL,
@@ -164,7 +165,7 @@ export class WebRemoteAccessService {
            * send mouseup event
            * 
            */
-          this.webrtcService.sendMessageOnDataChannel({
+          this.coreDataChannelService.sendMessageOnDataChannel({
             from: this.userContextService.username,
             to: this.userContextService.userToChat,
             type: AppConstants.REMOTE_CONTROL,
@@ -187,7 +188,7 @@ export class WebRemoteAccessService {
     this.talkWindowContextService.canvasUnlistenFunctions.push(
       this.renderer.listen(remoteVideoCanvas.nativeElement, 'mousemove', (event) => {
         //LoggerUtil.log(event);
-        this.webrtcService.sendMessageOnDataChannel({
+        this.coreDataChannelService.sendMessageOnDataChannel({
           from: this.userContextService.username,
           to: this.userContextService.userToChat,
           type: AppConstants.REMOTE_CONTROL,
@@ -212,7 +213,7 @@ export class WebRemoteAccessService {
          * send mouse wheel scroll event
          * 
          */
-        this.webrtcService.sendMessageOnDataChannel({
+        this.coreDataChannelService.sendMessageOnDataChannel({
           from: this.userContextService.username,
           to: this.userContextService.userToChat,
           type: AppConstants.REMOTE_CONTROL,
@@ -236,7 +237,7 @@ export class WebRemoteAccessService {
         if (event.keyCode === 65) {
           if ((this.talkWindowContextService.remoteAccessContext['localOS'] === 'win' && event.ctrlKey)
             || (this.talkWindowContextService.remoteAccessContext['localOS'] === 'mac' && event.metaKey)) {
-            this.webrtcService.sendMessageOnDataChannel({
+            this.coreDataChannelService.sendMessageOnDataChannel({
               from: this.userContextService.username,
               to: this.userContextService.userToChat,
               type: AppConstants.REMOTE_CONTROL,
@@ -269,7 +270,7 @@ export class WebRemoteAccessService {
         /**
          * this is default key press handling
          */
-        this.webrtcService.sendMessageOnDataChannel({
+        this.coreDataChannelService.sendMessageOnDataChannel({
           from: this.userContextService.username,
           to: this.userContextService.userToChat,
           type: AppConstants.REMOTE_CONTROL,
@@ -291,7 +292,7 @@ export class WebRemoteAccessService {
     this.talkWindowContextService.canvasUnlistenFunctions.push(
       this.renderer.listen(remoteVideoCanvas.nativeElement, 'paste', (event) => {
         //LoggerUtil.log(event);
-        this.webrtcService.sendMessageOnDataChannel({
+        this.coreDataChannelService.sendMessageOnDataChannel({
           from: this.userContextService.username,
           to: this.userContextService.userToChat,
           type: AppConstants.REMOTE_CONTROL,

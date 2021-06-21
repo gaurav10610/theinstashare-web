@@ -43,6 +43,7 @@ export class SignalingService {
    */
   sendPayload(message: any) {
     this.signalingRouter.send(message);
+    LoggerUtil.log('sent payload via signaling server ' + JSON.stringify(message));
   }
 
   /**

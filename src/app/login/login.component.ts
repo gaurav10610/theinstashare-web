@@ -6,6 +6,7 @@ import { SignalingService } from '../services/signaling/signaling.service';
 import { AppConstants } from '../services/AppConstants';
 import { UserContextService } from '../services/context/user.context.service';
 import { environment } from '../../environments/environment';
+import { CoreMediaCaptureService } from '../services/media-capture/core-media-capture.service';
 
 @Component({
   selector: 'app-signin-root',
@@ -18,7 +19,8 @@ export class LoginComponent implements OnInit {
     private apiService: ApiService,
     private router: Router,
     public signalingService: SignalingService,
-    private userContextService: UserContextService
+    private userContextService: UserContextService,
+    private coreMediaCaptureService: CoreMediaCaptureService
   ) { }
 
   /**
@@ -38,12 +40,23 @@ export class LoginComponent implements OnInit {
    */
   flaggedErrorText: string = undefined;
 
-  ngOnInit() {
+  //This contains any errors encountered within app
+  errors = [];
+
+  async ngOnInit() {
+    LoggerUtil.log('ngOnit of login component');
     setTimeout(() => { this.stopNotification = false; }, 5000);
 
     //resetting instance variables
     this.connecting = false;
     this.flaggedErrorText = undefined;
+
+    try {
+      const message: string = await this.coreMediaCaptureService.takeCameraAndMicrophoneAccess();
+      LoggerUtil.log('got camera/microphone permissions');
+    } catch (errorMessage) {
+      this.flagError(errorMessage);
+    }
 
     /**
      * if user is navigated to login component after pressing back button 
@@ -142,4 +155,19 @@ export class LoginComponent implements OnInit {
     }
   }
 
+  /**
+   * this will flag an error message in the app for a time period and then will
+   * remove it
+   *
+   * @param errorMessage error message that needs to be displayed
+   */
+  flagError(errorMessage: string) {
+    this.errors.push(errorMessage);
+    setTimeout(() => {
+      const index = this.errors.indexOf(errorMessage);
+      if (index > -1) {
+        this.errors.splice(index, 1);
+      }
+    }, AppConstants.ERROR_FLAG_TIMEOUT);
+  }
 }
