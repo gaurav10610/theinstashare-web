@@ -15,7 +15,7 @@ import { TalkWindowContextService } from '../services/context/talk-window-contex
 import { MessageService } from '../services/message/message.service';
 import { CreateDataChannelType } from '../services/contracts/CreateDataChannelType';
 import { StartMediaStreamType } from '../services/contracts/StartMediaStreamType';
-import { CallbackContextType } from '../services/contracts/WebrtcCallbackContextType';
+import { CallbackContextType } from '../services/contracts/CallbackContextType';
 import { CoreDataChannelService } from '../services/data-channel/core-data-channel.service';
 
 @Component({
@@ -1920,7 +1920,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    * @return a promise containing the message read status i.e 'seen','received' etc
    */
-  async updateChatMessages(messagePayload: any) {
+  async updateChatMessages(messagePayload: any): Promise<string> {
     return new Promise<string>(async (resolve) => {
 
       /**
