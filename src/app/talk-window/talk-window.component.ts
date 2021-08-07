@@ -352,7 +352,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
         /**
          * 
-         * onopen event hanler won't be needed after user is registered as even
+         * onopen event handler won't be needed after user is registered as even
          * in the disconnect cases we will manage reconnect handler only
          * 
          */

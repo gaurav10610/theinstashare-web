@@ -1,4 +1,3 @@
-import { APP_BASE_HREF } from '@angular/common';
 import { Injectable } from '@angular/core';
 import { AppConstants } from '../AppConstants';
 import { UserContextService } from '../context/user.context.service';
