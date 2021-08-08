@@ -377,7 +377,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    * @param signalingMessage: received signaling message
    */
-  async consumeWebrtcOffer(signalingMessage: any) {
+  async consumeWebrtcOffer(signalingMessage: any): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
       try {
 
@@ -966,7 +966,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
             id: messageId,
             message: textMessage,
             username: this.userContextService.username,
-            type: AppConstants.TEXT
+            type: AppConstants.TEXT,
+            from: this.userContextService.username,
+            to: userToChat
           }));
         } else {
 
@@ -981,7 +983,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
             id: messageId,
             message: textMessage,
             username: this.userContextService.username,
-            type: AppConstants.TEXT
+            type: AppConstants.TEXT,
+            from: this.userContextService.username,
+            to: userToChat
           });
 
           // when data channel open request has already been raised, then just queue the messages
