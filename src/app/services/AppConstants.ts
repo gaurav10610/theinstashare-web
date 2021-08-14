@@ -11,6 +11,8 @@ export class AppConstants {
     REMOTE_TRACK_RECEIVED: 'remoteTrack'
   };
 
+  public static MEDIA_SERVER = 'media-server';
+
   // User's chatMessages
   public static CHAT_MESSAGES = 'chatMessages';
 
