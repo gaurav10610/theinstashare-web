@@ -1,8 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TalkWindowModuleRoutingModule } from './talk-window-module-routing.module';
+import { TalkWindowRoutingModule } from './talk-window-routing.module';
 import { TalkWindowComponent } from '../talk-window/talk-window.component';
-
 
 @NgModule({
   declarations: [
@@ -10,7 +9,7 @@ import { TalkWindowComponent } from '../talk-window/talk-window.component';
   ],
   imports: [
     CommonModule,
-    TalkWindowModuleRoutingModule
+    TalkWindowRoutingModule
   ]
 })
-export class TalkWindowModuleModule { }
+export class TalkWindowModule { }
