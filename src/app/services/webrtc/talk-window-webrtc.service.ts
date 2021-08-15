@@ -10,7 +10,7 @@ import { CoreAppUtilityService } from '../util/core-app-utility.service';
 import { TalkWindowContextService } from '../context/talk-window-context.service';
 import { MessageService } from '../message/message.service';
 import { CreateDataChannelType } from '../contracts/CreateDataChannelType';
-import { CallbackContextType } from '../contracts/WebrtcCallbackContextType';
+import { CallbackContextType } from '../contracts/CallbackContextType';
 import { MediaContextUpdateEventType } from '../contracts/MediaContextUpdateEventType';
 import { CoreDataChannelService } from '../data-channel/core-data-channel.service';
 

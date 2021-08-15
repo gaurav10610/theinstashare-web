@@ -15,8 +15,12 @@ import { TalkWindowContextService } from '../services/context/talk-window-contex
 import { MessageService } from '../services/message/message.service';
 import { CreateDataChannelType } from '../services/contracts/CreateDataChannelType';
 import { StartMediaStreamType } from '../services/contracts/StartMediaStreamType';
-import { CallbackContextType } from '../services/contracts/WebrtcCallbackContextType';
+import { CallbackContextType } from '../services/contracts/CallbackContextType';
 import { CoreDataChannelService } from '../services/data-channel/core-data-channel.service';
+import { BaseSignalingMessage } from '../services/contracts/signaling/BaseSignalingMessage';
+import { MediaChannelType } from '../services/contracts/enum/MediaChannelType';
+import { SignalingMessageType } from '../services/contracts/enum/SignalingMessageType';
+import { UserType } from '../services/contracts/enum/UserType';
 
 @Component({
   selector: 'app-talk-window',
@@ -40,6 +44,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     private messageService: MessageService,
     private coreDataChannelService: CoreDataChannelService
   ) { }
+
+  isGrouped: boolean = false;
 
   showLoader: boolean = false;
 
@@ -352,7 +358,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
         /**
          * 
-         * onopen event hanler won't be needed after user is registered as even
+         * onopen event handler won't be needed after user is registered as even
          * in the disconnect cases we will manage reconnect handler only
          * 
          */
@@ -377,7 +383,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    * @param signalingMessage: received signaling message
    */
-  async consumeWebrtcOffer(signalingMessage: any) {
+  async consumeWebrtcOffer(signalingMessage: any): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
       try {
 
@@ -934,6 +940,15 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     try {
       if (textMessage !== '') {
 
+        // if (textMessage === '1234' && !this.isGrouped) {
+        //   if (this.userContextService.username === 'gaurav') {
+        //     this.createUserGoup();
+        //   }
+        //   this.registerUserInGroup();
+        //   //this.coreAppUtilService.delay(3000);
+        //   this.isGrouped = true;
+        // }
+
         /**
          * initialize user's webrtc context for the user to whom you wanted to
          * send message, if it didn't exist
@@ -966,7 +981,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
             id: messageId,
             message: textMessage,
             username: this.userContextService.username,
-            type: AppConstants.TEXT
+            type: AppConstants.TEXT,
+            from: this.userContextService.username,
+            to: userToChat
           }));
         } else {
 
@@ -981,7 +998,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
             id: messageId,
             message: textMessage,
             username: this.userContextService.username,
-            type: AppConstants.TEXT
+            type: AppConstants.TEXT,
+            from: this.userContextService.username,
+            to: userToChat
           });
 
           // when data channel open request has already been raised, then just queue the messages
@@ -1920,7 +1939,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    * @return a promise containing the message read status i.e 'seen','received' etc
    */
-  async updateChatMessages(messagePayload: any) {
+  async updateChatMessages(messagePayload: any): Promise<string> {
     return new Promise<string>(async (resolve) => {
 
       /**
@@ -2391,5 +2410,39 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       default:
       //do nothing here
     }
+  }
+
+  /**
+   * 
+   * @TODO this method will be moved afterwards, right now it's just for testing
+   * 
+   */
+  createUserGoup() {
+    const signalingMessage: BaseSignalingMessage = {
+      channel: MediaChannelType.CONNECTION,
+      from: this.userContextService.username,
+      to: AppConstants.MEDIA_SERVER,
+      type: SignalingMessageType.CREATE_GROUP,
+      userGroup: 'default-group',
+      userType: UserType.GROUP_CALL_USER,
+    };
+    this.coreDataChannelService.sendPayload(signalingMessage);
+  }
+
+  /**
+   * 
+   * @TODO this method will be moved afterwards, right now it's just for testing
+   * 
+   */
+  registerUserInGroup() {
+    const signalingMessage: BaseSignalingMessage = {
+      channel: MediaChannelType.CONNECTION,
+      from: this.userContextService.username,
+      to: AppConstants.MEDIA_SERVER,
+      type: SignalingMessageType.REGISTER_USER_IN_GROUP,
+      userGroup: 'default-group',
+      userType: UserType.GROUP_CALL_USER,
+    };
+    this.coreDataChannelService.sendPayload(signalingMessage);
   }
 }

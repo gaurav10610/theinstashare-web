@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { TalkWindowComponent } from '../talk-window/talk-window.component';
 
-
 const routes: Routes = [
   { path: '', component: TalkWindowComponent }
 ];
@@ -11,4 +10,4 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule]
 })
-export class TalkWindowModuleRoutingModule { }
+export class TalkWindowRoutingModule { }

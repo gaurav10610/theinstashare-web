@@ -36,7 +36,12 @@ export class CoreDataChannelService {
      */
     if (this.coreAppUtilService.isDataChannelConnected(webrtcContext, AppConstants.TEXT)) {
       signalingMessage['via'] = 'dataChannel';
-      this.sendMessageOnDataChannel({ type: AppConstants.SIGNALING, message: signalingMessage }, AppConstants.TEXT);
+      this.sendMessageOnDataChannel({
+        from: signalingMessage.from,
+        to: signalingMessage.to,
+        type: AppConstants.SIGNALING,
+        message: signalingMessage
+      }, AppConstants.TEXT);
     } else {
 
       /**
