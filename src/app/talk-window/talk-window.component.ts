@@ -946,7 +946,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         //   }
         //   this.registerUserInGroup();
         //   //this.coreAppUtilService.delay(3000);
-        //   this.isGrouped = false;
+        //   this.isGrouped = true;
         // }
 
         /**
