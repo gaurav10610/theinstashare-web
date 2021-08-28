@@ -7,17 +7,13 @@
   <div id="error_snackbar" [ngClass]="{'top-snackbar':true,'snackbar-show':errors.length !== 0}">
     <p *ngFor="let error of errors">{{error}}</p>
   </div>
-  <div style="text-align:center;margin-top: 15px;color:#217093">
-    <img src="{{assetsPath + 'images/icons/app-icon.png'}}" class="desktop-icon mobile-icon" alt="" />
-    <p>Peer to Peer Media Streaming Service</p>
-  </div>
 
   <form autocomplete="off" (submit)="formSubmit()">
     <div id="username_div" class="inputGroup inputGroup1">
       <p #error id="error" [ngClass]="{'error':true, 'hidden-class': flaggedErrorText === undefined}"
         style="margin-bottom: 10px">* {{flaggedErrorText}}</p>
       <label id="username_label" for="username">
-        <p>Choose a username to start with:</p>
+        <p>Enter group name to join</p>
       </label>
       <input #username id="username" name="username" type="text" maxlength="256" required />
     </div>
@@ -25,7 +21,7 @@
       <div id="start_btn_div">
         <button id="register" type="button" (click)="register()">
           <i *ngIf="connecting" class="fas fa-spinner fa-spin"></i>
-          <p *ngIf="!connecting">Start :)</p>
+          <p *ngIf="!connecting">Join group</p>
         </button>
       </div>
     </div>
