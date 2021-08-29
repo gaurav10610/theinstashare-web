@@ -117,6 +117,7 @@
 
 #contacts-ul {
   margin: auto;
+  padding-inline-start:0px;
 }
 
 .contact-list {
@@ -201,14 +202,13 @@
 }
 
 .message-n-icon {
-  display: inline-block;
+  // display: inline-block;
   clear: both;
   float: left;
-  margin: 15px 15px 5px 15px;
+  // margin: 15px 15px 5px 15px;
   width: calc(100% - 25px);
   font-size: 0.9em;
   word-wrap: break-word;
-  white-space: pre-wrap;
 }
 
 .sent .message-n-icon i {
