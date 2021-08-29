@@ -11,7 +11,7 @@ import { CoreMediaCaptureService } from '../services/media-capture/core-media-ca
 @Component({
   selector: 'app-signin-root',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit {
 

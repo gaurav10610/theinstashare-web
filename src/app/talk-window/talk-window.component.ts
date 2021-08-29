@@ -25,7 +25,7 @@ import { UserType } from '../services/contracts/enum/UserType';
 @Component({
   selector: 'app-talk-window',
   templateUrl: './talk-window.component.html',
-  styleUrls: ['./talk-window.component.css']
+  styleUrls: ['./talk-window.component.scss']
 })
 export class TalkWindowComponent implements OnInit, AfterViewInit {
 

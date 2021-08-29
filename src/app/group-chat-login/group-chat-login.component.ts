@@ -1,6 +1,6 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { environment } from 'src/environments/environment';
+import { environment } from '../../environments/environment';
 import { ApiService } from '../services/api/api.service';
 import { UserContextService } from '../services/context/user.context.service';
 import { LoggerUtil } from '../services/logging/LoggerUtil';
@@ -9,7 +9,7 @@ import { SignalingService } from '../services/signaling/signaling.service';
 @Component({
   selector: 'app-group-chat-login',
   templateUrl: './group-chat-login.component.html',
-  styleUrls: ['./group-chat-login.component.css']
+  styleUrls: ['./group-chat-login.component.scss']
 })
 export class GroupChatLoginComponent implements OnInit {
 
