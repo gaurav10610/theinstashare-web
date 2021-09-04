@@ -136,9 +136,13 @@
   "defaultProject": "theinstashare",
   "schematics": {
     "@schematics/angular:component": {
-        "styleext": "scss"
+      "prefix": "app",
+      "style": "scss"
+    },
+    "@schematics/angular:directive": {
+      "prefix": "app"
     }
-},
+  },
   "cli": {
     "analytics": false
   }

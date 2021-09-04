@@ -1,0 +1,22 @@
+<div id="container" class="container-fluid h-100 container-base">
+    <div id="snackbar" [ngClass]="{'top-snackbar':true,'snackbar-show':!signalingService.signalingRouter.connected}">
+        <p>connection lost from server</p>
+    </div>
+    <div id="frame" class="frame">
+        <!-- dashboard header -->
+        <div id="dashboard-header" class="dashboard-header text-center">
+            <p class="heading-text">TheInstashare</p>
+        </div>
+
+        <!-- container for all the applications -->
+        <div id="apps-container" class="apps-container">
+            <mat-grid-list cols="{{totalColumns}}" rowHeight="1:1" style="margin-top:5px;">
+                <mat-grid-tile *ngFor="let tile of tiles" [colspan]="tile.cols" [rowspan]="tile.rows" class="grid-tile">
+                    <div class="text-center"> <i class="fas {{tile.icon}} fa-10x" [ngStyle]="{'color':tile.color}"></i>
+                        <p class="app-name">{{tile.appName}}</p>
+                    </div>
+                </mat-grid-tile>
+            </mat-grid-list>
+        </div>
+    </div>
+</div>

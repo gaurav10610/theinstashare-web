@@ -10,4 +10,4 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule]
 })
-export class GroupChatLoginWindowRoutingModule { }
+export class GroupChatLoginRoutingModule { }

@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GroupChatLoginWindowRoutingModule } from './group-chat-login-window-routing.module';
+import { GroupChatLoginRoutingModule } from './group-chat-login-routing.module';
 import { GroupChatLoginComponent } from '../group-chat-login/group-chat-login.component';
 
 @NgModule({
@@ -9,7 +9,7 @@ import { GroupChatLoginComponent } from '../group-chat-login/group-chat-login.co
   ],
   imports: [
     CommonModule,
-    GroupChatLoginWindowRoutingModule
+    GroupChatLoginRoutingModule
   ]
 })
-export class GroupChatLoginWindowModule { }
+export class GroupChatLoginModule { }
