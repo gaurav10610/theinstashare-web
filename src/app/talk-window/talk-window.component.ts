@@ -520,7 +520,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    */
   async fetchActiveUsersList() {
-    let data: any = await this.apiService
+    const data: any = await this.apiService
       .get(AppConstants.API_ENDPOINTS.GET_ALL_ACTIVE_USERS).toPromise();
 
     //clear userStatus object

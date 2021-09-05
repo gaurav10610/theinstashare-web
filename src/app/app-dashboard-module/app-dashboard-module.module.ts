@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { AppDashboardModuleRoutingModule } from './app-dashboard-module-routing.module';
 import { AppDashboardComponent } from '../app-dashboard/app-dashboard.component';
 import { MatGridListModule } from '@angular/material/grid-list';
-
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @NgModule({
   declarations: [
@@ -12,7 +13,9 @@ import { MatGridListModule } from '@angular/material/grid-list';
   imports: [
     CommonModule,
     AppDashboardModuleRoutingModule,
-    MatGridListModule
+    MatGridListModule,
+    MatSnackBarModule,
+    MatProgressSpinnerModule
   ]
 })
 export class AppDashboardModuleModule { }

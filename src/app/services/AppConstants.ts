@@ -114,6 +114,8 @@ export class AppConstants {
   // Session variable that holds username
   public static STORAGE_USER = 'webrtc';
 
+  public static STORAGE_APPLICATION = 'application';
+
   public static USERNAME = 'username';
 
   public static USER_ACTIVE_STATUS = 'user';
@@ -293,7 +295,8 @@ export class AppConstants {
   };
 
   public static API_ENDPOINTS = {
-    GET_ALL_ACTIVE_USERS: 'active/users'
+    GET_ALL_ACTIVE_USERS: 'active/users',
+    REGISTER_APP_USER: 'application/register'
   };
 
   public static MOUSE_BUTTONS_MAP = {
@@ -320,5 +323,10 @@ export class AppConstants {
     CONNECTED: 'connected',
     NOT_CONNECTED: 'notconnected',
     CLEANING: 'cleaning'
+  };
+
+  public static APPLICATION_NAMES = {
+    P2P: 'p2p',
+    GROUP_CHAT: 'group_chat'
   };
 }

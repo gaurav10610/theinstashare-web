@@ -142,7 +142,8 @@ export class LoginComponent implements OnInit {
           // Removing message listener of login component
           this.signalingService.signalingRouter.off('message');
           /* Routing towards talk window */
-          this.router.navigateByUrl('talk');
+          // this.router.navigateByUrl('talk');
+          this.router.navigateByUrl('app');
         } else {
           // failed to register
           // this.flagError('username has already been taken. Try again!');

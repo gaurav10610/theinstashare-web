@@ -19,6 +19,8 @@ export class UserContextService {
     }
   }
 
+  selectedApp: String = undefined;
+
   /**
    * specify if viewing device is a mobile device
    * 
@@ -110,6 +112,11 @@ export class UserContextService {
   userSignOut() {
     this.username = undefined;
     sessionStorage.removeItem(AppConstants.STORAGE_USER);
+  }
+
+  applicationSignOut() {
+    this.selectedApp = undefined;
+    sessionStorage.removeItem(AppConstants.STORAGE_APPLICATION);
   }
 
   resetCoreAppContext() {
