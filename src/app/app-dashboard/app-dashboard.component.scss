@@ -1,0 +1,40 @@
+.frame {
+    height: 100%;
+    width: 100%;
+    background-color: #E6EAEA;
+}
+
+.dashboard-header {
+    background: #2c3e50;
+    width: 100%;
+    height: 60px;
+    line-height: 60px;
+    vertical-align: middle;
+}
+
+.content-center {
+    justify-content: center;
+}
+
+.logout-icon-div {
+    float: right;
+}
+
+.icon-class {
+    margin: 0 10px 0 10px;
+    color: white;
+}
+
+.apps-container {
+    width: 100%;
+    height: calc(100%-60px);
+}
+
+.grid-tile {
+    border: solid;
+    border-color: #2c3e50;
+    border-width: 1px;
+}
+.app-name {
+    font-size: large;
+}

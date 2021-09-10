@@ -25,7 +25,7 @@ import { UserType } from '../services/contracts/enum/UserType';
 @Component({
   selector: 'app-talk-window',
   templateUrl: './talk-window.component.html',
-  styleUrls: ['./talk-window.component.css']
+  styleUrls: ['./talk-window.component.scss']
 })
 export class TalkWindowComponent implements OnInit, AfterViewInit {
 
@@ -520,8 +520,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    */
   async fetchActiveUsersList() {
-    let data: any = await this.apiService
-      .get(AppConstants.API_ENDPOINTS.GET_ALL_ACTIVE_USERS).toPromise();
+    const data: any = await this.apiService
+      .get(`${AppConstants.API_ENDPOINTS.GET_ALL_ACTIVE_USERS}?groupName=${AppConstants.APPLICATION_NAMES.P2P}`).toPromise();
 
     //clear userStatus object
     this.talkWindowContextService.userStatus.clear();
@@ -1522,6 +1522,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       //reset all the maintained contexts
       this.talkWindowContextService.resetAppContext();
       this.showLoader = false;
+      this.userContextService.applicationSignOut();
 
       LoggerUtil.log('selected user while logging out: ' + this.userContextService.userToChat);
       this.router.navigateByUrl('login');

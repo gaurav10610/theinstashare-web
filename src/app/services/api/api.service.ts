@@ -19,15 +19,17 @@ export class ApiService {
    * @param  uri :uri for requested resource
    * @return     observable
    */
-  get(uri: string) {
+  get(uri: String) {
     return this.http.get(environment.api_endpoint_base + uri);
   }
 
   /**
-   * This will request a new data channel connection from signaling server
-   * @param data : data to be sent in post request
+   * make post rest api request
+   * @param uri 
+   * @param body 
+   * @returns 
    */
-  createRTCConnection(data: any) {
-    return this.http.post(environment.rtc_api_endpoint_base + '/channel/create', JSON.stringify(data));
+  post(uri: String, body: Object) {
+    return this.http.post(environment.api_endpoint_base + uri, body);
   }
 }

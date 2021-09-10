@@ -196,3 +196,6 @@ html, body {
   -webkit-animation: spin .8s linear infinite;
   animation: spin .8s linear infinite;
 }
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

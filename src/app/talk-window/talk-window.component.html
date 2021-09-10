@@ -50,7 +50,8 @@
             <span id="{{user}}_badge" [ngClass]="{'badge badge-primary badge-pill':true,
              'invisible':userContextService.getUserWebrtcContext(user) === null 
              || userContextService.getUserWebrtcContext(user).unreadCount === 0}">
-              {{userContextService.getUserWebrtcContext(user) === null ? '' : userContextService.getUserWebrtcContext(user).unreadCount}}
+              {{userContextService.getUserWebrtcContext(user) === null ? '' :
+              userContextService.getUserWebrtcContext(user).unreadCount}}
             </span>
           </li>
         </ul>
@@ -347,7 +348,8 @@
 
       <div [ngClass]="{'side-div pointer-cursor circle-icon':true,
         'crimson-color':talkWindowContextService.bindingFlags.isSoundSharing,
-        'sgreen-color':!talkWindowContextService.bindingFlags.isSoundSharing}" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
+        'sgreen-color':!talkWindowContextService.bindingFlags.isSoundSharing}"
+        *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
         && talkWindowContextService.bindingFlags.haveLocalVideoStream && (userContextService.isNativeApp || talkWindowContextService.bindingFlags.isSoundSharing)"
         (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isSoundSharing ? 'stop-sound' : 'sound')">
         <i id="mobile_sound-icon" class="fas fa-play-circle" aria-hidden="true"></i>

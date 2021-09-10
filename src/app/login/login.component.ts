@@ -11,7 +11,7 @@ import { CoreMediaCaptureService } from '../services/media-capture/core-media-ca
 @Component({
   selector: 'app-signin-root',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit {
 
@@ -142,7 +142,8 @@ export class LoginComponent implements OnInit {
           // Removing message listener of login component
           this.signalingService.signalingRouter.off('message');
           /* Routing towards talk window */
-          this.router.navigateByUrl('talk');
+          // this.router.navigateByUrl('talk');
+          this.router.navigateByUrl('app');
         } else {
           // failed to register
           // this.flagError('username has already been taken. Try again!');
