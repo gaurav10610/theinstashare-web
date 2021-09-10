@@ -296,7 +296,7 @@ export class AppConstants {
 
   public static API_ENDPOINTS = {
     GET_ALL_ACTIVE_USERS: 'active/users',
-    REGISTER_APP_USER: 'application/register'
+    REGISTER_APP_USER: 'group/register'
   };
 
   public static MOUSE_BUTTONS_MAP = {

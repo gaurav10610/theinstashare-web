@@ -54,11 +54,11 @@ export class AppDashboardComponent implements OnInit {
       {
         icon: 'fa-user-friends', cols: 1, rows: 1, color: 'black',
         appName: 'one to one', identifier: 'p2p'
-      },
-      {
-        icon: 'fa-users', cols: 1, rows: 1, color: 'black',
-        appName: 'group chat', identifier: 'group_chat'
       }
+      // {
+      //   icon: 'fa-users', cols: 1, rows: 1, color: 'black',
+      //   appName: 'group chat', identifier: 'group_chat'
+      // }
     ];
     this.setUpSignaling();
   }
@@ -221,7 +221,7 @@ export class AppDashboardComponent implements OnInit {
          */
         const data: any = await this.apiService.post(AppConstants.API_ENDPOINTS.REGISTER_APP_USER, {
           username: this.userContextService.username,
-          applicationName: applicationName
+          groupName: applicationName
         }).toPromise();
 
         if (data && data.registered) {
