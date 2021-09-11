@@ -95,14 +95,17 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       };
 
       this.signalingService.registerEventListeners(eventsConfig);
-      try {
-        await this.registerApplicationUser(AppConstants.APPLICATION_NAMES.P2P);
+      if(this.userContextService.selectedApp === undefined) {
+        try {
+          await this.registerApplicationUser(AppConstants.APPLICATION_NAMES.P2P);
+          await this.fetchActiveUsersList();
+        } catch(error) {
+          LoggerUtil.log(error);
+          this.router.navigateByUrl('app');
+        }
+      } else {
         await this.fetchActiveUsersList();
-      } catch(error) {
-        LoggerUtil.log(error);
-        this.router.navigateByUrl('app');
       }
-
     } else {
 
       /**
