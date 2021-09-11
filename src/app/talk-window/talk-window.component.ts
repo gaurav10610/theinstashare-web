@@ -75,7 +75,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   /*
    * angular OnInit hook
    */
-  ngOnInit() {
+  async ngOnInit() {
 
     if (this.signalingService.isRegistered) {
 
@@ -95,8 +95,17 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       };
 
       this.signalingService.registerEventListeners(eventsConfig);
-      this.fetchActiveUsersList();
-
+      if(this.userContextService.selectedApp === undefined) {
+        try {
+          await this.registerApplicationUser(AppConstants.APPLICATION_NAMES.P2P);
+          await this.fetchActiveUsersList();
+        } catch(error) {
+          LoggerUtil.log(error);
+          this.router.navigateByUrl('app');
+        }
+      } else {
+        await this.fetchActiveUsersList();
+      }
     } else {
 
       /**
@@ -326,13 +335,42 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   }
 
   /**
+   * register user in selected application
+   * @param applicationName name of the selected application
+   */
+  async registerApplicationUser(applicationName: String) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const data: any = await this.apiService.post(AppConstants.API_ENDPOINTS.REGISTER_APP_USER, {
+          username: this.userContextService.username,
+          groupName: applicationName
+        }).toPromise();
+
+        if (data && data.registered) {
+          LoggerUtil.log(`user was succussfully registered for app: ${applicationName}`);
+          this.userContextService.selectedApp = applicationName;
+          this.coreAppUtilService.setStorageValue(AppConstants.STORAGE_APPLICATION, applicationName.toString());
+          resolve('user application registration was successful');
+        } else {
+          this.userContextService.selectedApp = undefined;
+          reject('user application registration was unsuccessful');
+        }
+      } catch (e) {
+        LoggerUtil.log(e);
+        this.userContextService.selectedApp = undefined;
+        reject('user applcation registration was unsuccessful');
+      }
+    });
+  }
+
+  /**
    * handle to handle received messages of type 'register'
    * 
    * @param signalingMessage received signaling message
    * 
    */
   handleRegister(signalingMessage: any) {
-    return new Promise<void>((resolve) => {
+    return new Promise<void>(async (resolve) => {
       if (signalingMessage.success) {
 
         /**
@@ -354,7 +392,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         this.signalingService.isRegistered = signalingMessage.success;
         this.userContextService.username = signalingMessage.username;
         this.coreAppUtilService.setStorageValue(AppConstants.STORAGE_USER, signalingMessage.username);
-        this.fetchActiveUsersList();
 
         /**
          * 
@@ -363,6 +400,13 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          * 
          */
         this.signalingService.signalingRouter.off('connect');
+        try {
+          await this.registerApplicationUser(AppConstants.APPLICATION_NAMES.P2P);
+          await this.fetchActiveUsersList();
+        } catch(error) {
+          LoggerUtil.log(error);
+          this.router.navigateByUrl('app');
+        }
 
       } else {
 
