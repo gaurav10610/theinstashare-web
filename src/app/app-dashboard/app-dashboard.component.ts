@@ -45,7 +45,7 @@ export class AppDashboardComponent implements OnInit {
     if (this.userContextService.isMobile) {
       this.totalColumns = 2;
     } else {
-      this.totalColumns = 7;
+      this.totalColumns = 8;
     }
     /**
      * add apps here
@@ -54,11 +54,11 @@ export class AppDashboardComponent implements OnInit {
       {
         icon: 'fa-user-friends', cols: 1, rows: 1, color: 'black',
         appName: 'one to one', identifier: 'p2p'
+      },
+      {
+        icon: 'fa-users', cols: 1, rows: 1, color: 'black',
+        appName: 'group chat', identifier: 'group_chat'
       }
-      // {
-      //   icon: 'fa-users', cols: 1, rows: 1, color: 'black',
-      //   appName: 'group chat', identifier: 'group_chat'
-      // }
     ];
     this.setUpSignaling();
   }
@@ -107,7 +107,10 @@ export class AppDashboardComponent implements OnInit {
         const eventsConfig = {
           onopen: this.onRouterConnect.bind(this),
           onreconnect: this.onRouterConnect.bind(this),
-          onmessage: this.onRouterMessage.bind(this)
+          onmessage: this.onRouterMessage.bind(this),
+          onclose: () => {
+            this.snackBar.open('disconnected from server....');
+          }
         };
         this.signalingService.registerEventListeners(eventsConfig);
       } else {
@@ -268,13 +271,13 @@ export class AppDashboardComponent implements OnInit {
    */
   logout() {
     LoggerUtil.log('logging out.........');
-      /**
-       * send de-register message to server to notify that user has opted to
-       * logout
-       */
-       this.signalingService.deRegisterOnSignalingServer(this.userContextService.getUserName());
-       this.userContextService.applicationSignOut();
-       this.userContextService.resetCoreAppContext();
-       this.router.navigateByUrl('login');
+    /**
+     * send de-register message to server to notify that user has opted to
+     * logout
+     */
+    this.signalingService.deRegisterOnSignalingServer(this.userContextService.getUserName());
+    this.userContextService.applicationSignOut();
+    this.userContextService.resetCoreAppContext();
+    this.router.navigateByUrl('login');
   }
 }

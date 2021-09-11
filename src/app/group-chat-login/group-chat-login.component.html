@@ -1,29 +1,37 @@
-<div class="container-fluid h-100 container-base">
-  <!-- Connection lost snackbar -->
-  <div id="snackbar"
-    class="{{stopNotification || signalingService.signalingRouter.connected ? 'top-snackbar' : 'top-snackbar snackbar-show'}}">
-    <p>Connection lost from server...</p>
-  </div>
-  <div id="error_snackbar" [ngClass]="{'top-snackbar':true,'snackbar-show':errors.length !== 0}">
-    <p *ngFor="let error of errors">{{error}}</p>
-  </div>
+<div id="container" class="container-fluid h-100 container-base">
+  <div id="frame" class="frame">
 
-  <form autocomplete="off" (submit)="formSubmit()">
-    <div id="username_div" class="inputGroup inputGroup1">
-      <p #error id="error" [ngClass]="{'error':true, 'hidden-class': flaggedErrorText === undefined}"
-        style="margin-bottom: 10px">* {{flaggedErrorText}}</p>
-      <label id="username_label" for="username">
-        <p>Enter group name to join</p>
-      </label>
-      <input #username id="username" name="username" type="text" maxlength="256" required />
-    </div>
-    <div id="start_div">
-      <div id="start_btn_div">
-        <button id="register" type="button" (click)="register()">
-          <i *ngIf="connecting" class="fas fa-spinner fa-spin"></i>
-          <p *ngIf="!connecting">Join group</p>
-        </button>
+    <!-- dashboard header -->
+    <div id="dashboard-header" class="dashboard-header">
+      <img src="{{assetsPath + 'images/icons/title-40X40.png'}}" alt="" />
+      <img src="{{assetsPath + 'images/icons/theinstashare-191X40.png'}}" alt="" />
+      <div class="logout-icon-div pointer-cursor" (click)="logout()">
+        <i id="logout-icon" class="fas fa-power-off fa-2x icon-class" aria-hidden="true"></i>
       </div>
     </div>
-  </form>
+
+    <div id="login-form-div" class="login-form-div">
+      <div id="login-form" class="login-form">
+
+        <!-- input field -->
+        <mat-form-field appearance="outline" color="warn" class="mat-focused">
+          <mat-label>{{inputFieldLabel}}</mat-label>
+          <input #groupNameInput matInput placeholder="Group name">
+        </mat-form-field>
+
+        <button mat-raised-button [ngStyle]="{'display': (mode === undefined || mode === 'existing') ? 'block': 'none'}"
+          class="button-class" (click)="createOrJoinGroup('existing')">
+          <mat-spinner [diameter]="30" style="left:40%" color="warn" *ngIf="isRegistering"></mat-spinner>
+          <p *ngIf="!isRegistering">Join existing group</p>
+        </button>
+
+        <button mat-raised-button [ngStyle]="{'display': (mode === undefined || mode === 'new') ? 'block': 'none'}"
+          class="button-class" (click)="createOrJoinGroup('new')">
+          <mat-spinner [diameter]="30" style="left:40%" color="warn" *ngIf="isRegistering"></mat-spinner>
+          <p *ngIf="!isRegistering">Create a new group</p>
+        </button>
+
+      </div>
+    </div>
+  </div>
 </div>

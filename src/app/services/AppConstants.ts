@@ -11,6 +11,11 @@ export class AppConstants {
     REMOTE_TRACK_RECEIVED: 'remoteTrack'
   };
 
+  public static GROUP_CHAT_MODES = {
+    EXISTING: 'existing',
+    NEW: 'new'
+  }
+
   public static MEDIA_SERVER = 'media-server';
 
   // User's chatMessages
