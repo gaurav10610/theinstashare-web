@@ -45,7 +45,7 @@ export class AppDashboardComponent implements OnInit {
     if (this.userContextService.isMobile) {
       this.totalColumns = 2;
     } else {
-      this.totalColumns = 8;
+      this.totalColumns = 10;
     }
     /**
      * add apps here

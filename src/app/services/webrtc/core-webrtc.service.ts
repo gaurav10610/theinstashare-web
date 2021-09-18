@@ -26,7 +26,6 @@ export class CoreWebrtcService {
     return new Promise<boolean>((resolve, reject) => {
       try {
         let initializedConnection = false;
-        const PeerConnection = RTCPeerConnection || webkitRTCPeerConnection;
         const webrtcContext = this.userContextService.getUserWebrtcContext(username);
 
         let connectionStatus = webrtcContext[AppConstants.CONNECTION_STATE];
@@ -38,7 +37,7 @@ export class CoreWebrtcService {
         if (connectionStatus === AppConstants.CONNECTION_STATES.NOT_CONNECTED) {
           initializedConnection = true;
           //initialize a new webrtc peer connection
-          webrtcContext[AppConstants.CONNECTION] = new PeerConnection(AppConstants.STUN_CONFIG);
+          webrtcContext[AppConstants.CONNECTION] = new RTCPeerConnection(AppConstants.STUN_CONFIG);
           webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.NOT_CONNECTED;
         }
         resolve(initializedConnection);

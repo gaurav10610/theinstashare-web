@@ -3,7 +3,6 @@ import { LoggerUtil } from '../logging/LoggerUtil';
 import { AppConstants } from '../AppConstants';
 import { UserContextService } from '../context/user.context.service';
 import { TalkWindowUtilityService } from '../util/talk-window-utility.service';
-import { SignalingService } from '../signaling/signaling.service';
 import { NativeRemoteAccessService } from '../../native-app-services/native-remote-access.service';
 import { CoreWebrtcService } from './core-webrtc.service';
 import { CoreAppUtilityService } from '../util/core-app-utility.service';

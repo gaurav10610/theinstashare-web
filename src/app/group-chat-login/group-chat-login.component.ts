@@ -8,6 +8,14 @@ import { LoggerUtil } from '../services/logging/LoggerUtil';
 import { SignalingService } from '../services/signaling/signaling.service';
 import { CoreAppUtilityService } from '../services/util/core-app-utility.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { BaseSignalingMessage } from '../services/contracts/signaling/BaseSignalingMessage';
+import { MediaChannelType } from '../services/contracts/enum/MediaChannelType';
+import { SignalingMessageType } from '../services/contracts/enum/SignalingMessageType';
+import { UserType } from '../services/contracts/enum/UserType';
+import { CoreDataChannelService } from '../services/data-channel/core-data-channel.service';
+import { GroupChatWebrtcService } from '../services/webrtc/group-chat-webrtc.service';
+import { CreateDataChannelType } from '../services/contracts/CreateDataChannelType';
+import { CoreWebrtcService } from '../services/webrtc/core-webrtc.service';
 
 @Component({
   selector: 'app-group-chat-login',
@@ -22,7 +30,10 @@ export class GroupChatLoginComponent implements OnInit {
     public signalingService: SignalingService,
     private userContextService: UserContextService,
     private coreAppUtilService: CoreAppUtilityService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private coreDataChannelService: CoreDataChannelService,
+    private groupChatWebrtcService: GroupChatWebrtcService,
+    private coreWebrtcService: CoreWebrtcService
   ) { }
 
   //assets path
@@ -76,6 +87,11 @@ export class GroupChatLoginComponent implements OnInit {
           this.router.navigateByUrl('app');
         }
       }
+      const createDataChannelType: CreateDataChannelType = {
+        username: AppConstants.MEDIA_SERVER,
+        channel: AppConstants.TEXT
+      }
+      this.groupChatWebrtcService.setUpDataChannel(createDataChannelType);
     } else {
 
       /**
@@ -170,6 +186,21 @@ export class GroupChatLoginComponent implements OnInit {
           await this.handleRegister(signalingMessage);
           break;
 
+        case AppConstants.OFFER:
+          await this.consumeWebrtcOffer(signalingMessage);
+          break;
+
+        case AppConstants.ANSWER:
+          await this.coreWebrtcService.handleAnswer(signalingMessage);
+          break;
+
+        case AppConstants.CANDIDATE:
+          await this.coreWebrtcService.handleCandidate(signalingMessage);
+          break;
+
+        case AppConstants.WEBRTC_EVENT:
+          this.handleWebrtcEvent(signalingMessage);
+
         default:
           LoggerUtil.log('received unknown signaling message with type: ' + signalingMessage.type);
       }
@@ -223,7 +254,11 @@ export class GroupChatLoginComponent implements OnInit {
           LoggerUtil.log(error);
           this.router.navigateByUrl('app');
         }
-
+        const createDataChannelType: CreateDataChannelType = {
+          username: AppConstants.MEDIA_SERVER,
+          channel: AppConstants.TEXT
+        }
+        this.groupChatWebrtcService.setUpDataChannel(createDataChannelType);
       } else {
 
         /**
@@ -265,5 +300,95 @@ export class GroupChatLoginComponent implements OnInit {
     this.userContextService.applicationSignOut();
     this.userContextService.resetCoreAppContext();
     this.router.navigateByUrl('login');
+  }
+
+  /**
+   * 
+   * this will handle webrtc events 
+   * 
+   * @param signalingMessage received signaling message 
+   */
+  handleWebrtcEvent(signalingMessage: any) {
+    LoggerUtil.log('handling webrtc event: ' + signalingMessage.event);
+    const webrtcContext: any = this.userContextService.getUserWebrtcContext(signalingMessage.from);
+    switch (signalingMessage.event) {
+
+      /**
+       * 
+       * webrtc data channel open event received from remote user's end
+       */
+      case AppConstants.WEBRTC_EVENTS.CHANNEL_OPEN:
+        LoggerUtil.log(signalingMessage.channel + ' data channel has been opened with user: ' + signalingMessage.from);
+        webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTED;
+        switch (signalingMessage.channel) {
+
+          case AppConstants.TEXT:
+            this.groupChatWebrtcService.sendQueuedMessagesOnChannel(signalingMessage.from);
+            break;
+
+          default:
+          //do nothing here
+        }
+    }
+  }
+
+  /**
+ * this will process received messages of type 'offer'
+ *
+ *
+ * @param signalingMessage: received signaling message
+ */
+  async consumeWebrtcOffer(signalingMessage: any): Promise<void> {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+
+        /**
+         * 
+         * if this offer message is for renegotiating an already established connection
+         * 
+         */
+        if (signalingMessage.renegotiate) {
+
+          this.coreWebrtcService.mediaContextInit(signalingMessage.channel, signalingMessage.from);
+          const peerConnection: any = this.userContextService.getUserWebrtcContext(signalingMessage.from)[AppConstants.CONNECTION];
+
+          /**
+           * handle the received webrtc offer 'sdp', set the remote description and
+           * generate the answer sebsequently for sending it to the other user
+           *
+           * 'answerContainer' will contain the generated answer sdp and few other
+           * properties which app utilizes to compose an answer signaling message
+           * to be sent to other user
+           *
+           */
+          const answerContainer: any = await this.coreWebrtcService
+            .generateAnswer(peerConnection, signalingMessage.offer, signalingMessage.channel);
+
+          /**
+           * send the composed 'answer' signaling message to the other user from whom
+           * we've received the offer message
+           *
+           */
+          this.coreDataChannelService.sendPayload({
+            type: AppConstants.ANSWER,
+            answer: answerContainer.answerPayload.answer,
+            channel: answerContainer.answerPayload.channel,
+            from: this.userContextService.username,
+            to: signalingMessage.from
+          });
+        } else {
+
+          /**
+           * 
+           * this will setup a new webrtc connection 
+           */
+          this.groupChatWebrtcService.setUpWebrtcConnection(signalingMessage.from, signalingMessage);
+        }
+        resolve();
+      } catch (e) {
+        LoggerUtil.log('there is an error while consuming webrtc offer received from ' + signalingMessage.from);
+        reject(e);
+      }
+    });
   }
 }

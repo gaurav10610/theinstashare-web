@@ -17,10 +17,6 @@ import { CreateDataChannelType } from '../services/contracts/CreateDataChannelTy
 import { StartMediaStreamType } from '../services/contracts/StartMediaStreamType';
 import { CallbackContextType } from '../services/contracts/CallbackContextType';
 import { CoreDataChannelService } from '../services/data-channel/core-data-channel.service';
-import { BaseSignalingMessage } from '../services/contracts/signaling/BaseSignalingMessage';
-import { MediaChannelType } from '../services/contracts/enum/MediaChannelType';
-import { SignalingMessageType } from '../services/contracts/enum/SignalingMessageType';
-import { UserType } from '../services/contracts/enum/UserType';
 
 @Component({
   selector: 'app-talk-window',
@@ -983,15 +979,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   async sendMessageOnChannel(textMessage: any, userToChat: string) {
     try {
       if (textMessage !== '') {
-
-        // if (textMessage === '1234' && !this.isGrouped) {
-        //   if (this.userContextService.username === 'gaurav') {
-        //     this.createUserGoup();
-        //   }
-        //   this.registerUserInGroup();
-        //   //this.coreAppUtilService.delay(3000);
-        //   this.isGrouped = true;
-        // }
 
         /**
          * initialize user's webrtc context for the user to whom you wanted to
@@ -2455,39 +2442,5 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       default:
       //do nothing here
     }
-  }
-
-  /**
-   * 
-   * @TODO this method will be moved afterwards, right now it's just for testing
-   * 
-   */
-  createUserGoup() {
-    const signalingMessage: BaseSignalingMessage = {
-      channel: MediaChannelType.CONNECTION,
-      from: this.userContextService.username,
-      to: AppConstants.MEDIA_SERVER,
-      type: SignalingMessageType.CREATE_GROUP,
-      userGroup: 'default-group',
-      userType: UserType.GROUP_CALL_USER,
-    };
-    this.coreDataChannelService.sendPayload(signalingMessage);
-  }
-
-  /**
-   * 
-   * @TODO this method will be moved afterwards, right now it's just for testing
-   * 
-   */
-  registerUserInGroup() {
-    const signalingMessage: BaseSignalingMessage = {
-      channel: MediaChannelType.CONNECTION,
-      from: this.userContextService.username,
-      to: AppConstants.MEDIA_SERVER,
-      type: SignalingMessageType.REGISTER_USER_IN_GROUP,
-      userGroup: 'default-group',
-      userType: UserType.GROUP_CALL_USER,
-    };
-    this.coreDataChannelService.sendPayload(signalingMessage);
   }
 }

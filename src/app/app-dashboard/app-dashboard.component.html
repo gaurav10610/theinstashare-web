@@ -12,12 +12,12 @@
 
         <!-- container for all the applications -->
         <div id="apps-container" class="apps-container">
-            <mat-grid-list cols="{{totalColumns}}" rowHeight="1:1" style="margin-top:5px;">
+            <mat-grid-list cols="{{totalColumns}}" rowHeight="1:1" style="margin:5px;">
                 <mat-grid-tile *ngFor="let tile of tiles" [colspan]="tile.cols" [rowspan]="tile.rows" class="grid-tile"
                     (click)="registerApplicationUser(tile.identifier)">
                     <div
                         [ngClass]="{'text-center':true, 'hidden-class': userContextService.selectedApp === tile.identifier && isRegistering}">
-                        <i class="fas {{tile.icon}} fa-8x" [ngStyle]="{'color':tile.color}"></i>
+                        <i class="fas {{tile.icon}} fa-5x" [ngStyle]="{'color':tile.color}"></i>
                         <p class="app-name">{{tile.appName}}</p>
                     </div>
                     <mat-progress-spinner *ngIf="userContextService.selectedApp === tile.identifier && isRegistering" color="warn" mode="indeterminate"
