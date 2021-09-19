@@ -1,0 +1,85 @@
+.full-height-width {
+    height: 100%;
+    width: 100%;
+}
+
+.dashboard-header {
+    background: #2c3e50;
+    width: 100%;
+    height: 60px;
+    line-height: 60px;
+    vertical-align: middle;
+    color: white;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.side-panel-div {
+    float: left;
+    width: 23%;
+    height: 100%;
+    background: #2c3e50;
+    flex-flow: column;
+    display: flex;
+}
+
+.hide-vertical-overflow {
+    overflow-y: hidden;
+}
+
+::ng-deep .mat-tab-header {
+    height: 50px;
+}
+
+.tab-icon {
+    margin-right: 8px;
+}
+
+.flex-column-display {
+    display: flex;
+    height: 100%;
+    flex-flow: column;
+}
+
+.flex-grow-full {
+    flex-grow: 1;
+}
+
+.no-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scroll {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+
+.video-frame-div {
+    float: right;
+    width: 77%;
+    height: 100%;
+}
+
+.border-class {
+    border: 1px solid white;
+}
+
+.chat-div {
+    background: white;
+}
+
+.message-div {
+    background: #2c3e50;
+}
+
+.input-message {
+    background: white;
+    height: 60px;
+    width: 100%;
+}
+
+.video-frames {
+    background: black;
+}

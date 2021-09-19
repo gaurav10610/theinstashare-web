@@ -1,1 +1,112 @@
-<p>group-chat-window works!</p>
+<div id="container" class="container-fluid h-100 container-base">
+    <div id="frame" class="full-height-width">
+
+        <div id="side-panel-div" class="side-panel-div border-class hide-vertical-overflow">
+
+            <!-- header -->
+            <div id="side-panel-div-header" class="dashboard-header border-class text-center">
+                <p>contacts</p>
+            </div>
+
+            <div class="hide-vertical-overflow flex-grow-full">
+                <mat-tab-group mat-align-tabs="center" color="accent" style="height: 100%;">
+
+                    <!-- users tab -->
+                    <mat-tab class="flex-grow-full">
+                        <ng-template mat-tab-label>
+                            <mat-icon class="tab-icon">group</mat-icon>
+                        </ng-template>
+
+                        <div id="flex-grow-full" class="flex-grow-full no-scroll">
+                            <mat-list>
+                                <mat-list-item *ngFor="let user of activeUsers; last as last">
+                                    <mat-icon matListIcon>{{user.status === 'online' ? 'person': 'person_off'}}
+                                    </mat-icon>
+                                    <h3 matLine> {{user.name}} </h3>
+                                    <mat-chip-list aria-label="Fish selection">
+                                        <mat-chip color="accent" selected>4</mat-chip>
+                                    </mat-chip-list>
+                                    <mat-divider [inset]="true" *ngIf="!last"></mat-divider>
+                                </mat-list-item>
+                            </mat-list>
+                        </div>
+
+                    </mat-tab>
+
+                    <!-- chat box tab -->
+                    <mat-tab class="flex-grow-full">
+                        <ng-template mat-tab-label>
+                            <mat-icon class="tab-icon">chat</mat-icon>
+                        </ng-template>
+
+                        <div id="chat-div" class="flex-grow-full chat-div">
+
+                            <div class="message-div flex-grow-full">
+
+                                <div id="message-list" class="flex-grow-full">
+                                    <mat-list>
+                                        <mat-list-item *ngFor="let message of messages">
+                                            <mat-icon matListIcon>person</mat-icon>
+                                            <h3 matLine> {{message.name}} </h3>
+
+                                            <span matLine>
+                                                <mat-chip-list aria-label="Fish selection">
+                                                    <mat-chip color="accent" selected>{{message.message}}</mat-chip>
+                                                </mat-chip-list>
+                                            </span>
+
+                                            <p matLine>
+                                                {{message.received}}
+                                            </p>
+                                        </mat-list-item>
+                                    </mat-list>
+                                </div>
+                            </div>
+
+                            <div class="input-message hide-vertical-overflow">
+                                <form>
+                                    <mat-form-field appearance="outline" style="width: 100%;" color="warn"
+                                        class="mat-focused">
+                                        <mat-label>Message</mat-label>
+                                        <input matInput #messageInput maxlength="256"
+                                            placeholder="Ex. I need help with...">
+                                    </mat-form-field>
+                                </form>
+                            </div>
+                        </div>
+
+                    </mat-tab>
+
+                </mat-tab-group>
+
+            </div>
+        </div>
+
+        <div id="video-frame-div" class="video-frame-div border-class flex-column-display hide-vertical-overflow">
+
+            <!-- header -->
+            <div id="video-frame-div-header" style="text-align: center;font-size: medium;" class="dashboard-header border-class">
+
+                <div style="float: left; margin: 8px;">
+                    <mat-icon matListIcon>person</mat-icon>
+                </div>
+                <div>
+                    TheInstashare
+                </div>
+
+            </div>
+
+            <!-- render video frames here -->
+            <div class="video-frames flex-grow-full">
+
+                <mat-grid-list cols={{totalsVideoStreamsColumns}} rowHeight="2:1">
+                    <mat-grid-tile *ngFor="let stream of streams" [colspan]="stream.cols" [rowspan]="stream.rows">
+                        <video controls class="full-height-width"></video>
+                    </mat-grid-tile>
+                </mat-grid-list>
+
+            </div>
+        </div>
+
+    </div>
+</div>
