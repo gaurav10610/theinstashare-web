@@ -9,9 +9,15 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatInputModule } from '@angular/material/input';
 import { MatGridListModule } from '@angular/material/grid-list';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { GroupLoginDialogComponent } from '../group-login-dialog/group-login-dialog.component';
 
 @NgModule({
   declarations: [
+    GroupLoginDialogComponent,
     GroupChatWindowComponent
   ],
   imports: [
@@ -23,7 +29,12 @@ import { MatGridListModule } from '@angular/material/grid-list';
     MatChipsModule,
     MatTabsModule,
     MatInputModule,
-    MatGridListModule
+    MatGridListModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatProgressSpinnerModule
   ]
 })
 export class GroupChatWindowModule { }

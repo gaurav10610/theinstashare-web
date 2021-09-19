@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { environment } from 'src/environments/environment';
+import { GroupLoginDialogComponent } from '../group-login-dialog/group-login-dialog.component';
 import { UserContextService } from '../services/context/user.context.service';
 
 @Component({
@@ -68,7 +70,8 @@ export class GroupChatWindowComponent implements OnInit {
   totalsVideoStreamsColumns: Number;
 
   constructor(
-    private userContextService: UserContextService
+    private userContextService: UserContextService,
+    public dialog: MatDialog
   ) { }
 
   ngOnInit(): void {
@@ -77,6 +80,12 @@ export class GroupChatWindowComponent implements OnInit {
     } else {
       this.totalsVideoStreamsColumns = 2;
     }
+    this.dialog.open(GroupLoginDialogComponent, {
+      // height: '400px',
+      // width: '600px',
+      disableClose: true,
+      panelClass: 'dialog-class'
+    });
   }
 
 }
