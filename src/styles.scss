@@ -1,6 +1,15 @@
 @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css");
 @import url("https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css");
 
+.full-height-width {
+  height: 100%;
+  width: 100%;
+}
+
+.dialog-class .mat-dialog-container {
+  background: white;
+}
+
 .container-base {
   padding-left: 0px;
   padding-right: 0px;

@@ -94,7 +94,7 @@ export class SignalingService {
    */
   async registerOnSignalingServer(username: string, validateUser: boolean) {
     if (validateUser) {
-      const isNotValid = await this.validateUserName(username);
+      const isNotValid = await this.checkIfUsernameTaken(username);
       if (isNotValid) {
         this.router.navigateByUrl('login');
       } else {
@@ -129,8 +129,8 @@ export class SignalingService {
    * @param  username :username of the user to be validated
    * @return promise
    */
-  validateUserName(username: string) {
-    return new Promise(async (resolve, reject) => {
+  checkIfUsernameTaken(username: String): Promise<Boolean> {
+    return new Promise<Boolean>(async (resolve, reject) => {
       try {
         if (username && username !== '') {
           const data: any = await this.apiService.get('status/' + username).toPromise();
@@ -139,8 +139,7 @@ export class SignalingService {
           resolve(true);
         }
       } catch (e) {
-        LoggerUtil.log(e);
-        reject();
+        reject(e);
       }
     });
   }

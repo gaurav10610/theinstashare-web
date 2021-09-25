@@ -1,5 +1,6 @@
 import { Component, ElementRef, Inject, OnInit, ViewChild } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { GroupChatWindowComponent } from '../group-chat-window/group-chat-window.component';
 import { AppConstants } from '../services/AppConstants';
 import { LoggerUtil } from '../services/logging/LoggerUtil';
 
@@ -22,7 +23,7 @@ export class GroupLoginDialogComponent implements OnInit {
    * @TODO make an interface for data
    */
   constructor(
-    public dialogRef: MatDialogRef<GroupLoginDialogComponent>,
+    public dialogRef: MatDialogRef<GroupChatWindowComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) { }
 

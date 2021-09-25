@@ -1,8 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { environment } from 'src/environments/environment';
+import { AppLoginDialogComponent } from '../app-login-dialog/app-login-dialog.component';
 import { GroupLoginDialogComponent } from '../group-login-dialog/group-login-dialog.component';
+import { ProgressDialogComponent } from '../progress-dialog/progress-dialog.component';
 import { UserContextService } from '../services/context/user.context.service';
+import { DialogCloseResult } from '../services/contracts/dialog/DialogCloseResult';
+import { DialogType } from '../services/contracts/enum/DialogType';
+import { LoggerUtil } from '../services/logging/LoggerUtil';
 
 @Component({
   selector: 'app-group-chat-window',
@@ -10,6 +15,13 @@ import { UserContextService } from '../services/context/user.context.service';
   styleUrls: ['./group-chat-window.component.scss']
 })
 export class GroupChatWindowComponent implements OnInit {
+
+  constructor(
+    private userContextService: UserContextService,
+    public dialog: MatDialog
+  ) { }
+
+  dialogRef: MatDialogRef<any>;
 
   //assets path
   assetsPath = environment.is_native_app ? 'assets/' : '../../assets/';
@@ -20,43 +32,13 @@ export class GroupChatWindowComponent implements OnInit {
     { name: 'tillu', status: 'online' },
     { name: 'billu', status: 'offline' },
     { name: 'shikha', status: 'offline' },
-    { name: 'prabhat', status: 'offline' },
-    { name: 'paras', status: 'online' },
-    { name: 'billu', status: 'online' },
-    { name: 'shikha', status: 'online' },
-    { name: 'prabhat', status: 'online' },
-    { name: 'paras', status: 'online' },
-    { name: 'billu', status: 'online' },
-    { name: 'shikha', status: 'online' },
-    { name: 'prabhat', status: 'online' },
-    { name: 'paras', status: 'online' },
-    { name: 'shikha', status: 'online' },
-    { name: 'prabhat', status: 'online' },
-    { name: 'paras', status: 'online' },
-    { name: 'billu', status: 'online' },
-    { name: 'shikha', status: 'online' },
-    { name: 'prabhat', status: 'online' },
-    { name: 'paras', status: 'online' }
+    { name: 'prabhat', status: 'offline' }
   ];
 
   messages: any[] = [
     { name: 'gaurav', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
     { name: 'suman', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
     { name: 'tillu', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
-    { name: 'billu', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
-    { name: 'shikha', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
-    { name: 'prabhat', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
-    { name: 'gaurav', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
-    { name: 'suman', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
-    { name: 'tillu', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
-    { name: 'billu', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
-    { name: 'shikha', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
-    { name: 'prabhat', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
-    { name: 'gaurav', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
-    { name: 'suman', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
-    { name: 'tillu', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
-    { name: 'billu', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
-    { name: 'shikha', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
     { name: 'prabhat', message: 'This is the last message', received: new Date().toLocaleString('en-US') }
   ];
 
@@ -70,11 +52,7 @@ export class GroupChatWindowComponent implements OnInit {
   totalsVideoStreamsColumns: Number;
 
   currentTab: String = 'contacts'; // or 'chat'
-
-  constructor(
-    private userContextService: UserContextService,
-    public dialog: MatDialog
-  ) { }
+  groupName: String = 'My Group'
 
   ngOnInit(): void {
     if (this.userContextService.isMobile) {
@@ -82,10 +60,8 @@ export class GroupChatWindowComponent implements OnInit {
     } else {
       this.totalsVideoStreamsColumns = 2;
     }
-    // this.dialog.open(GroupLoginDialogComponent, {
-    //   disableClose: true,
-    //   panelClass: 'dialog-class'
-    // });
+
+    this.openDialog(DialogType.APP_LOGIN);
   }
 
   /**
@@ -96,4 +72,76 @@ export class GroupChatWindowComponent implements OnInit {
     this.currentTab = selectedTab;
   }
 
+  /**
+   * open appropriate dialog
+   * 
+   * @param dialogType type of dialog
+   * @param data data to be passed to close handler
+   */
+  openDialog(dialogType: DialogType, data = {}) {
+    switch (dialogType) {
+      case DialogType.APP_LOGIN:
+        this.dialogRef = this.dialog.open(AppLoginDialogComponent, {
+          disableClose: true,
+          panelClass: 'dialog-class',
+          data
+        });
+        break;
+
+      case DialogType.GROUP_LOGIN:
+        this.dialogRef = this.dialog.open(GroupLoginDialogComponent, {
+          disableClose: true,
+          panelClass: 'dialog-class',
+          data
+        });
+        break;
+
+      case DialogType.PROGRESS:
+        this.dialogRef = this.dialog.open(ProgressDialogComponent, {
+          disableClose: true,
+          data
+        });
+        break;
+
+      case DialogType.INFORMATIONAL:
+        break;
+
+      default:
+      //do nothing here
+    }
+    this.dialogRef.afterClosed().subscribe(this.handleDialogClose.bind(this));
+  }
+
+  /**
+   * close currently open dialog with appropriate data
+   * 
+   * @param dialogType type of dialog
+   * @param data data to be passed to close handler
+   * 
+   */
+  closeDialog(dialogType: DialogType, data = {}) {
+    this.dialogRef.close(data);
+  }
+
+  /**
+   * this will handle dialog close
+   * @param dialogueCloseResult result data sent by the component contained in the dialog which got closed
+   * 
+   */
+  handleDialogClose(dialogueCloseResult: DialogCloseResult) {
+    LoggerUtil.log(`dialog got closed with result: ${JSON.stringify(dialogueCloseResult)}`);
+    switch (dialogueCloseResult.type) {
+      case DialogType.APP_LOGIN:
+        this.openDialog(DialogType.PROGRESS, {
+          message: 'login in progress'
+        });
+        break;
+
+      case DialogType.GROUP_LOGIN:
+        break;
+
+      default:
+      //do nothing here
+    }
+  }
 }
