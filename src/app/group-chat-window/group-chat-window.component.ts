@@ -57,7 +57,7 @@ export class GroupChatWindowComponent implements OnInit {
     { name: 'tillu', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
     { name: 'billu', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
     { name: 'shikha', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
-    { name: 'prabhat', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') }
+    { name: 'prabhat', message: 'This is the last message', received: new Date().toLocaleString('en-US') }
   ];
 
   streams: any[] = [
@@ -68,6 +68,8 @@ export class GroupChatWindowComponent implements OnInit {
   ];
 
   totalsVideoStreamsColumns: Number;
+
+  currentTab: String = 'contacts'; // or 'chat'
 
   constructor(
     private userContextService: UserContextService,
@@ -80,12 +82,18 @@ export class GroupChatWindowComponent implements OnInit {
     } else {
       this.totalsVideoStreamsColumns = 2;
     }
-    this.dialog.open(GroupLoginDialogComponent, {
-      // height: '400px',
-      // width: '600px',
-      disableClose: true,
-      panelClass: 'dialog-class'
-    });
+    // this.dialog.open(GroupLoginDialogComponent, {
+    //   disableClose: true,
+    //   panelClass: 'dialog-class'
+    // });
+  }
+
+  /**
+   * event handler for tab selection
+   * @param selectedTab 
+   */
+  selectTab(selectedTab: String) {
+    this.currentTab = selectedTab;
   }
 
 }

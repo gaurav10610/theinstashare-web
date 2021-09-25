@@ -1,83 +1,83 @@
 <div id="container" class="container-fluid h-100 container-base">
     <div id="frame" class="full-height-width">
 
-        <div id="side-panel-div" class="side-panel-div border-class hide-vertical-overflow">
+        <div id="side-panel-div" class="side-panel-div border-class hide-vertical-overflow app-background">
 
             <!-- header -->
-            <div id="side-panel-div-header" class="dashboard-header border-class text-center">
-                <p>contacts</p>
+            <div id="side-panel-div-header" class="dashboard-header text-center app-background">
+                <mat-toolbar class="app-background">
+                    <span>TheInstaShare</span>
+                    <span class="toolbar-spacer"></span>
+                    <button mat-icon-button aria-label="logout icon button">
+                        <mat-icon>logout</mat-icon>
+                    </button>
+                </mat-toolbar>
             </div>
 
-            <div class="hide-vertical-overflow flex-grow-full">
-                <mat-tab-group mat-align-tabs="center" color="accent" style="height: 100%;" >
+            <div class="full-height-width hide-vertical-overflow">
 
-                    <!-- users tab -->
-                    <mat-tab class="flex-grow-full">
-                        <ng-template mat-tab-label>
-                            <mat-icon class="tab-icon">group</mat-icon>
-                        </ng-template>
+                <!-- tab icons header -->
+                <div class="icons-header app-background">
+                    <div style="width: 50%;margin: 5px;"
+                        [ngClass]="{'text-center': true, 'border-bottom': currentTab === 'contacts', 'pointer-cursor':true}"
+                        (click)="selectTab('contacts')">
+                        <mat-icon matListIcon>groups</mat-icon>
+                    </div>
+                    <div style="width: 50%;margin: 5px;"
+                        [ngClass]="{'text-center': true, 'border-bottom': currentTab === 'chat', 'pointer-cursor':true}"
+                        (click)="selectTab('chat')">
+                        <mat-icon matListIcon>chat</mat-icon>
+                    </div>
+                </div>
 
-                        <div id="flex-grow-full" class="flex-grow-full no-scroll">
-                            <mat-list>
-                                <mat-list-item *ngFor="let user of activeUsers; last as last">
-                                    <mat-icon matListIcon>{{user.status === 'online' ? 'person': 'person_off'}}
-                                    </mat-icon>
-                                    <h3 matLine> {{user.name}} </h3>
+                <!-- contacts tab -->
+                <div style="overflow-y: scroll;"
+                    [ngClass]="{'full-height-width': true, 'no-scroll': true, 'hidden-class': currentTab === 'chat'}">
+                    <mat-list>
+                        <mat-list-item *ngFor="let user of activeUsers; last as last">
+                            <mat-icon matListIcon>{{user.status === 'online' ? 'person': 'person_off'}}
+                            </mat-icon>
+                            <h3 matLine> {{user.name}} </h3>
+                            <mat-chip-list aria-label="Fish selection">
+                                <mat-chip color="accent" selected>4</mat-chip>
+                            </mat-chip-list>
+                            <mat-divider [inset]="true" *ngIf="!last"></mat-divider>
+                        </mat-list-item>
+                    </mat-list>
+                </div>
+
+                <!-- chat tab -->
+                <div
+                    [ngClass]="{'full-height-width': true, 'no-scroll': true, 'hidden-class': currentTab === 'contacts', 'hide-vertical-overflow': true}">
+
+                    <div class="message-div no-scroll">
+                        <mat-list>
+                            <mat-list-item *ngFor="let message of messages">
+                                <mat-icon matListIcon>person</mat-icon>
+                                <h3 matLine> {{message.name}} </h3>
+
+                                <span matLine>
                                     <mat-chip-list aria-label="Fish selection">
-                                        <mat-chip color="accent" selected>4</mat-chip>
+                                        <mat-chip color="accent" selected>{{message.message}}</mat-chip>
                                     </mat-chip-list>
-                                    <mat-divider [inset]="true" *ngIf="!last"></mat-divider>
-                                </mat-list-item>
-                            </mat-list>
-                        </div>
+                                </span>
 
-                    </mat-tab>
+                                <p matLine>
+                                    {{message.received}}
+                                </p>
+                            </mat-list-item>
+                        </mat-list>
+                    </div>
 
-                    <!-- chat box tab -->
-                    <mat-tab class="flex-grow-full">
-                        <ng-template mat-tab-label>
-                            <mat-icon class="tab-icon">chat</mat-icon>
-                        </ng-template>
-
-                        <div id="chat-div" class="flex-grow-full chat-div">
-
-                            <div class="message-div flex-grow-full">
-
-                                <div id="message-list" class="flex-grow-full">
-                                    <mat-list>
-                                        <mat-list-item *ngFor="let message of messages">
-                                            <mat-icon matListIcon>person</mat-icon>
-                                            <h3 matLine> {{message.name}} </h3>
-
-                                            <span matLine>
-                                                <mat-chip-list aria-label="Fish selection">
-                                                    <mat-chip color="accent" selected>{{message.message}}</mat-chip>
-                                                </mat-chip-list>
-                                            </span>
-
-                                            <p matLine>
-                                                {{message.received}}
-                                            </p>
-                                        </mat-list-item>
-                                    </mat-list>
-                                </div>
-                            </div>
-
-                            <div class="input-message hide-vertical-overflow">
-                                <form>
-                                    <mat-form-field appearance="outline" style="width: 100%;" color="warn"
-                                        class="mat-focused">
-                                        <mat-label>Message</mat-label>
-                                        <input matInput #messageInput maxlength="256"
-                                            placeholder="Ex. I need help with...">
-                                    </mat-form-field>
-                                </form>
-                            </div>
-                        </div>
-
-                    </mat-tab>
-
-                </mat-tab-group>
+                    <div class="input-message hide-vertical-overflow">
+                        <form>
+                            <mat-form-field appearance="outline" style="width: 100%;" color="warn" class="mat-focused">
+                                <mat-label>Message</mat-label>
+                                <input matInput #messageInput maxlength="256" placeholder="Ex. I need help with...">
+                            </mat-form-field>
+                        </form>
+                    </div>
+                </div>
 
             </div>
         </div>
@@ -85,15 +85,17 @@
         <div id="video-frame-div" class="video-frame-div border-class flex-column-display hide-vertical-overflow">
 
             <!-- header -->
-            <div id="video-frame-div-header" style="text-align: center;font-size: medium;" class="dashboard-header border-class">
-
-                <div style="float: left; margin: 8px;">
-                    <mat-icon matListIcon>person</mat-icon>
-                </div>
-                <div>
-                    TheInstashare
-                </div>
-
+            <div id="side-panel-div-header" class="dashboard-header text-center app-background">
+                <mat-toolbar class="app-background">
+                    <button mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon">
+                        <mat-icon>groups</mat-icon>
+                    </button>
+                    <span>TheInstaShare</span>
+                    <span class="toolbar-spacer"></span>
+                    <button mat-icon-button aria-label="logout icon button">
+                        <mat-icon>logout</mat-icon>
+                    </button>
+                </mat-toolbar>
             </div>
 
             <!-- render video frames here -->

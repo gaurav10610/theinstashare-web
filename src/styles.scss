@@ -6,6 +6,14 @@
   padding-right: 0px;
 }
 
+.app-background {
+  background: #2c3e50;
+}
+
+.color-black {
+  color: black;
+}
+
 .hidden-class {
   display: none;
 }
@@ -177,7 +185,7 @@
 }
 
 .cover-spin::after {
-  content: '';
+  content: "";
   display: block;
   position: absolute;
   left: 48%;
@@ -189,9 +197,15 @@
   border-top-color: transparent;
   border-width: 4px;
   border-radius: 50%;
-  -webkit-animation: spin .8s linear infinite;
-  animation: spin .8s linear infinite;
+  -webkit-animation: spin 0.8s linear infinite;
+  animation: spin 0.8s linear infinite;
 }
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
