@@ -13,11 +13,12 @@
                 <mat-label>{{inputFieldLabel}}</mat-label>
                 <input #usernameInput matInput placeholder="Enter user name" (keyup)="login($event)">
             </mat-form-field>
-            <p *ngIf="showError" style="color: red;">{{errorText}}</p>
+            <p *ngIf="errorMessage !== undefined" style="color: red;">*{{errorMessage}}</p>
 
-            <button mat-raised-button class="button-class app-background" (click)="login()">
+            <button mat-raised-button class="button-class app-background" (click)="login()" *ngIf="!isRegistering">
                 <p>LOGIN</p>
             </button>
+            <mat-spinner color="warn" *ngIf="isRegistering"></mat-spinner>
 
         </div>
     </div>

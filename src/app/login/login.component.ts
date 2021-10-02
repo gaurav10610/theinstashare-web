@@ -7,6 +7,7 @@ import { AppConstants } from '../services/AppConstants';
 import { UserContextService } from '../services/context/user.context.service';
 import { environment } from '../../environments/environment';
 import { CoreMediaCaptureService } from '../services/media-capture/core-media-capture.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-signin-root',
@@ -20,42 +21,27 @@ export class LoginComponent implements OnInit {
     private router: Router,
     public signalingService: SignalingService,
     private userContextService: UserContextService,
-    private coreMediaCaptureService: CoreMediaCaptureService
+    private coreMediaCaptureService: CoreMediaCaptureService,
+    private snackBar: MatSnackBar
   ) { }
 
-  /**
-   * view binding property 
-   */
-  connecting = false;
-
-  @ViewChild('username', { static: false }) usernameInput: ElementRef;
-
-  //assets path
+  inputFieldLabel: String = 'Username';
   assetsPath = environment.is_native_app ? 'assets/' : '../../assets/';
 
-  stopNotification: boolean = true;
+  @ViewChild('usernameInput', { static: false }) usernameInput: ElementRef;
 
-  /**
-   * this is flagged error text
-   */
-  flaggedErrorText: string = undefined;
-
-  //This contains any errors encountered within app
-  errors = [];
+  errorMessage: String;
+  isRegistering: Boolean = false;
 
   async ngOnInit() {
     LoggerUtil.log('ngOnit of login component');
-    setTimeout(() => { this.stopNotification = false; }, 5000);
-
-    //resetting instance variables
-    this.connecting = false;
-    this.flaggedErrorText = undefined;
+    // setTimeout(() => { this.stopNotification = false; }, 5000);
 
     try {
       const message: string = await this.coreMediaCaptureService.takeCameraAndMicrophoneAccess();
       LoggerUtil.log('got camera/microphone permissions');
     } catch (errorMessage) {
-      this.flagError(errorMessage);
+      this.snackBar.open(errorMessage);
     }
 
     /**
@@ -70,14 +56,6 @@ export class LoginComponent implements OnInit {
   }
 
   /**
-   * Form submit event
-   */
-  formSubmit() {
-    this.register();
-    return false;
-  }
-
-  /**
    * This will register all the event listeners
    */
   setUpSignaling() {
@@ -85,42 +63,56 @@ export class LoginComponent implements OnInit {
     this.signalingService.signalingRouter.off('reconnect');
     this.signalingService.signalingRouter.off('message');
     const eventsConfig = {
-      onmessage: this.onRouterMessage.bind(this)
+      onmessage: this.onRouterMessage.bind(this),
+      onclose: () => {
+        this.snackBar.open('disconnected from server....');
+      }
     };
     this.signalingService.registerEventListeners(eventsConfig);
+  }
+
+  /**
+   * 
+   * login handler
+   */
+  login(event?: any) {
+    if (event) {
+      // when user hits enter
+      if (event.keyCode === 13) {
+        this.isRegistering = true;
+        this.register();
+      } else {
+        this.errorMessage = undefined;
+      }
+    } else {
+      this.register();
+    }
   }
 
   /**
    * this will handle registration with signaling server
    */
   async register() {
-    if (!this.connecting) {
-      this.connecting = true;
+    this.isRegistering = true;
+    const username: String = this.usernameInput.nativeElement.value
+      ? this.usernameInput.nativeElement.value.trim()
+      : undefined;
 
-      //remove the error text first
-      this.flaggedErrorText = undefined;
-      const username: string = this.usernameInput.nativeElement.value;
+    /**
+     * validate username value
+     */
+    if (username === undefined || username === '') {
+      this.errorMessage = 'username is either invalid or already been taken';
+      this.isRegistering = false;
+      return;
+    }
 
-      /**
-       * validate username value
-       */
-      if (username === '') {
-        // this.flagError('username cannot be left empty');
-        this.flaggedErrorText = 'username cannot be left empty';
-        this.connecting = false;
-      } else {
-        this.apiService.get('status/' + username).subscribe((data: any) => {
-          if (data.status) {
-            // this.flagError('username is taken. Please try again!');
-            this.flaggedErrorText = 'username is taken. Please try again!';
-            this.connecting = false;
-          } else {
-            this.signalingService.registerOnSignalingServer(username, false);
-          }
-        });
-      }
+    const isUsernameTaken: Boolean = await this.signalingService.checkIfUsernameTaken(username);
+    if (isUsernameTaken) {
+      this.errorMessage = 'username is either invalid or already been taken';
+      this.isRegistering = false;
     } else {
-      LoggerUtil.log('Already sent request for registering.');
+      this.signalingService.registerOnSignalingServer(username, false);
     }
   }
 
@@ -139,36 +131,18 @@ export class LoginComponent implements OnInit {
           this.userContextService.username = message[AppConstants.USERNAME];
           sessionStorage.setItem(AppConstants.STORAGE_USER, message[AppConstants.USERNAME]);
 
-          // Removing message listener of login component
+          this.errorMessage = undefined;
+          this.isRegistering = false;
+
           this.signalingService.signalingRouter.off('message');
-          /* Routing towards talk window */
-          // this.router.navigateByUrl('talk');
           this.router.navigateByUrl('app');
         } else {
-          // failed to register
-          // this.flagError('username has already been taken. Try again!');
-          this.flaggedErrorText = 'username has already been taken. Try again!';
-          this.connecting = false;
+          this.errorMessage = 'username is either invalid or already been taken';
+          this.isRegistering = false;
         }
         break;
       default:
         LoggerUtil.log('unknown message type');
     }
-  }
-
-  /**
-   * this will flag an error message in the app for a time period and then will
-   * remove it
-   *
-   * @param errorMessage error message that needs to be displayed
-   */
-  flagError(errorMessage: string) {
-    this.errors.push(errorMessage);
-    setTimeout(() => {
-      const index = this.errors.indexOf(errorMessage);
-      if (index > -1) {
-        this.errors.splice(index, 1);
-      }
-    }, AppConstants.ERROR_FLAG_TIMEOUT);
   }
 }

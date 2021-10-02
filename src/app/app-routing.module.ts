@@ -6,7 +6,7 @@ import { GroupChatWindowModule } from './group-chat-window-module/group-chat-win
 import { AppDashboardModuleModule } from './app-dashboard-module/app-dashboard-module.module';
 
 const routes: Routes = [
-  { path: '', redirectTo: 'group-chat', pathMatch: 'full' },
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'talk', loadChildren: () => TalkWindowModule },
   { path: 'group-chat', loadChildren: () => GroupChatWindowModule },

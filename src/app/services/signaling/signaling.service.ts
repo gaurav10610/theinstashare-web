@@ -124,16 +124,12 @@ export class SignalingService {
    * @return promise
    */
   checkIfUsernameTaken(username: String): Promise<Boolean> {
-    return new Promise<Boolean>(async (resolve, reject) => {
+    return new Promise<Boolean>(async (resolve) => {
       try {
-        if (username && username !== '') {
-          const data: any = await this.apiService.get('status/' + username).toPromise();
-          resolve(data.status);
-        } else {
-          resolve(true);
-        }
+        const data: any = await this.apiService.get(`status/${username}`).toPromise();
+        resolve(data.status);
       } catch (e) {
-        reject(e);
+        resolve(false);
       }
     });
   }

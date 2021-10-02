@@ -16,7 +16,7 @@ export class AppLoginDialogComponent implements OnInit {
   constructor(
     private dialogRef: MatDialogRef<any>,
     @Inject(MAT_DIALOG_DATA) private data: any,
-    private signalingServer: SignalingService
+    private signalingService: SignalingService
   ) { }
 
   inputFieldLabel: String = 'Username';
@@ -24,8 +24,8 @@ export class AppLoginDialogComponent implements OnInit {
 
   @ViewChild('usernameInput', { static: false }) usernameInput: ElementRef;
 
-  showError: Boolean = false;
-  errorText: String = '*username is either invalid or already been taken';
+  errorMessage: String;
+  isRegistering: Boolean = false;
 
   ngOnInit(): void {
   }
@@ -38,9 +38,10 @@ export class AppLoginDialogComponent implements OnInit {
     if (event) {
       // when user hits enter
       if (event.keyCode === 13) {
+        this.isRegistering = true;
         this.doLogin();
       } else {
-        this.showError = false;
+        this.errorMessage = undefined;
       }
     } else {
       this.doLogin();
@@ -51,26 +52,23 @@ export class AppLoginDialogComponent implements OnInit {
    * do login processing here
    */
   async doLogin() {
+    this.isRegistering = true;
     const username: String = this.usernameInput.nativeElement.value.trim();
     LoggerUtil.log(`validating username: ${username}`);
-    try {
-      const isUsernameTaken: Boolean = await this.signalingServer.checkIfUsernameTaken(username);
-      if (isUsernameTaken) {
-        LoggerUtil.log(`username is invalid or not available`);
-        this.showError = true;
-      } else {
-        LoggerUtil.log(`username is valid and available, so trying login`);
-        const result: DialogCloseResult = {
-          type: DialogType.APP_LOGIN,
-          data: {
-            username
-          }
-        };
-        this.dialogRef.close(result);
-      }
-    } catch (error) {
-      this.showError = true;
-      LoggerUtil.log(error);
+    const isUsernameTaken: Boolean = await this.signalingService.checkIfUsernameTaken(username);
+    if (isUsernameTaken) {
+      this.errorMessage = 'username is either invalid or already been taken';
+      this.isRegistering = false;
+    } else {
+      LoggerUtil.log(`username is valid and available, so trying login`);
+      this.isRegistering = false;
+      const result: DialogCloseResult = {
+        type: DialogType.APP_LOGIN,
+        data: {
+          username
+        }
+      };
+      this.dialogRef.close(result);
     }
   }
 

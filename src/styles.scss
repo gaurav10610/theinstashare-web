@@ -6,6 +6,24 @@
   width: 100%;
 }
 
+.column-flex-display {
+  display: flex;
+  flex-direction: column;
+}
+
+.row-flex-display {
+  display: flex;
+  flex-direction: row;
+}
+
+.center-content {
+  justify-content: center;
+}
+
+.align-center {
+  align-items: center;
+}
+
 .dialog-class .mat-dialog-container {
   background: white;
 }
