@@ -121,6 +121,8 @@ export class AppConstants {
 
   public static STORAGE_APPLICATION = 'application';
 
+  public static STORAGE_GROUP = 'groupName';
+
   public static USERNAME = 'username';
 
   public static USER_ACTIVE_STATUS = 'user';

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { AppConstants } from '../AppConstants';
 
 /*
  * Service for Rest APIs
@@ -19,8 +20,11 @@ export class ApiService {
    * @param  uri :uri for requested resource
    * @return     observable
    */
-  get(uri: String) {
-    return this.http.get(environment.api_endpoint_base + uri);
+  get(uri: String, baseURiIdentifier?: String) {
+    const baseURI: string = (baseURiIdentifier && baseURiIdentifier === AppConstants.MEDIA_SERVER)
+      ? environment.api_media_server_base
+      : environment.api_endpoint_base;
+    return this.http.get(baseURI + uri);
   }
 
   /**
@@ -29,7 +33,10 @@ export class ApiService {
    * @param body 
    * @returns 
    */
-  post(uri: String, body: Object) {
-    return this.http.post(environment.api_endpoint_base + uri, body);
+  post(uri: String, body: Object, baseURiIdentifier?: String) {
+    const baseURI: string = (baseURiIdentifier && baseURiIdentifier === AppConstants.MEDIA_SERVER)
+      ? environment.api_media_server_base
+      : environment.api_endpoint_base;
+    return this.http.post(baseURI + uri, body);
   }
 }

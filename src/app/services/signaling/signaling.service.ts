@@ -21,12 +21,6 @@ export class SignalingService {
     this.signalingRouter = io(environment.rtc_api_endpoint_base);
   }
 
-  /**
-   * Unique socket id assigned to socket connection and will subsequently
-   * be used to identify user's rtc connection for further communication
-   */
-  public static socketId = false;
-
   /* Registered flag that will keep track whether user
    * is registered with signaling server or not
    */
@@ -92,7 +86,7 @@ export class SignalingService {
    * @param username :username for signaling server to register with
    * @param validateUser: whether to validate user or not
    */
-  async registerOnSignalingServer(username: string, validateUser: boolean) {
+  async registerOnSignalingServer(username: String, validateUser: boolean) {
     if (validateUser) {
       const isNotValid = await this.checkIfUsernameTaken(username);
       if (isNotValid) {
@@ -149,7 +143,7 @@ export class SignalingService {
    * @param  username : username to register
    * @return
    */
-  private registerUser(username: string) {
+  private registerUser(username: String) {
     this.sendPayload({
       type: AppConstants.REGISTER,
       from: username,

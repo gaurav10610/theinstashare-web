@@ -6,21 +6,22 @@
             <!-- input field -->
             <mat-form-field appearance="outline" color="warn" class="mat-focused">
                 <mat-label>{{inputFieldLabel}}</mat-label>
-                <input #groupNameInput matInput placeholder="Group name">
+                <input #groupNameInput matInput placeholder="Group name" (keyup)="handleKeyUpEvent()" style="color: black;">
             </mat-form-field>
+            <p *ngIf="errorMessage !== undefined" style="color: red;">* {{errorMessage}}</p>
 
             <button mat-raised-button
-                [ngStyle]="{'display': (mode === undefined || mode === 'existing') ? 'block': 'none'}"
+                [ngStyle]="{'display':  isRegistering ? 'none': 'block'}"
                 class="button-class app-background" (click)="createOrJoinGroup('existing')">
-                <mat-spinner diameter="30" style="left:40%" color="warn" *ngIf="isRegistering"></mat-spinner>
-                <p *ngIf="!isRegistering">Join existing group</p>
+                <p>Join existing group</p>
             </button>
 
-            <button mat-raised-button [ngStyle]="{'display': (mode === undefined || mode === 'new') ? 'block': 'none'}"
+            <button mat-raised-button [ngStyle]="{'display': isRegistering ? 'none': 'block'}"
                 class="button-class app-background" (click)="createOrJoinGroup('new')">
-                <mat-spinner diameter="30" style="left:40%" color="warn" *ngIf="isRegistering"></mat-spinner>
-                <p *ngIf="!isRegistering">Create a new group</p>
+                <p>Create a new group</p>
             </button>
+
+            <mat-spinner diameter="30" style="left:40%" color="warn" *ngIf="isRegistering"></mat-spinner>
 
         </div>
     </div>

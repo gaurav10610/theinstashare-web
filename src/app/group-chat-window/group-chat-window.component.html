@@ -6,9 +6,10 @@
             <!-- header -->
             <div id="side-panel-div-header" class="dashboard-header text-center app-background">
                 <mat-toolbar class="app-background">
+                    <img src="{{assetsPath + 'images/icons/title-40X40.png'}}" alt="" style="margin-right: 5px;" />
                     <span>TheInstaShare</span>
                     <span class="toolbar-spacer"></span>
-                    <button mat-icon-button aria-label="logout icon button">
+                    <button mat-icon-button aria-label="logout icon button" (click)="logout()">
                         <mat-icon>logout</mat-icon>
                     </button>
                 </mat-toolbar>
@@ -90,7 +91,7 @@
                     <button mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon">
                         <mat-icon>groups</mat-icon>
                     </button>
-                    <span>{{groupName}}</span>
+                    <span>{{groupChatContextService.groupName ? groupChatContextService.groupName : 'No Group'}}</span>
                     <span class="toolbar-spacer"></span>
 
                     <button mat-icon-button aria-label="logout icon button" class="toolbar-icon">

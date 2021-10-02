@@ -251,7 +251,7 @@ export class AppDashboardComponent implements OnInit {
               break;
 
             case AppConstants.APPLICATION_NAMES.GROUP_CHAT:
-              this.router.navigateByUrl('group-login');
+              this.router.navigateByUrl('group-chat');
               break;
           }
         } else {

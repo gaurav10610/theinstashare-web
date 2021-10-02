@@ -1,11 +1,14 @@
 import { Injectable } from '@angular/core';
+import { ApiService } from '../api/api.service';
 import { AppConstants } from '../AppConstants';
+import { GroupChatContextService } from '../context/group-chat-window/group-chat-context.service';
 import { UserContextService } from '../context/user.context.service';
 import { CallbackContextType } from '../contracts/CallbackContextType';
 import { CreateDataChannelType } from '../contracts/CreateDataChannelType';
 import { MediaChannelType } from '../contracts/enum/MediaChannelType';
 import { SignalingMessageType } from '../contracts/enum/SignalingMessageType';
 import { UserType } from '../contracts/enum/UserType';
+import { GroupContext } from '../contracts/GroupContext';
 import { BaseSignalingMessage } from '../contracts/signaling/BaseSignalingMessage';
 import { CoreDataChannelService } from '../data-channel/core-data-channel.service';
 import { LoggerUtil } from '../logging/LoggerUtil';
@@ -16,7 +19,6 @@ import { CoreWebrtcService } from './core-webrtc.service';
 /**
  * this service contains all the webrtc related reusable logic chunks which app
  * utilises in order to process various types of user requests from UI
- *
  *
  */
 @Injectable({
@@ -29,15 +31,19 @@ export class GroupChatWebrtcService {
         private userContextService: UserContextService,
         private coreDataChannelService: CoreDataChannelService,
         private appUtilService: TalkWindowUtilityService,
-        private coreAppUtilService: CoreAppUtilityService
+        private coreAppUtilService: CoreAppUtilityService,
+        private groupChatContextService: GroupChatContextService,
+        private apiService: ApiService
     ) { }
 
+    onDataChannelMessage: any;
+
     /**
- * setup datachannel with a user
- *
- * @param createDataChannelType create data channel request type
- *
- */
+     * setup datachannel with a user
+     *
+     * @param createDataChannelType create data channel request type
+     *
+     */
     setUpDataChannel(createDataChannelType: CreateDataChannelType) {
         return new Promise<void>(async (resolve, reject) => {
             try {
@@ -114,22 +120,6 @@ export class GroupChatWebrtcService {
                 reject(e);
             }
         });
-    }
-
-    /**
-     * this is onmessage event handler for data channel
-     *
-     * @param jsonMessage message received via webrtc datachannel
-     * 
-     */
-    async onDataChannelMessage(jsonMessage: string) {
-        LoggerUtil.log('message received on data channel : ' + jsonMessage);
-        const message: any = JSON.parse(jsonMessage);
-        switch (message.type) {
-
-            //handle received text data messages
-            default:
-        }
     }
 
     /**
@@ -538,16 +528,6 @@ export class GroupChatWebrtcService {
                         mediaChannelContext[AppConstants.TRACK].stop();
                     }
 
-                    // /**
-                    //  * configure appropriate flags in media call context
-                    //  */
-                    // if (channel === AppConstants.SCREEN || channel === AppConstants.VIDEO) {
-                    //     this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', false, channel);
-                    //     this.talkWindowContextService.updateBindingFlag('haveRemoteVideoStream', false, channel);
-                    // } else if (channel === AppConstants.SOUND || channel === AppConstants.AUDIO) {
-                    //     this.talkWindowContextService.updateBindingFlag('haveLocalAudioStream', false, channel);
-                    //     this.talkWindowContextService.updateBindingFlag('haveRemoteAudioStream', false, channel);
-                    // }
                     /**
                      * @TODO see if this even needed
                      */
@@ -606,15 +586,15 @@ export class GroupChatWebrtcService {
     /**
      * 
      * @TODO this method will be moved afterwards, right now it's just for testing
-     * 
+     * @param groupName name of group to join
      */
-    createUserGoup() {
+    createUserGoup(groupName: String) {
         const signalingMessage: BaseSignalingMessage = {
             channel: MediaChannelType.CONNECTION,
             from: this.userContextService.username,
             to: AppConstants.MEDIA_SERVER,
             type: SignalingMessageType.CREATE_GROUP,
-            userGroup: 'default-group',
+            userGroup: groupName,
             userType: UserType.GROUP_CALL_USER,
         };
         this.coreDataChannelService.sendPayload(signalingMessage);
@@ -623,17 +603,35 @@ export class GroupChatWebrtcService {
     /**
      * 
      * @TODO this method will be moved afterwards, right now it's just for testing
-     * 
+     * @param groupName name of group to join
      */
-    registerUserInGroup() {
+    registerUserInGroup(groupName: String) {
         const signalingMessage: BaseSignalingMessage = {
             channel: MediaChannelType.CONNECTION,
             from: this.userContextService.username,
             to: AppConstants.MEDIA_SERVER,
             type: SignalingMessageType.REGISTER_USER_IN_GROUP,
-            userGroup: 'default-group',
+            userGroup: groupName,
             userType: UserType.GROUP_CALL_USER,
         };
         this.coreDataChannelService.sendPayload(signalingMessage);
+    }
+
+
+    /**
+     * check if a group exist
+     * @param groupName name of group to validate
+     */
+    checkIfGroupExist(groupName: String): Promise<Boolean> {
+        return new Promise<Boolean>(async (resolve) => {
+            try {
+                await this.apiService.get(`group/${groupName}`, AppConstants.MEDIA_SERVER).toPromise();
+                resolve(true);
+            } catch (e) {
+                LoggerUtil.log(`error occured while checking group existence for group: ${groupName}`);
+                LoggerUtil.log(e);
+                resolve(false);
+            }
+        });
     }
 }
