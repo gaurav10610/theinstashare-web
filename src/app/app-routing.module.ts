@@ -8,10 +8,10 @@ import { AppDashboardModuleModule } from './app-dashboard-module/app-dashboard-m
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
+  { path: 'app', loadChildren: () => AppDashboardModuleModule },
   { path: 'talk', loadChildren: () => TalkWindowModule },
   { path: 'group-chat', loadChildren: () => GroupChatWindowModule },
-  { path: 'app', loadChildren: () => AppDashboardModuleModule }
-];  
+];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],

@@ -2,8 +2,8 @@
 
     <div class="dashboard-header">
         <mat-toolbar class="dashboard-header">
-            <img src="{{assetsPath + 'images/icons/title-40X40.png'}}" alt="" />
-            <img src="{{assetsPath + 'images/icons/theinstashare-191X40.png'}}" alt="" />
+            <img src="{{assetsPath + 'title-40X40.png'}}" alt="" />
+            <img src="{{assetsPath + 'theinstashare-191X40.png'}}" alt="" />
             <span class="spacer"></span>
             <button mat-icon-button aria-label="" (click)="logout()">
               <mat-icon>logout</mat-icon>
@@ -14,12 +14,11 @@
     <!-- container for all the applications -->
     <div id="apps-container" class="apps-container">
         <mat-grid-list cols="{{totalColumns}}" rowHeight="1:1" style="margin:5px;">
-            <mat-grid-tile *ngFor="let tile of tiles" [colspan]="tile.cols" [rowspan]="tile.rows" class="grid-tile"
+            <mat-grid-tile *ngFor="let tile of tiles" [colspan]="tile.cols" [rowspan]="tile.rows" class="grid-tile pointer-cursor"
                 (click)="registerApplicationUser(tile.identifier)">
                 <div
                     [ngClass]="{'text-center':true, 'hidden-class': userContextService.selectedApp === tile.identifier && isRegistering}">
-                    <i class="fas {{tile.icon}} fa-5x" [ngStyle]="{'color':tile.color}"></i>
-                    <p class="app-name">{{tile.appName}}</p>
+                    <img src="{{assetsPath + tile.icon}}" alt="" />
                 </div>
                 <mat-progress-spinner *ngIf="userContextService.selectedApp === tile.identifier && isRegistering"
                     color="warn" mode="indeterminate" value="value">

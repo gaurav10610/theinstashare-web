@@ -28,7 +28,7 @@ export class AppDashboardComponent implements OnInit {
   tiles: any[];
   totalColumns: Number;
   //assets path
-  assetsPath = environment.is_native_app ? 'assets/' : '../../assets/';
+  assetsPath = environment.is_native_app ? 'assets/images/icons/' : '../../assets/images/icons/';
   isRegistering: Boolean = false;
 
   ngOnInit(): void {
@@ -52,11 +52,11 @@ export class AppDashboardComponent implements OnInit {
      */
     this.tiles = [
       {
-        icon: 'fa-user-friends', cols: 1, rows: 1, color: 'black',
+        icon: 'peer-to-peer-100X100.png', cols: 1, rows: 1, color: 'black',
         appName: 'one to one', identifier: 'p2p'
       },
       {
-        icon: 'fa-users', cols: 1, rows: 1, color: 'black',
+        icon: 'group-chat-100X100.png', cols: 1, rows: 1, color: 'black',
         appName: 'group chat', identifier: 'group_chat'
       }
     ];
