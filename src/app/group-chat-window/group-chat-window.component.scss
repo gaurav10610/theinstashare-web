@@ -18,10 +18,6 @@
     color: white;
 }
 
-.toolbar-spacer {
-    flex: 1 1 auto;
-}
-
 .border-bottom {
     border-bottom: 2px solid white;
 }
@@ -40,19 +36,6 @@
 
 .toolbar-icon {
     margin-right: 8px;
-}
-
-.no-scroll::-webkit-scrollbar {
-    display: none;
-}
-
-.no-scroll {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-}
-
-.border-class {
-    border: 1px solid white;
 }
 
 .input-message {

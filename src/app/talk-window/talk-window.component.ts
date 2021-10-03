@@ -17,6 +17,13 @@ import { CreateDataChannelType } from '../services/contracts/CreateDataChannelTy
 import { StartMediaStreamType } from '../services/contracts/StartMediaStreamType';
 import { CallbackContextType } from '../services/contracts/CallbackContextType';
 import { CoreDataChannelService } from '../services/data-channel/core-data-channel.service';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { DialogCloseResult } from '../services/contracts/dialog/DialogCloseResult';
+import { DialogType } from '../services/contracts/enum/DialogType';
+import { ProgressDialogComponent } from '../progress-dialog/progress-dialog.component';
+import { GroupLoginDialogComponent } from '../group-login-dialog/group-login-dialog.component';
+import { AppLoginDialogComponent } from '../app-login-dialog/app-login-dialog.component';
 
 @Component({
   selector: 'app-talk-window',
@@ -38,7 +45,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     private coreWebrtcService: CoreWebrtcService,
     private coreAppUtilService: CoreAppUtilityService,
     private messageService: MessageService,
-    private coreDataChannelService: CoreDataChannelService
+    private coreDataChannelService: CoreDataChannelService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar,
   ) { }
 
   isGrouped: boolean = false;
@@ -68,10 +77,19 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   messageHistoryUnlistenFn: () => void;
   remoteVideoDivUnlistenFn: () => void;
 
+  dialogRef: MatDialogRef<any>;
+
   /*
    * angular OnInit hook
    */
   async ngOnInit() {
+
+    // check if router is connected to server
+    if (!this.signalingService.signalingRouter.connected) {
+      this.snackBar.open('disconnected from server....', undefined, {
+        panelClass: ['snackbar-class']
+      });
+    }
 
     if (this.signalingService.isRegistered) {
 
@@ -87,52 +105,38 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        */
       const eventsConfig = {
         onreconnect: this.onRouterConnect.bind(this),
-        onmessage: this.onRouterMessage.bind(this)
+        onmessage: this.onRouterMessage.bind(this),
+        onclose: () => {
+          this.snackBar.open('disconnected from server....');
+        }
       };
 
       this.signalingService.registerEventListeners(eventsConfig);
-      if(this.userContextService.selectedApp === undefined) {
+      if (this.userContextService.selectedApp === undefined) {
         try {
           await this.registerApplicationUser(AppConstants.APPLICATION_NAMES.P2P);
-          await this.fetchActiveUsersList();
-        } catch(error) {
+        } catch (error) {
           LoggerUtil.log(error);
           this.router.navigateByUrl('app');
         }
-      } else {
-        await this.fetchActiveUsersList();
       }
+      await this.fetchActiveUsersList();
     } else {
 
       /**
        * this is the case when user either reloads this page or directly came on
        * this page via its url
-       *
-       *
-       * if username is available then app will try to register user with that
-       * username only on to the server else user will be routed to login page
-       * to login again
-       *
-       *
-       * a. if username is available then register open, reconnect and message
-       * handlers in this scenario
+       * 
        */
-      const username = this.userContextService.getUserName();
-      if (username) {
-        const eventsConfig = {
-          onopen: this.onRouterConnect.bind(this),
-          onreconnect: this.onRouterConnect.bind(this),
-          onmessage: this.onRouterMessage.bind(this)
-        };
-        this.signalingService.registerEventListeners(eventsConfig);
-
-      } else {
-
-        /**
-         * route user to login page as username isn't available for registering
-         */
-        this.router.navigateByUrl('login');
-      }
+      const eventsConfig = {
+        onopen: this.onRouterConnect.bind(this),
+        onreconnect: this.onRouterConnect.bind(this),
+        onmessage: this.onRouterMessage.bind(this),
+        onclose: () => {
+          this.snackBar.open('disconnected from server....');
+        }
+      };
+      this.signalingService.registerEventListeners(eventsConfig);
     }
 
     /**
@@ -255,11 +259,87 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     });
   }
 
+  /**
+   * open appropriate dialog
+   * 
+   * @param dialogType type of dialog
+   * @param data data to be passed to close handler
+   */
+  openDialog(dialogType: DialogType, data = {}) {
+    this.closeDialog();
+    switch (dialogType) {
+      case DialogType.APP_LOGIN:
+        this.dialogRef = this.dialog.open(AppLoginDialogComponent, {
+          disableClose: true,
+          panelClass: 'dialog-class',
+          data
+        });
+        break;
+
+      case DialogType.PROGRESS:
+        this.dialogRef = this.dialog.open(ProgressDialogComponent, {
+          disableClose: true,
+          data
+        });
+        break;
+
+      case DialogType.INFORMATIONAL:
+        break;
+
+      default:
+      //do nothing here
+    }
+    this.dialogRef.afterClosed().subscribe(this.handleDialogClose.bind(this));
+  }
+
+  /**
+   * close currently open dialog with appropriate data
+   * 
+   * @param data data to be passed to close handler
+   * 
+   */
+  closeDialog(data = {}) {
+    if (this.dialogRef) {
+      this.dialogRef.close(data);
+    }
+  }
+
+  /**
+   * this will handle dialog close
+   * @param dialogueCloseResult result data sent by the component contained in the dialog which got closed
+   * 
+   */
+  handleDialogClose(dialogueCloseResult: DialogCloseResult) {
+    LoggerUtil.log(`dialog got closed with result: ${JSON.stringify(dialogueCloseResult)}`);
+    switch (dialogueCloseResult.type) {
+      case DialogType.APP_LOGIN:
+        this.openDialog(DialogType.PROGRESS, {
+          message: 'login in progress'
+        });
+        this.signalingService.registerOnSignalingServer(dialogueCloseResult.data.username, true);
+        break;
+
+      default:
+      //do nothing here
+    }
+  }
+
   /*
    * handler to handle connection open event with server
    */
   onRouterConnect() {
-    this.signalingService.registerOnSignalingServer(this.userContextService.getUserName(), true);
+    const username: String = this.userContextService.getUserName()
+      ? this.userContextService.getUserName().trim()
+      : undefined;
+    if (username) {
+      this.openDialog(DialogType.PROGRESS, {
+        message: 'login in progress'
+      });
+      this.signalingService.registerOnSignalingServer(username, true);
+    } else {
+      this.openDialog(DialogType.APP_LOGIN);
+    }
+    this.snackBar.dismiss();
   }
 
   /**
@@ -388,6 +468,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         this.signalingService.isRegistered = signalingMessage.success;
         this.userContextService.username = signalingMessage.username;
         this.coreAppUtilService.setStorageValue(AppConstants.STORAGE_USER, signalingMessage.username);
+        this.closeDialog();
 
         /**
          * 
@@ -399,7 +480,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         try {
           await this.registerApplicationUser(AppConstants.APPLICATION_NAMES.P2P);
           await this.fetchActiveUsersList();
-        } catch(error) {
+        } catch (error) {
           LoggerUtil.log(error);
           this.router.navigateByUrl('app');
         }
@@ -407,11 +488,11 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       } else {
 
         /**
-         * this is the case when user registration with server gets failed
-         *
-         * redirect the user to login page
-         */
-        this.router.navigateByUrl('login');
+         * user registeration failed case - 
+         * 
+         * close current progress dialog and open app login dialog again
+         **/
+         this.openDialog(DialogType.APP_LOGIN);
       }
       resolve();
     });

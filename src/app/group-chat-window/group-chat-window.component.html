@@ -50,7 +50,7 @@
             <div id="chat-tab" [ngClass]="{'flex-grow-full': true, 'no-scroll': true, 
             'hidden-class': currentTab === 'contacts','hide-vertical-overflow': true,
             'column-flex-display': true,
-            'chat-tab-class':true}">
+            'chat-tab-class':true }">
 
                 <div class="no-scroll vertical-scroll flex-grow-full">
                     <mat-list>
@@ -72,12 +72,10 @@
                 </div>
 
                 <div class="input-message hide-vertical-overflow">
-                    <form>
-                        <mat-form-field appearance="outline" style="width: 100%;" color="warn" class="mat-focused">
-                            <mat-label>Message</mat-label>
-                            <input matInput #messageInput maxlength="256" placeholder="Ex. I need help with...">
-                        </mat-form-field>
-                    </form>
+                    <mat-form-field appearance="outline" style="width: 100%;" color="warn" class="mat-focused">
+                        <mat-label>Message</mat-label>
+                        <input matInput #messageInput maxlength="256" placeholder="Ex. I need help with...">
+                    </mat-form-field>
                 </div>
 
             </div>

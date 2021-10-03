@@ -16,6 +16,10 @@
   flex-direction: row;
 }
 
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
 .flex-grow-full {
   flex-grow: 1;
 }
@@ -28,13 +32,12 @@
   align-items: center;
 }
 
-.dialog-class .mat-dialog-container {
-  background: white;
+.border-class {
+  border: 1px solid white;
 }
 
-.container-base {
-  padding-left: 0px;
-  padding-right: 0px;
+.dialog-class .mat-dialog-container {
+  background: white;
 }
 
 .snackbar-class {
@@ -50,6 +53,10 @@
   color: black;
 }
 
+.color-white {
+  color: white;
+}
+
 .hidden-class {
   display: none;
 }
@@ -60,6 +67,15 @@
 
 .pointer-cursor {
   cursor: pointer;
+}
+
+.no-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scroll {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 /* The snackbar - position it at the bottom and in the middle of the screen */

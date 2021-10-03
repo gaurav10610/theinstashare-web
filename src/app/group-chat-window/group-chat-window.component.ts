@@ -79,7 +79,7 @@ export class GroupChatWindowComponent implements OnInit {
 
     this.groupChatWebrtcService.onDataChannelMessage = this.onDataChannelMessage.bind(this);
 
-    // this.setUpSignaling();
+    //this.setUpSignaling();
   }
 
   /**
@@ -347,6 +347,7 @@ export class GroupChatWindowComponent implements OnInit {
         this.signalingService.isRegistered = signalingMessage.success;
         this.userContextService.username = signalingMessage.username;
         this.coreAppUtilService.setStorageValue(AppConstants.STORAGE_USER, signalingMessage.username);
+        this.signalingService.signalingRouter.off('connect');
         try {
           await this.registerApplicationUser(AppConstants.APPLICATION_NAMES.GROUP_CHAT);
         } catch (error) {
@@ -360,7 +361,6 @@ export class GroupChatWindowComponent implements OnInit {
          * 
          * close current progress dialog and open app login dialog again
          **/
-        this.closeDialog();
         this.openDialog(DialogType.APP_LOGIN);
       }
       resolve();
