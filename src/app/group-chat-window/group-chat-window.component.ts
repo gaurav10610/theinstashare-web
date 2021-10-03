@@ -79,7 +79,7 @@ export class GroupChatWindowComponent implements OnInit {
 
     this.groupChatWebrtcService.onDataChannelMessage = this.onDataChannelMessage.bind(this);
 
-    this.setUpSignaling();
+    // this.setUpSignaling();
   }
 
   /**
