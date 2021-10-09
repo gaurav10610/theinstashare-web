@@ -59,8 +59,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   //assets path
   assetsPath = environment.is_native_app ? 'assets/' : '../../assets/';
 
-  @ViewChild('msg_history', { static: false }) messageHistoryDiv: ElementRef;
-  @ViewChild('message_history', { static: false }) messageHistoryBox: ElementRef;
+  @ViewChild('messageHistory', { static: false }) messageHistory: ElementRef;
+  @ViewChild('messageHistoryDiv', { static: false }) messageHistoryDiv: ElementRef;
   @ViewChild('text_msg', { static: false }) messageInput: ElementRef;
   @ViewChild('remote_video_div', { static: false }) remoteVideoDiv: ElementRef;
   @ViewChild('remoteVideo', { static: false }) remoteVideo: ElementRef;
@@ -2016,7 +2016,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       };
 
       this.remoteVideoUnlistenFn = this.renderer.listen(this.remoteVideo.nativeElement, 'click', setCentralIconFunction);
-      this.messageHistoryUnlistenFn = this.renderer.listen(this.messageHistoryDiv.nativeElement, 'click', setCentralIconFunction);
+      this.messageHistoryUnlistenFn = this.renderer.listen(this.messageHistory.nativeElement, 'click', setCentralIconFunction);
     } else {
 
       /**
@@ -2095,10 +2095,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          * active users list
          *
          */
-        const listElement: any = this.renderer.selectRootElement('#' + messagePayload[AppConstants.USERNAME] + '_contact', true);
+        const listElement: any = this.renderer.selectRootElement(`#contact-${messagePayload[AppConstants.USERNAME]}`, true);
         let isUserVisibleInViewport: any = await this.talkWindowUtilService.isElementInViewport(listElement);
         if (!isUserVisibleInViewport) {
-          LoggerUtil.log('user ' + messagePayload.user + ' is not visible in viewport');
+          LoggerUtil.log(`user ${messagePayload.user} is not visible in viewport`);
           this.coreAppUtilService.updateElemntPositionInArray(this.talkWindowContextService.activeUsers, messagePayload[AppConstants.USERNAME], 0);
         }
 
@@ -2123,8 +2123,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    */
   scrollMessages() {
-    const scrollHeight = this.renderer.selectRootElement('#message_history', true).scrollHeight;
-    this.renderer.setProperty(this.messageHistoryBox.nativeElement, 'scrollTop', scrollHeight);
+    const scrollHeight = this.renderer.selectRootElement('#message-history-div', true).scrollHeight;
+    this.renderer.setProperty(this.messageHistoryDiv.nativeElement, 'scrollTop', scrollHeight);
   }
 
   /**

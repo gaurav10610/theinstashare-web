@@ -12,11 +12,11 @@
 
     <!-- sidepanel -->
     <div id="sidepanel" [ngClass]="{'hidden-class':talkWindowContextService.bindingFlags.isFullScreenMode || !talkWindowContextService.bindingFlags.showSidepanel,
-      'app-background': true, 'color-white': true, 'column-flex-display': true, 'border-class': true }">
+       'column-flex-display': true, 'border-class': true }">
 
       <!-- username header -->
       <div class="username-header">
-        <mat-toolbar class="app-background">
+        <mat-toolbar color="primary">
           <span>Logged in as: {{userContextService.username}}</span>
           <span class="toolbar-spacer"></span>
           <button mat-icon-button aria-label="logout icon button" (click)="logout()">
@@ -29,23 +29,27 @@
       <div id="contacts" class="flex-grow-full">
 
         <!-- no body is online -->
-        <div id="no_one_online" class="row-flex-display center-content"
+        <div id="no_one_online" style="margin-top: 10px;" class="row-flex-display center-content"
           *ngIf="talkWindowContextService.activeUsers.length === 0">
-          Nobody is Online!!
+          <span>Nobody is Online!!</span>
         </div>
 
         <div [ngClass]="{'flex-grow-full': true, 'vertical-scroll': true, 'no-scroll': true }">
           <mat-list>
-            <mat-list-item *ngFor="let user of talkWindowContextService.activeUsers; last as last"
+            <mat-list-item id="contact-{{user}}" *ngFor="let user of talkWindowContextService.activeUsers; last as last"
               (click)="startTextChat(user)" class="pointer-cursor">
               <mat-icon matListIcon>{{talkWindowContextService.getUserStatus(user) ? 'person': 'person_off'}}
               </mat-icon>
               <h3 matLine> {{user}} </h3>
-              <mat-chip-list aria-label="Fish selection" *ngIf="userContextService.getUserWebrtcContext(user) !== null &&
+
+              <!-- unread message badge -->
+              <mat-chip-list aria-label="Fish selection" *ngIf="userContextService.getUserWebrtcContext(user) !== null && 
               userContextService.getUserWebrtcContext(user).unreadCount !== 0">
-                <mat-chip color="accent" selected>{{userContextService.getUserWebrtcContext(user).unreadCount}}
+                <mat-chip color="primary" selected>
+                  {{userContextService.getUserWebrtcContext(user).unreadCount}}
                 </mat-chip>
               </mat-chip-list>
+
               <mat-divider [inset]="true" *ngIf="!last"></mat-divider>
             </mat-list-item>
           </mat-list>
@@ -57,14 +61,15 @@
     </div>
 
     <div #chat_div id="chat_div" [ngClass]="{'column-flex-display': true,
-      'hidden-class': !talkWindowContextService.bindingFlags.showChatWindow}">
+      'hidden-class': !talkWindowContextService.bindingFlags.showChatWindow,
+      'hide-vertical-overflow': true}">
 
       <!-- contact profile header -->
       <div id="contact-profile-header"
         [ngClass]="{'username-header': true,
       'hidden-class':(userContextService.isMobile && talkWindowContextService.bindingFlags.haveRemoteVideoStream 
       && !talkWindowContextService.bindingFlags.minimizeVideo) || talkWindowContextService.bindingFlags.isFullScreenMode}">
-        <mat-toolbar class="app-background">
+        <mat-toolbar color="primary">
           <mat-icon>
             {{talkWindowContextService.getUserStatus(userContextService.userToChat) ? 'person': 'person_off'}}
           </mat-icon>
@@ -180,62 +185,67 @@
         <video #localVideo id="localVideo" class="local-video mobile-local-video show-class" autoplay></video>
       </div>
 
-      <div #msg_history id="msg_history" [ngClass]="{
-      'messages':true,
+      <div #messageHistory id="message-history" [ngClass]="{
+      'flex-grow-full':true,
       'hidden-class':talkWindowContextService.bindingFlags.haveRemoteVideoStream 
-      && !talkWindowContextService.bindingFlags.minimizeVideo}">
+      && !talkWindowContextService.bindingFlags.minimizeVideo,
+      'hide-vertical-overflow':true}">
 
-        <div #message_history id="message_history" class="message-history-div">
-          <ul *ngIf="talkWindowContextService.hasMessageContext(userContextService.userToChat)" id="message-list">
-            <li id="messages"
-              *ngFor="let message of talkWindowContextService.getMessageContext(userContextService.userToChat)"
-              class="{{message.sent ? 'replies': 'sent'}}">
+        <div #messageHistoryDiv id="message-history-div" class="no-scroll vertical-scroll full-height-width">
+          <mat-list *ngIf="talkWindowContextService.hasMessageContext(userContextService.userToChat)">
+            <mat-list-item
+              *ngFor="let message of talkWindowContextService.getMessageContext(userContextService.userToChat)">
+              <mat-icon matListIcon>person</mat-icon>
 
-              <!-- message and icon div -->
-              <div id="message_n_icon" class="message-n-icon">
+              <span matLine *ngIf="message.type === 'text'">
+                <mat-chip-list aria-label="Fish selection">
+                  <mat-chip color="{{message.sent ? 'primary':'accent'}}" selected>
+                    <div>{{message.message}}</div>
+                  </mat-chip>
+                </mat-chip-list>
+              </span>
 
-                <i class="fas fa-user-alt" aria-hidden="true"></i>
-                <p *ngIf="message.type === 'text'">{{message.message}}</p>
+              <div matLine *ngIf="message.type === 'file'">
 
-                <!-- file type messages block -->
-                <div *ngIf="message.type === 'file'">
-                  <div id="progress_bar" *ngIf="talkWindowContextService.sharedContent[message.contentId] === undefined"
-                    class="message-media">
-                    <div class="progress">
-                      <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-                        aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 75%"></div>
-                    </div>
-                    <!-- <span>receiving file....</span> -->
-                  </div>
-                  <img id="media_{{message.contentId}}" class="message-media"
-                    *ngIf="message.contentType === 'image' && talkWindowContextService.sharedContent[message.contentId] !== undefined"
-                    src="{{talkWindowContextService.sharedContent[message.contentId]}}"
-                    (click)="openMediaViewer(message.contentType,message.contentId)">
-                  <video id="media_{{message.contentId}}" class="message-media"
-                    *ngIf="message.contentType === 'video'&& talkWindowContextService.sharedContent[message.contentId] !== undefined"
-                    src="{{talkWindowContextService.sharedContent[message.contentId]}}"
-                    (click)="openMediaViewer(message.contentType,message.contentId)"></video>
-                  <audio id="media_{{message.contentId}}" class="message-media"
-                    *ngIf="message.contentType === 'audio'&& talkWindowContextService.sharedContent[message.contentId] !== undefined"
-                    src="{{talkWindowContextService.sharedContent[message.contentId]}}" controls></audio>
-                  <i *ngIf="!message.sent && talkWindowContextService.sharedContent[message.contentId] !== undefined"
-                    class="fas fa-download fa-2x pointer-cursor" aria-hidden="true"
-                    (click)="downloadFile(message.contentId,message.fileName,$event)"></i>
-                </div>
+                <!-- progress bar for file receive -->
+                <mat-progress-bar matLine color="primary" mode="indeterminate"
+                  *ngIf="talkWindowContextService.sharedContent[message.contentId] === undefined">
+                </mat-progress-bar>
 
+                <img matLine id="media_{{message.contentId}}" class="message-media"
+                  *ngIf="message.contentType === 'image' && talkWindowContextService.sharedContent[message.contentId] !== undefined"
+                  src="{{talkWindowContextService.sharedContent[message.contentId]}}"
+                  (click)="openMediaViewer(message.contentType,message.contentId)">
+
+                <video matLine id="media_{{message.contentId}}" class="message-media"
+                  *ngIf="message.contentType === 'video'&& talkWindowContextService.sharedContent[message.contentId] !== undefined"
+                  src="{{talkWindowContextService.sharedContent[message.contentId]}}"
+                  (click)="openMediaViewer(message.contentType,message.contentId)"></video>
+
+                <audio matLine id="media_{{message.contentId}}" class="message-media"
+                  *ngIf="message.contentType === 'audio'&& talkWindowContextService.sharedContent[message.contentId] !== undefined"
+                  src="{{talkWindowContextService.sharedContent[message.contentId]}}" controls></audio>
+
+                <button matLine mat-icon-button aria-label=""
+                  *ngIf="!message.sent && talkWindowContextService.sharedContent[message.contentId] !== undefined"
+                  (click)="downloadFile(message.contentId,message.fileName,$event)">
+                  <mat-icon>file_download</mat-icon>
+                </button>
               </div>
 
-              <!-- message status and time -->
-              <div id="message_status" *ngIf="message.sent" class="right-float" style="margin: 3px 15px 15px 0;">
-                <p class="right-float" style="font-size: small;font-style: italic;" *ngIf="message.status">
-                  {{message.status}}</p><br>
-                <p class="right-float" style="font-size: small;" *ngIf="message.time">
-                  {{message.time}}</p>
-              </div>
+              <!-- message delievery status -->
+              <p matLine *ngIf="message.sent">
+                {{message.status}}
+              </p>
 
-            </li>
-          </ul>
+              <!-- message time -->
+              <p matLine *ngIf="message.sent">
+                {{message.time}}
+              </p>
+            </mat-list-item>
+          </mat-list>
         </div>
+
       </div>
 
       <div id="type-message" [ngClass]="{
@@ -243,24 +253,26 @@
         && !talkWindowContextService.bindingFlags.minimizeVideo,
         'row-flex-display': true,
         'type-message-class': true,
-        'align-center': true
-      }">
+        'align-center': true,
+        'center-content': true}">
 
-        <div class="flex-grow-full hide-vertical-overflow">
-          <mat-form-field appearance="outline" color="warn" class="mat-focused" style="width: 100%;">
-            <mat-label>Enter your message</mat-label>
-            <input matInput #text_msg maxlength="256" placeholder="Enter your message">
-          </mat-form-field>
+        <div class="flex-grow-full hide-vertical-overflow" style="height: 100%;">
+          <input #text_msg maxlength="256" placeholder="Enter your message" class="full-height-width"
+            (keyup)="sendTextMessage($event)">
         </div>
         <input id="file_input" type="file" style="display:none" (change)="startSharingFile($event)" multiple />
 
-        <button mat-icon-button aria-label="attachment icon button" (click)="openFileDialog()">
-          <mat-icon>attachment</mat-icon>
-        </button>
+        <div class="border-class column-flex-display center-content" style="height: 100%;">
+          <button mat-icon-button color="accent" aria-label="attachment icon button" (click)="openFileDialog()">
+            <mat-icon>attachment</mat-icon>
+          </button>
+        </div>
 
-        <button mat-icon-button aria-label="send message icon button" (click)="sendTextMessage()">
-          <mat-icon>send</mat-icon>
-        </button>
+        <div class="border-class column-flex-display center-content" style="height: 100%;">
+          <button mat-icon-button color="primary" aria-label="send message icon button" (click)="sendTextMessage()">
+            <mat-icon>send</mat-icon>
+          </button>
+        </div>
 
       </div>
 
