@@ -192,58 +192,61 @@
       'hide-vertical-overflow':true}">
 
         <div #messageHistoryDiv id="message-history-div" class="no-scroll vertical-scroll full-height-width">
-          <mat-list *ngIf="talkWindowContextService.hasMessageContext(userContextService.userToChat)">
-            <mat-list-item
-              *ngFor="let message of talkWindowContextService.getMessageContext(userContextService.userToChat)">
-              <mat-icon matListIcon>person</mat-icon>
+          <div *ngIf="talkWindowContextService.hasMessageContext(userContextService.userToChat)" style="margin: 10px;">
+            <div *ngFor="let message of talkWindowContextService.getMessageContext(userContextService.userToChat)"
+              class="row-flex-display"
+              [ngStyle]="{'flex-direction':message.sent ? 'row-reverse': 'row', 'margin':'10px'}">
+              <mat-icon matListIcon style="margin-right: 10px;">person</mat-icon>
 
-              <span matLine *ngIf="message.type === 'text'">
-                <mat-chip-list aria-label="Fish selection">
-                  <mat-chip color="{{message.sent ? 'primary':'accent'}}" selected>
-                    <div>{{message.message}}</div>
-                  </mat-chip>
-                </mat-chip-list>
-              </span>
+              <div [ngStyle]="{'align-items': message.sent ? 'flex-end': 'flex-start', 'width':'100%'}"
+                class="column-flex-display">
 
-              <div matLine *ngIf="message.type === 'file'">
+                <div *ngIf="message.type === 'text'" [ngClass]="{'message-class':true,
+                   'indigo-background':message.sent,
+                    'pink-backgroud':!message.sent,
+                    'color-white':true}">
+                  {{message.message}}
+                </div>
 
-                <!-- progress bar for file receive -->
-                <mat-progress-bar matLine color="primary" mode="indeterminate"
-                  *ngIf="talkWindowContextService.sharedContent[message.contentId] === undefined">
-                </mat-progress-bar>
+                <div *ngIf="message.type === 'file'" class="column-flex-display message-class">
 
-                <img matLine id="media_{{message.contentId}}" class="message-media"
-                  *ngIf="message.contentType === 'image' && talkWindowContextService.sharedContent[message.contentId] !== undefined"
-                  src="{{talkWindowContextService.sharedContent[message.contentId]}}"
-                  (click)="openMediaViewer(message.contentType,message.contentId)">
+                  <!-- progress bar for file receive -->
+                  <mat-progress-bar color="primary" mode="indeterminate"
+                    *ngIf="talkWindowContextService.sharedContent[message.contentId] === undefined">
+                  </mat-progress-bar>
 
-                <video matLine id="media_{{message.contentId}}" class="message-media"
-                  *ngIf="message.contentType === 'video'&& talkWindowContextService.sharedContent[message.contentId] !== undefined"
-                  src="{{talkWindowContextService.sharedContent[message.contentId]}}"
-                  (click)="openMediaViewer(message.contentType,message.contentId)"></video>
+                  <img id="media_{{message.contentId}}"
+                    *ngIf="message.contentType === 'image' && talkWindowContextService.sharedContent[message.contentId] !== undefined"
+                    src="{{talkWindowContextService.sharedContent[message.contentId]}}"
+                    (click)="openMediaViewer(message.contentType,message.contentId)">
 
-                <audio matLine id="media_{{message.contentId}}" class="message-media"
-                  *ngIf="message.contentType === 'audio'&& talkWindowContextService.sharedContent[message.contentId] !== undefined"
-                  src="{{talkWindowContextService.sharedContent[message.contentId]}}" controls></audio>
+                  <video id="media_{{message.contentId}}"
+                    *ngIf="message.contentType === 'video' && talkWindowContextService.sharedContent[message.contentId] !== undefined"
+                    src="{{talkWindowContextService.sharedContent[message.contentId]}}"
+                    (click)="openMediaViewer(message.contentType,message.contentId)"></video>
 
-                <button matLine mat-icon-button aria-label=""
-                  *ngIf="!message.sent && talkWindowContextService.sharedContent[message.contentId] !== undefined"
-                  (click)="downloadFile(message.contentId,message.fileName,$event)">
-                  <mat-icon>file_download</mat-icon>
-                </button>
+                  <audio id="media_{{message.contentId}}"
+                    *ngIf="message.contentType === 'audio' && talkWindowContextService.sharedContent[message.contentId] !== undefined"
+                    src="{{talkWindowContextService.sharedContent[message.contentId]}}" controls></audio>
+
+                  <button mat-icon-button aria-label=""
+                    *ngIf="!message.sent && talkWindowContextService.sharedContent[message.contentId] !== undefined"
+                    (click)="downloadFile(message.contentId,message.fileName,$event)">
+                    <mat-icon>file_download</mat-icon>
+                  </button>
+                </div>
+
+                <!-- message delievery status -->
+                <p *ngIf="message.sent">
+                  {{message.status}}
+                </p>
+                <!-- message time -->
+                <p *ngIf="message.sent">
+                  {{message.time}}
+                </p>
               </div>
-
-              <!-- message delievery status -->
-              <p matLine *ngIf="message.sent">
-                {{message.status}}
-              </p>
-
-              <!-- message time -->
-              <p matLine *ngIf="message.sent">
-                {{message.time}}
-              </p>
-            </mat-list-item>
-          </mat-list>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -285,7 +288,7 @@
 </div>
 
 <!-- Media Viewer Modal Popup -->
-<div id="media_viewer" [ngClass]="{'modal media-viewer-modal':true,
+<!-- <div id="media_viewer" [ngClass]="{'modal media-viewer-modal':true,
  'show-class':talkWindowContextService.mediaViewerContext['contentId'] !== undefined,
  'hidden-class':talkWindowContextService.mediaViewerContext['contentId'] === undefined}"
   (click)="closeMediaViewer($event)">
@@ -299,7 +302,7 @@
       src="{{talkWindowContextService.sharedContent[talkWindowContextService.mediaViewerContext['contentId']]}}"
       controls (click)="closeMediaViewer($event)"></video>
   </div>
-</div>
+</div> -->
 
 <!-- Modal Popup for displaying informational info or various requests -->
 <div id="myModal" class="{{(talkWindowContextService.popupContext.size === 0) ? 'hidden-class': 'modal show-class'}}">

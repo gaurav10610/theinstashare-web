@@ -24,6 +24,7 @@ import { DialogType } from '../services/contracts/enum/DialogType';
 import { ProgressDialogComponent } from '../progress-dialog/progress-dialog.component';
 import { GroupLoginDialogComponent } from '../group-login-dialog/group-login-dialog.component';
 import { AppLoginDialogComponent } from '../app-login-dialog/app-login-dialog.component';
+import { MediaViewerDialogComponent } from '../media-viewer-dialog/media-viewer-dialog.component';
 
 @Component({
   selector: 'app-talk-window',
@@ -286,22 +287,16 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       case DialogType.INFORMATIONAL:
         break;
 
+      case DialogType.MEDIA_VIEWER:
+        this.dialogRef = this.dialog.open(MediaViewerDialogComponent, {
+          data,
+          disableClose: true
+        })
+
       default:
       //do nothing here
     }
     this.dialogRef.afterClosed().subscribe(this.handleDialogClose.bind(this));
-  }
-
-  /**
-   * close currently open dialog with appropriate data
-   * 
-   * @param data data to be passed to close handler
-   * 
-   */
-  closeDialog(data = {}) {
-    if (this.dialogRef) {
-      this.dialogRef.close(data);
-    }
   }
 
   /**
@@ -317,6 +312,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           message: 'login in progress'
         });
         this.signalingService.registerOnSignalingServer(dialogueCloseResult.data.username, true);
+        break;
+
+      case DialogType.MEDIA_VIEWER:
+        LoggerUtil.log(`media viewer dialog closed for content type: ${dialogueCloseResult.data.contentType}`);
         break;
 
       default:
@@ -492,7 +491,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          * 
          * close current progress dialog and open app login dialog again
          **/
-         this.openDialog(DialogType.APP_LOGIN);
+        this.openDialog(DialogType.APP_LOGIN);
       }
       resolve();
     });
@@ -1861,7 +1860,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      */
     this.talkWindowContextService.mediaViewerContext[AppConstants.CONTENT_TYPE] = contentType;
     this.talkWindowContextService.mediaViewerContext[AppConstants.CONTENT_ID] = contentId;
-    this.talkWindowUtilService.appRef.tick();
+    this.openDialog(DialogType.MEDIA_VIEWER);
   }
 
   /**
@@ -2433,13 +2432,15 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * this will setup a webRTC connection for relaying mouse and keyboard events 
-   * over data channel to other peer whose screen user is currently viewing 
+   * close currently open dialog with appropriate data
+   * 
+   * @param data data to be passed to close handler
    * 
    */
-  async setUpRemoteAccessConnection() {
-
-
+  closeDialog(data = {}) {
+    if (this.dialogRef) {
+      this.dialogRef.close(data);
+    }
   }
 
   /**
