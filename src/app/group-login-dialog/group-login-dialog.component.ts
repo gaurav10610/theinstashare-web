@@ -35,6 +35,7 @@ export class GroupLoginDialogComponent implements OnInit {
    * handle keyup event on input field
    */
   handleKeyUpEvent() {
+    LoggerUtil.log('input field keyup event');
     this.errorMessage = undefined
   }
 

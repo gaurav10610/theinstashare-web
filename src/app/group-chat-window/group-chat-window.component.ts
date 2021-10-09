@@ -47,10 +47,16 @@ export class GroupChatWindowComponent implements OnInit {
   assetsPath = environment.is_native_app ? 'assets/' : '../../assets/';
 
   activeUsers: any[] = [
+    { name: 'gaurav', status: 'online' },
+    { name: 'gaurav', status: 'online' },
+    { name: 'gaurav', status: 'online' },
     { name: 'gaurav', status: 'online' }
   ];
 
   messages: any[] = [
+    { name: 'gaurav', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
+    { name: 'gaurav', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
+    { name: 'gaurav', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
     { name: 'gaurav', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') }
   ];
 
