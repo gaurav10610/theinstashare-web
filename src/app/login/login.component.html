@@ -1,33 +1,24 @@
-<div class="container-fluid h-100 container-base">
-  <!-- Connection lost snackbar -->
-  <div id="snackbar"
-    class="{{stopNotification || signalingService.signalingRouter.connected ? 'top-snackbar' : 'top-snackbar snackbar-show'}}">
-    <p>Connection lost from server...</p>
-  </div>
-  <div id="error_snackbar" [ngClass]="{'top-snackbar':true,'snackbar-show':errors.length !== 0}">
-    <p *ngFor="let error of errors">{{error}}</p>
-  </div>
-  <div style="text-align:center;margin-top: 15px;color:#217093">
-    <img src="{{assetsPath + 'images/icons/app-icon.png'}}" class="desktop-icon mobile-icon" alt="" />
-    <p>Peer to Peer Media Streaming Service</p>
+<div id="login-form" class="column-flex-display full-height-width center-content align-center">
+
+  <div class="row-flex-display center-content branding-class">
+    <img src="{{assetsPath + 'images/icons/title-40X40.png'}}" alt="" />
+    <img src="{{assetsPath + 'images/icons/theinstashare-191X40.png'}}" alt="" />
   </div>
 
-  <form autocomplete="off" (submit)="formSubmit()">
-    <div id="username_div" class="inputGroup inputGroup1">
-      <p #error id="error" [ngClass]="{'error':true, 'hidden-class': flaggedErrorText === undefined}"
-        style="margin-bottom: 10px">* {{flaggedErrorText}}</p>
-      <label id="username_label" for="username">
-        <p>Choose a username to start with:</p>
-      </label>
-      <input #username id="username" name="username" type="text" maxlength="256" required />
-    </div>
-    <div id="start_div">
-      <div id="start_btn_div">
-        <button id="register" type="button" (click)="register()">
-          <i *ngIf="connecting" class="fas fa-spinner fa-spin"></i>
-          <p *ngIf="!connecting">Start :)</p>
-        </button>
-      </div>
-    </div>
-  </form>
+  <div class="column-flex-display form-field-class">
+
+    <!-- input field -->
+    <mat-form-field appearance="outline" color="primary">
+      <mat-label>{{inputFieldLabel}}</mat-label>
+      <input #usernameInput matInput placeholder="Enter user name to start" (keyup)="login($event)">
+    </mat-form-field>
+
+    <p *ngIf="errorMessage !== undefined" style="color: red;">*{{errorMessage}}</p>
+
+    <button mat-raised-button color="primary" class="button-class" (click)="login()" *ngIf="!isRegistering">
+      <p>LOGIN</p>
+    </button>
+    <mat-spinner diameter=50 color="primary" *ngIf="isRegistering"></mat-spinner>
+  </div>
+
 </div>

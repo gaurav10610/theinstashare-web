@@ -3,7 +3,6 @@ import { LoggerUtil } from '../logging/LoggerUtil';
 import { AppConstants } from '../AppConstants';
 import { UserContextService } from '../context/user.context.service';
 import { TalkWindowUtilityService } from '../util/talk-window-utility.service';
-import { SignalingService } from '../signaling/signaling.service';
 import { NativeRemoteAccessService } from '../../native-app-services/native-remote-access.service';
 import { CoreWebrtcService } from './core-webrtc.service';
 import { CoreAppUtilityService } from '../util/core-app-utility.service';
@@ -54,6 +53,12 @@ export class TalkWindowWebrtcService {
    * this is talk window component's set central icons popup function
    */
   talkWindowSetCentralIconsPopupFn: any;
+
+  talkWindowAddPopupContextFn: any;
+
+  talkWindowRemovePopupContextFn: any;
+
+  talkWindowFlagPopupMessageFn: any;
 
   constructor(
     private userContextService: UserContextService,
@@ -325,7 +330,7 @@ export class TalkWindowWebrtcService {
            *
            */
           this.talkWindowContextService.updateBindingFlag('haveRemoteAudioStream', true, channel);
-          this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
+          this.talkWindowRemovePopupContextFn([AppConstants.POPUP_TYPE.CONNECTING + channel]);
           break;
 
         case AppConstants.VIDEO:
@@ -346,7 +351,7 @@ export class TalkWindowWebrtcService {
            *
            */
           this.talkWindowContextService.updateBindingFlag('haveRemoteVideoStream', true, channel);
-          this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
+          this.talkWindowRemovePopupContextFn([AppConstants.POPUP_TYPE.CONNECTING + channel]);
       }
       /**
        * attach remote media stream in appropriate media tag on UI
@@ -455,7 +460,7 @@ export class TalkWindowWebrtcService {
          */
         if (channel === AppConstants.REMOTE_CONTROL) {
           this.talkWindowContextService.bindingFlags.haveSharedRemoteAccess = true;
-          this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + AppConstants.REMOTE_CONTROL]);
+          this.talkWindowRemovePopupContextFn([AppConstants.POPUP_TYPE.CONNECTING + AppConstants.REMOTE_CONTROL]);
           if (webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TIMEOUT_JOB]) {
             LoggerUtil.log(channel + ' data channel is connected so removing timeout cleaning job');
             clearTimeout(webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TIMEOUT_JOB]);
@@ -512,14 +517,12 @@ export class TalkWindowWebrtcService {
 
 
           /**
-           * if UI is currently displaying the icons popup then hide it, then set
-           * the media call context with info from request message
+           * set the media call context with info from request message
            *
            * display appropriate modal popup message on UI
            *
            */
-          this.appUtilService.setIconsPopup(true);
-          this.appUtilService.addPopupContext({
+          this.talkWindowAddPopupContextFn({
             type: AppConstants.POPUP_TYPE.INVITE + signalingMessage.channel,
             modalText: signalingMessage.from + ' calling...',
             channel: signalingMessage.channel,
@@ -562,10 +565,10 @@ export class TalkWindowWebrtcService {
            * popup message as media stream request has been accepted by user
            *
            */
-          this.appUtilService.removePopupContext([
+          this.talkWindowRemovePopupContextFn([
             AppConstants.POPUP_TYPE.CONNECT + channel
           ]);
-          this.appUtilService.addPopupContext({
+          this.talkWindowAddPopupContextFn({
             type: AppConstants.POPUP_TYPE.CONNECTING + channel,
             modalText: 'connecting....',
             channel: channel
@@ -584,10 +587,10 @@ export class TalkWindowWebrtcService {
          */
         if (this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME]) {
           const channel = this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL];
-          this.appUtilService.removePopupContext([
+          this.talkWindowRemovePopupContextFn([
             AppConstants.POPUP_TYPE.CONNECT + channel
           ]);
-          this.appUtilService.addPopupContext({
+          this.talkWindowAddPopupContextFn({
             type: AppConstants.POPUP_TYPE.DECLINE + channel,
             modalText: 'call declined',
             channel: channel,
@@ -680,7 +683,7 @@ export class TalkWindowWebrtcService {
         }
 
         //remove any of the popup context
-        this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
+        this.talkWindowRemovePopupContextFn([AppConstants.POPUP_TYPE.CONNECTING + channel]);
         resolve();
       } catch (error) {
         LoggerUtil.log('there is an error occured while cleaning media channel context for channel: ' + channel);
@@ -750,9 +753,9 @@ export class TalkWindowWebrtcService {
     webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TIMEOUT_JOB] = setTimeout(() => {
       const connected: boolean = this.coreAppUtilService.isDataChannelConnected(webrtcContext, channel);
       if (!connected) {
-        this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
+        this.talkWindowRemovePopupContextFn([AppConstants.POPUP_TYPE.CONNECTING + channel]);
         const popupContext: any = this.messageService.buildPopupContext(AppConstants.POPUP_TYPE.UNABLE_TO_CONNECT, channel);
-        this.appUtilService.flagPopupMessage(popupContext, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
+        this.talkWindowFlagPopupMessageFn(popupContext, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
         const mediaContext: any = webrtcContext[AppConstants.MEDIA_CONTEXT];
 
         // clean the remote control connection
@@ -820,9 +823,9 @@ export class TalkWindowWebrtcService {
        * if not connected after the timeout then clean the media context for the specified channel
        */
       if (!connected) {
-        this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
+        this.talkWindowRemovePopupContextFn([AppConstants.POPUP_TYPE.CONNECTING + channel]);
         const popupContext: any = this.messageService.buildPopupContext(AppConstants.POPUP_TYPE.UNABLE_TO_CONNECT, channel);
-        this.appUtilService.flagPopupMessage(popupContext, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
+        this.talkWindowFlagPopupMessageFn(popupContext, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
         const mediaContext: any = webrtcContext[AppConstants.MEDIA_CONTEXT];
 
         // clean up the media stream request context
@@ -873,8 +876,8 @@ export class TalkWindowWebrtcService {
      */
     if (popupContexts) {
       popupContexts.forEach((popupContext: any) => {
-        this.appUtilService.addPopupContext(popupContext);
-        setTimeout(() => { this.appUtilService.removePopupContext([popupContext.type]); }, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
+        this.talkWindowAddPopupContextFn(popupContext);
+        setTimeout(() => { this.talkWindowRemovePopupContextFn([popupContext.type]); }, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
       });
     }
   }
@@ -917,8 +920,8 @@ export class TalkWindowWebrtcService {
        */
       if (popupContexts) {
         popupContexts.forEach((popupContext: any) => {
-          this.appUtilService.addPopupContext(popupContext);
-          setTimeout(() => { this.appUtilService.removePopupContext([popupContext.type]); }, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
+          this.talkWindowAddPopupContextFn(popupContext);
+          setTimeout(() => { this.talkWindowRemovePopupContextFn([popupContext.type]); }, AppConstants.CALL_DISCONNECT_POPUP_TIMEOUT);
         });
       }
 

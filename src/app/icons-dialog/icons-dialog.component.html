@@ -1,0 +1,78 @@
+<div class="row-flex-display" style="flex-wrap: wrap;">
+
+    <button mat-icon-button color="primary" aria-label="text icon button" *ngIf="userContextService.isMobile && talkWindowContextService.bindingFlags.haveRemoteVideoStream 
+        && !talkWindowContextService.bindingFlags.minimizeVideo" (click)="resizeRemoteVideo(true)">
+        <mat-icon>message</mat-icon>
+    </button>
+
+    <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isDndOn ? 'warn':'primary'"
+        aria-label="dnd icon button" *ngIf="!userContextService.isMobile" (click)="handleDnd()">
+        <mat-icon>
+            {{talkWindowContextService.bindingFlags.isDndOn ? 'do_not_disturb_off' : 'do_not_disturb_on'}}
+        </mat-icon>
+    </button>
+
+    <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isOnMute ? 'warn':'primary'"
+        aria-label="mute icon button" *ngIf="talkWindowContextService.bindingFlags.isAudioCalling"
+        (click)="handleMute()">
+        <mat-icon>{{talkWindowContextService.bindingFlags.isOnMute ? 'mic_off' : 'mic'}}</mat-icon>
+    </button>
+
+    <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isScreenSharing ? 'warn':'primary'"
+        aria-label="screen sharing icon button" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
+        || (userContextService.isNativeApp && !talkWindowContextService.bindingFlags.isVideoCalling)"
+        (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isScreenSharing ? 'stop-screen' : 'screen')">
+        <mat-icon>
+            {{talkWindowContextService.bindingFlags.isScreenSharing ? 'desktop_access_disabled':'desktop_windows'}}
+        </mat-icon>
+    </button>
+
+    <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isAccessingRemote ? 'warn':'primary'"
+        aria-label="remote access icon button"
+        *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
+        && talkWindowContextService.bindingFlags.haveRemoteVideoStream && talkWindowContextService.remoteAccessContext['canAccessRemote']"
+        (click)="handleRemoteAccess(talkWindowContextService.bindingFlags.isAccessingRemote ? 'stop' : 'start')">
+        <mat-icon>mouse</mat-icon>
+    </button>
+
+    <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isSoundSharing ? 'warn':'primary'"
+        aria-label="system sound icon button"
+        *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
+        && talkWindowContextService.bindingFlags.haveLocalVideoStream && (userContextService.isNativeApp || talkWindowContextService.bindingFlags.isSoundSharing)"
+        (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isSoundSharing ? 'stop-sound' : 'sound')">
+        <mat-icon>
+            {{talkWindowContextService.bindingFlags.isSoundSharing ? 'volume_off':'volume_up'}}
+        </mat-icon>
+    </button>
+
+    <button mat-icon-button color="primary" aria-label="full screen icon button"
+        *ngIf="!userContextService.isMobile && talkWindowContextService.bindingFlags.haveRemoteVideoStream"
+        (click)="handleVideoFullScreen(false)">
+        <mat-icon>zoom_out_map</mat-icon>
+    </button>
+
+    <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isVideoCalling ? 'warn':'primary'"
+        aria-label="video call icon button" *ngIf="!talkWindowContextService.bindingFlags.isScreenSharing"
+        (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isVideoCalling ? 'stop-video' :'video')">
+        <mat-icon>
+            {{talkWindowContextService.bindingFlags.isVideoCalling ? 'videocam_off': 'videocam'}}
+        </mat-icon>
+    </button>
+
+    <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isAudioCalling ? 'warn':'primary'"
+        aria-label="audio call icon button"
+        (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isAudioCalling ? 'stop-audio' :'audio')">
+        <mat-icon>
+            {{talkWindowContextService.bindingFlags.isAudioCalling ? 'phone_disabled': 'phone_enabled'}}
+        </mat-icon>
+    </button>
+
+    <button mat-icon-button color="primary" aria-label="camera flip icon button"
+        *ngIf="userContextService.isMobile && talkWindowContextService.bindingFlags.isVideoCalling"
+        (click)="handleCameraFlip()">
+        <mat-icon>
+            flip_camera_android
+        </mat-icon>
+    </button>
+
+</div>

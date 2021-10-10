@@ -1,13 +1,65 @@
-@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css");
-@import url("https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css");
-
-html, body {
+.full-height-width {
   height: 100%;
+  width: 100%;
 }
 
-.container-base {
-  padding-left: 0px;
-  padding-right: 0px;
+.column-flex-display {
+  display: flex;
+  flex-direction: column;
+}
+
+.row-flex-display {
+  display: flex;
+  flex-direction: row;
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+.flex-grow-full {
+  flex-grow: 1;
+}
+
+.center-content {
+  justify-content: center;
+}
+
+.align-center {
+  align-items: center;
+}
+
+.border-class {
+  border: 1px solid black;
+}
+
+.dialog-class .mat-dialog-container {
+  background: white;
+}
+
+.snackbar-class {
+  background: #2c3e50;
+  color: white;
+}
+
+.app-background {
+  background: #2c3e50;
+}
+
+.indigo-background {
+  background: #3f51b5;
+}
+
+.pink-backgroud {
+  background: #ff4081;
+}
+
+.color-black {
+  color: black;
+}
+
+.color-white {
+  color: white;
 }
 
 .hidden-class {
@@ -22,180 +74,28 @@ html, body {
   cursor: pointer;
 }
 
-/* The snackbar - position it at the bottom and in the middle of the screen */
-.top-snackbar {
+.no-scroll::-webkit-scrollbar {
   display: none;
-  /* Hidden by default. Visible on click */
-  min-width: 250px;
-  /* Set a default minimum width */
-  margin-left: -125px;
-  /* Divide value of min-width by 2 */
-  background-color: #333;
-  /* Black background color */
-  color: #fff;
-  /* White text color */
-  text-align: center;
-  /* Centered text */
-  border-radius: 2px;
-  /* Rounded borders */
-  padding: 16px;
-  /* Padding */
-  position: fixed;
-  /* Sit on top of the screen */
-  z-index: 1;
-  /* Add a z-index if needed */
-  left: 50%;
-  /* Center the snackbar */
-  top: 30px;
-  /* 30px from the top */
 }
 
-/* Show the snackbar when clicking on a button (class added with JavaScript) */
-.snackbar-show {
-  display: block;
-  -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
-  animation: fadein 0.5s, fadeout 0.5s 2.5s;
+.no-scroll {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
-/* Animations to fade the snackbar in and out */
-@-webkit-keyframes fadein {
-  from {
-    top: 0;
-    opacity: 0;
-  }
-
-  to {
-    top: 30px;
-    opacity: 1;
-  }
+.hide-vertical-overflow {
+  overflow-y: hidden;
 }
 
-@keyframes fadein {
-  from {
-    top: 0;
-    opacity: 0;
-  }
-
-  to {
-    top: 30px;
-    opacity: 1;
-  }
+.vertical-scroll {
+  overflow-y: scroll;
 }
 
-@-webkit-keyframes fadeout {
-  from {
-    top: 30px;
-    opacity: 1;
-  }
-
-  to {
-    top: 0;
-    opacity: 0;
-  }
-}
-
-@keyframes fadeout {
-  from {
-    top: 30px;
-    opacity: 1;
-  }
-
-  to {
-    top: 0;
-    opacity: 0;
-  }
-}
-
-/* The Modal (background) */
-.modal {
-  /* Hidden by default */
-  position: fixed;
-  /* Stay in place */
-  z-index: 10;
-  /* Sit on top */
-  padding-top: 100px;
-  /* Location of the box */
-  left: 0;
-  top: 0;
-  width: 100%;
-  /* Full width */
+html,
+body {
   height: 100%;
-  /* Full height */
-  overflow: auto;
-  /* Enable scroll if needed */
-  background-color: rgb(0, 0, 0);
-  /* Fallback color */
-  background-color: rgba(0, 0, 0, 0.4);
-  /* Black w/ opacity */
 }
-
-/* Modal Content */
-.modal-content {
-  background-color: #fefefe;
-  margin: auto;
-  padding: 20px;
-  border: 1px solid #888;
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
 }
-
-@media screen and (max-width: 735px) {
-  .modal-content {
-    width: 75%;
-  }
-}
-
-@media screen and (min-width: 735px) {
-  .modal-content {
-    width: 35%;
-  }
-}
-
-.cover-spin {
-  position: fixed;
-  width: 100%;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.7);
-  z-index: 9999;
-}
-
-@-webkit-keyframes spin {
-  from {
-    -webkit-transform: rotate(0deg);
-  }
-
-  to {
-    -webkit-transform: rotate(360deg);
-  }
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.cover-spin::after {
-  content: '';
-  display: block;
-  position: absolute;
-  left: 48%;
-  top: 40%;
-  width: 40px;
-  height: 40px;
-  border-style: solid;
-  border-color: black;
-  border-top-color: transparent;
-  border-width: 4px;
-  border-radius: 50%;
-  -webkit-animation: spin .8s linear infinite;
-  animation: spin .8s linear infinite;
-}
-
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

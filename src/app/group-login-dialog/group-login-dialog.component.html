@@ -1,0 +1,28 @@
+<div id="frame" class="full-height-width">
+
+    <div id="login-form-div">
+        <div id="login-form" class="login-form column-flex-display align-center center-content">
+
+            <!-- input field -->
+            <mat-form-field appearance="outline" color="primary">
+                <mat-label>{{inputFieldLabel}}</mat-label>
+                <input #groupNameInput matInput placeholder="Enter group name to start" (keyup)="handleKeyUpEvent()">
+            </mat-form-field>
+            <p *ngIf="errorMessage !== undefined" style="color: red;">* {{errorMessage}}</p>
+
+            <button mat-raised-button
+                [ngStyle]="{'display':  isRegistering ? 'none': 'block'}"
+                class="button-class" color="primary" (click)="createOrJoinGroup('existing')">
+                <p>Join existing group</p>
+            </button>
+
+            <button mat-raised-button [ngStyle]="{'display': isRegistering ? 'none': 'block'}"
+                class="button-class" color="primary" (click)="createOrJoinGroup('new')">
+                <p>Create a new group</p>
+            </button>
+
+            <mat-spinner diameter="30" color="primary" *ngIf="isRegistering"></mat-spinner>
+
+        </div>
+    </div>
+</div>

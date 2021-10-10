@@ -1,30 +1,29 @@
-<div id="container" class="container-fluid h-100 container-base">
-    <div id="frame" class="frame">
+<div class="column-flex-display full-height-width">
 
-        <!-- dashboard header -->
-        <div id="dashboard-header" class="dashboard-header">
-            <img src="{{assetsPath + 'images/icons/title-40X40.png'}}" alt="" />
-            <img src="{{assetsPath + 'images/icons/theinstashare-191X40.png'}}" alt="" />
-            <div class="logout-icon-div pointer-cursor" (click)="logout()">
-                <i id="logout-icon" class="fas fa-power-off fa-2x icon-class" aria-hidden="true"></i>
-            </div>
-        </div>
+    <div class="dashboard-header">
+        <mat-toolbar class="dashboard-header">
+            <img src="{{assetsPath + 'title-40X40.png'}}" alt="" />
+            <img src="{{assetsPath + 'theinstashare-191X40.png'}}" alt="" />
+            <span class="spacer"></span>
+            <button mat-icon-button aria-label="" (click)="logout()">
+              <mat-icon>logout</mat-icon>
+            </button>
+          </mat-toolbar>
+    </div>
 
-        <!-- container for all the applications -->
-        <div id="apps-container" class="apps-container">
-            <mat-grid-list cols="{{totalColumns}}" rowHeight="1:1" style="margin-top:5px;">
-                <mat-grid-tile *ngFor="let tile of tiles" [colspan]="tile.cols" [rowspan]="tile.rows" class="grid-tile"
-                    (click)="registerApplicationUser(tile.identifier)">
-                    <div
-                        [ngClass]="{'text-center':true, 'hidden-class': userContextService.selectedApp === tile.identifier && isRegistering}">
-                        <i class="fas {{tile.icon}} fa-8x" [ngStyle]="{'color':tile.color}"></i>
-                        <p class="app-name">{{tile.appName}}</p>
-                    </div>
-                    <mat-progress-spinner *ngIf="userContextService.selectedApp === tile.identifier && isRegistering" color="warn" mode="indeterminate"
-                        value="value">
-                    </mat-progress-spinner>
-                </mat-grid-tile>
-            </mat-grid-list>
-        </div>
+    <!-- container for all the applications -->
+    <div id="apps-container" class="apps-container">
+        <mat-grid-list cols="{{totalColumns}}" rowHeight="1:1" style="margin:5px;">
+            <mat-grid-tile *ngFor="let tile of tiles" [colspan]="tile.cols" [rowspan]="tile.rows" class="grid-tile pointer-cursor"
+                (click)="registerApplicationUser(tile.identifier)">
+                <div
+                    [ngClass]="{'text-center':true, 'hidden-class': userContextService.selectedApp === tile.identifier && isRegistering}">
+                    <img src="{{assetsPath + tile.icon}}" alt="" />
+                </div>
+                <mat-progress-spinner *ngIf="userContextService.selectedApp === tile.identifier && isRegistering"
+                    color="warn" mode="indeterminate" value="value">
+                </mat-progress-spinner>
+            </mat-grid-tile>
+        </mat-grid-list>
     </div>
 </div>

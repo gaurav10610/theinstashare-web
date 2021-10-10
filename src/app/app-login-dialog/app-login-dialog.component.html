@@ -1,0 +1,25 @@
+<div id="frame" class="full-height-width">
+
+    <div id="login-form-div">
+        <div id="login-form" class="login-form" style="text-align: center;">
+
+            <div class="branding-class">
+                <img src="{{assetsPath + 'images/icons/title-40X40.png'}}" alt="" />
+                <img src="{{assetsPath + 'images/icons/theinstashare-191X40.png'}}" alt="" />
+            </div>
+
+            <!-- input field -->
+            <mat-form-field appearance="outline" color="primary" style="width: 100%;">
+                <mat-label>{{inputFieldLabel}}</mat-label>
+                <input #usernameInput matInput placeholder="Enter user name to start" (keyup)="login($event)">
+            </mat-form-field>
+            <p *ngIf="errorMessage !== undefined" style="color: red;">*{{errorMessage}}</p>
+
+            <button mat-raised-button color="primary" class="button-class" (click)="login()" *ngIf="!isRegistering">
+                <p>LOGIN</p>
+            </button>
+            <mat-spinner color="primary" *ngIf="isRegistering"></mat-spinner>
+
+        </div>
+    </div>
+</div>

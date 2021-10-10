@@ -1,0 +1,42 @@
+<div>
+
+    <div *ngFor="let context of talkWindowContextService.popupContext| keyvalue; last as last"
+        class="column-flex-display center-content align-center" style="margin: 10px;">
+
+        <div style="font-weight: bold; margin: 10px; word-wrap: break-word;">
+            {{context.value.modalText}}
+        </div>
+
+        <div *ngIf="context.value.type.includes('connecting')" style="margin: 10px;">
+            <mat-spinner color="primary"></mat-spinner>
+        </div>
+
+        <div class="row-flex-display center-content">
+            <div *ngIf="context.value.disconnect" (click)="closeCall('disconnect', context.value.channel)"
+                style="margin: 10px;">
+                <button mat-icon-button color="warn" aria-label="icon button">
+                    <mat-icon>{{iconsMap[context.value.channel]}}</mat-icon>
+                </button>
+            </div>
+
+            <div *ngIf="context.value.accept" (click)="acceptCall(context.value.channel)" style="margin: 10px;">
+                <button mat-icon-button color="primary" aria-label="icon button">
+                    <mat-icon>{{iconsMap[context.value.channel]}}</mat-icon>
+                </button>
+            </div>
+
+            <div *ngIf="context.value.decline" (click)="closeCall('decline', context.value.channel)"
+                style="margin: 10px;">
+                <button mat-icon-button color="warn" aria-label="icon button">
+                    <mat-icon>{{iconsMap[context.value.channel]}}</mat-icon>
+                </button>
+            </div>
+
+            <div *ngIf="context.value.close" (click)="closeCall('close', context.value.channel)" style="margin: 10px;">
+                <button mat-raised-button color="warn">CLOSE</button>
+            </div>
+        </div>
+        <mat-divider [inset]="true" *ngIf="!last"></mat-divider>
+
+    </div>
+</div>

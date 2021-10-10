@@ -11,6 +11,11 @@ export class AppConstants {
     REMOTE_TRACK_RECEIVED: 'remoteTrack'
   };
 
+  public static GROUP_CHAT_MODES = {
+    EXISTING: 'existing',
+    NEW: 'new'
+  }
+
   public static MEDIA_SERVER = 'media-server';
 
   // User's chatMessages
@@ -115,6 +120,8 @@ export class AppConstants {
   public static STORAGE_USER = 'webrtc';
 
   public static STORAGE_APPLICATION = 'application';
+
+  public static STORAGE_GROUP = 'groupName';
 
   public static USERNAME = 'username';
 

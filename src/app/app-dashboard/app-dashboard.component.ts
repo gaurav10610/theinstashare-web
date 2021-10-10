@@ -28,7 +28,7 @@ export class AppDashboardComponent implements OnInit {
   tiles: any[];
   totalColumns: Number;
   //assets path
-  assetsPath = environment.is_native_app ? 'assets/' : '../../assets/';
+  assetsPath = environment.is_native_app ? 'assets/images/icons/' : '../../assets/images/icons/';
   isRegistering: Boolean = false;
 
   ngOnInit(): void {
@@ -45,18 +45,18 @@ export class AppDashboardComponent implements OnInit {
     if (this.userContextService.isMobile) {
       this.totalColumns = 2;
     } else {
-      this.totalColumns = 7;
+      this.totalColumns = 10;
     }
     /**
      * add apps here
      */
     this.tiles = [
       {
-        icon: 'fa-user-friends', cols: 1, rows: 1, color: 'black',
+        icon: 'peer-to-peer-100X100.png', cols: 1, rows: 1, color: 'black',
         appName: 'one to one', identifier: 'p2p'
       }
       // {
-      //   icon: 'fa-users', cols: 1, rows: 1, color: 'black',
+      //   icon: 'group-chat-100X100.png', cols: 1, rows: 1, color: 'black',
       //   appName: 'group chat', identifier: 'group_chat'
       // }
     ];
@@ -107,7 +107,10 @@ export class AppDashboardComponent implements OnInit {
         const eventsConfig = {
           onopen: this.onRouterConnect.bind(this),
           onreconnect: this.onRouterConnect.bind(this),
-          onmessage: this.onRouterMessage.bind(this)
+          onmessage: this.onRouterMessage.bind(this),
+          onclose: () => {
+            this.snackBar.open('disconnected from server....');
+          }
         };
         this.signalingService.registerEventListeners(eventsConfig);
       } else {
@@ -248,7 +251,7 @@ export class AppDashboardComponent implements OnInit {
               break;
 
             case AppConstants.APPLICATION_NAMES.GROUP_CHAT:
-              this.router.navigateByUrl('group-login');
+              this.router.navigateByUrl('group-chat');
               break;
           }
         } else {
@@ -268,13 +271,13 @@ export class AppDashboardComponent implements OnInit {
    */
   logout() {
     LoggerUtil.log('logging out.........');
-      /**
-       * send de-register message to server to notify that user has opted to
-       * logout
-       */
-       this.signalingService.deRegisterOnSignalingServer(this.userContextService.getUserName());
-       this.userContextService.applicationSignOut();
-       this.userContextService.resetCoreAppContext();
-       this.router.navigateByUrl('login');
+    /**
+     * send de-register message to server to notify that user has opted to
+     * logout
+     */
+    this.signalingService.deRegisterOnSignalingServer(this.userContextService.getUserName());
+    this.userContextService.applicationSignOut();
+    this.userContextService.resetCoreAppContext();
+    this.router.navigateByUrl('login');
   }
 }

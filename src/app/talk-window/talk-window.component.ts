@@ -17,10 +17,17 @@ import { CreateDataChannelType } from '../services/contracts/CreateDataChannelTy
 import { StartMediaStreamType } from '../services/contracts/StartMediaStreamType';
 import { CallbackContextType } from '../services/contracts/CallbackContextType';
 import { CoreDataChannelService } from '../services/data-channel/core-data-channel.service';
-import { BaseSignalingMessage } from '../services/contracts/signaling/BaseSignalingMessage';
-import { MediaChannelType } from '../services/contracts/enum/MediaChannelType';
-import { SignalingMessageType } from '../services/contracts/enum/SignalingMessageType';
-import { UserType } from '../services/contracts/enum/UserType';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { DialogCloseResult } from '../services/contracts/dialog/DialogCloseResult';
+import { DialogType } from '../services/contracts/enum/DialogType';
+import { ProgressDialogComponent } from '../progress-dialog/progress-dialog.component';
+import { GroupLoginDialogComponent } from '../group-login-dialog/group-login-dialog.component';
+import { AppLoginDialogComponent } from '../app-login-dialog/app-login-dialog.component';
+import { MediaViewerDialogComponent } from '../media-viewer-dialog/media-viewer-dialog.component';
+import { IconsDialogComponent } from '../icons-dialog/icons-dialog.component';
+import { DialogCloseResultType } from '../services/contracts/enum/DialogCloseResultType';
+import { RequestProcessingDialogComponent } from '../request-processing-dialog/request-processing-dialog.component';
 
 @Component({
   selector: 'app-talk-window',
@@ -42,7 +49,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     private coreWebrtcService: CoreWebrtcService,
     private coreAppUtilService: CoreAppUtilityService,
     private messageService: MessageService,
-    private coreDataChannelService: CoreDataChannelService
+    private coreDataChannelService: CoreDataChannelService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar,
   ) { }
 
   isGrouped: boolean = false;
@@ -54,8 +63,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   //assets path
   assetsPath = environment.is_native_app ? 'assets/' : '../../assets/';
 
-  @ViewChild('msg_history', { static: false }) messageHistoryDiv: ElementRef;
-  @ViewChild('message_history', { static: false }) messageHistoryBox: ElementRef;
+  @ViewChild('messageHistory', { static: false }) messageHistory: ElementRef;
+  @ViewChild('messageHistoryDiv', { static: false }) messageHistoryDiv: ElementRef;
   @ViewChild('text_msg', { static: false }) messageInput: ElementRef;
   @ViewChild('remote_video_div', { static: false }) remoteVideoDiv: ElementRef;
   @ViewChild('remoteVideo', { static: false }) remoteVideo: ElementRef;
@@ -72,10 +81,21 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   messageHistoryUnlistenFn: () => void;
   remoteVideoDivUnlistenFn: () => void;
 
+  dialogRef: MatDialogRef<any>;
+
+  requestProcessingDialogRef: MatDialogRef<any>;
+
   /*
    * angular OnInit hook
    */
   async ngOnInit() {
+
+    // check if router is connected to server
+    if (!this.signalingService.signalingRouter.connected) {
+      this.snackBar.open('disconnected from server....', undefined, {
+        panelClass: ['snackbar-class']
+      });
+    }
 
     if (this.signalingService.isRegistered) {
 
@@ -91,52 +111,38 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        */
       const eventsConfig = {
         onreconnect: this.onRouterConnect.bind(this),
-        onmessage: this.onRouterMessage.bind(this)
+        onmessage: this.onRouterMessage.bind(this),
+        onclose: () => {
+          this.snackBar.open('disconnected from server....');
+        }
       };
 
       this.signalingService.registerEventListeners(eventsConfig);
-      if(this.userContextService.selectedApp === undefined) {
+      if (this.userContextService.selectedApp === undefined) {
         try {
           await this.registerApplicationUser(AppConstants.APPLICATION_NAMES.P2P);
-          await this.fetchActiveUsersList();
-        } catch(error) {
+        } catch (error) {
           LoggerUtil.log(error);
           this.router.navigateByUrl('app');
         }
-      } else {
-        await this.fetchActiveUsersList();
       }
+      await this.fetchActiveUsersList();
     } else {
 
       /**
        * this is the case when user either reloads this page or directly came on
        * this page via its url
-       *
-       *
-       * if username is available then app will try to register user with that
-       * username only on to the server else user will be routed to login page
-       * to login again
-       *
-       *
-       * a. if username is available then register open, reconnect and message
-       * handlers in this scenario
+       * 
        */
-      const username = this.userContextService.getUserName();
-      if (username) {
-        const eventsConfig = {
-          onopen: this.onRouterConnect.bind(this),
-          onreconnect: this.onRouterConnect.bind(this),
-          onmessage: this.onRouterMessage.bind(this)
-        };
-        this.signalingService.registerEventListeners(eventsConfig);
-
-      } else {
-
-        /**
-         * route user to login page as username isn't available for registering
-         */
-        this.router.navigateByUrl('login');
-      }
+      const eventsConfig = {
+        onopen: this.onRouterConnect.bind(this),
+        onreconnect: this.onRouterConnect.bind(this),
+        onmessage: this.onRouterMessage.bind(this),
+        onclose: () => {
+          this.snackBar.open('disconnected from server....');
+        }
+      };
+      this.signalingService.registerEventListeners(eventsConfig);
     }
 
     /**
@@ -164,6 +170,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     this.webrtcService.talkWindowSetRemoteVolumeFn = this.setRemoteAudioVolume.bind(this);
     this.webrtcService.talkWindowPlayOrStopTuneFn = this.playOrStopTune.bind(this);
     this.webrtcService.talkWindowSetCentralIconsPopupFn = this.setCentralIconsPopup.bind(this);
+    this.webrtcService.talkWindowAddPopupContextFn = this.addPopupContext.bind(this);
+    this.webrtcService.talkWindowFlagPopupMessageFn = this.flagPopupMessage.bind(this);
+    this.webrtcService.talkWindowRemovePopupContextFn = this.removePopupContext.bind(this);
 
     /**
      * subscribe to event emitter in order to do some cascading processing when
@@ -225,8 +234,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     this.renderer.listen(this.remoteVideo.nativeElement, 'loadedmetadata', (event: any) => {
       if (this.talkWindowContextService.bindingFlags.isScreenSharing) {
         LoggerUtil.log('remote screen video stream has been loaded');
-        this.renderer.removeClass(this.remoteVideo.nativeElement, 'full-height-width');
-        this.renderer.addClass(this.remoteVideo.nativeElement, 'center-screen-video');
+        this.renderer.addClass(this.remoteVideoDiv.nativeElement, 'align-center');
+        this.renderer.addClass(this.remoteVideoDiv.nativeElement, 'center-content');
         this.webRemoteAccessService.calculateRemoteAccessParameters(this.remoteVideo.nativeElement.videoWidth,
           this.remoteVideo.nativeElement.videoHeight,
           this.remoteVideoDiv.nativeElement.clientWidth,
@@ -234,9 +243,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           this.remoteVideo, this.remoteVideoCanvas);
       } else {
         LoggerUtil.log('remote video stream has been loaded');
-        this.renderer.removeClass(this.remoteVideo.nativeElement, 'center-screen-video');
-        this.renderer.addClass(this.remoteVideo.nativeElement, 'full-height-width');
+        this.renderer.removeClass(this.remoteVideoDiv.nativeElement, 'align-center');
+        this.renderer.removeClass(this.remoteVideoDiv.nativeElement, 'center-content');
       }
+      this.talkWindowUtilService.appRef.tick();
     });
 
     //window resize event
@@ -259,11 +269,130 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     });
   }
 
+  /**
+   * open appropriate dialog
+   * 
+   * @param dialogType type of dialog
+   * @param data data to be passed to close handler
+   */
+  openDialog(dialogType: DialogType, data = {}) {
+    this.closeDialog();
+    switch (dialogType) {
+      case DialogType.APP_LOGIN:
+        this.dialogRef = this.dialog.open(AppLoginDialogComponent, {
+          disableClose: true,
+          panelClass: 'dialog-class',
+          data
+        });
+        break;
+
+      case DialogType.PROGRESS:
+        this.dialogRef = this.dialog.open(ProgressDialogComponent, {
+          disableClose: true,
+          data
+        });
+        break;
+
+      case DialogType.INFORMATIONAL:
+        break;
+
+      case DialogType.MEDIA_VIEWER:
+        this.dialogRef = this.dialog.open(MediaViewerDialogComponent, {
+          data
+        });
+        break;
+
+      case DialogType.ICONS_POPUP:
+        this.dialogRef = this.dialog.open(IconsDialogComponent, {
+          data
+        });
+        break;
+
+      default:
+      //do nothing here
+    }
+    this.dialogRef.afterClosed().subscribe(this.handleDialogClose.bind(this));
+  }
+
+  /**
+   * this will handle dialog close
+   * @param dialogCloseResult result data sent by the component contained in the dialog which got closed
+   * 
+   */
+  handleDialogClose(dialogCloseResult?: DialogCloseResult) {
+    if (dialogCloseResult === undefined) {
+      return;
+    }
+    LoggerUtil.log(`dialog got closed with result: ${JSON.stringify(dialogCloseResult)}`);
+    switch (dialogCloseResult.type) {
+      case DialogCloseResultType.APP_LOGIN:
+        this.openDialog(DialogType.PROGRESS, {
+          message: 'login in progress'
+        });
+        this.signalingService.registerOnSignalingServer(dialogCloseResult.data.username, true);
+        break;
+
+      case DialogCloseResultType.MEDIA_VIEWER:
+        LoggerUtil.log(`media viewer dialog closed for content type: ${dialogCloseResult.data.contentType}`);
+        break;
+
+      case DialogCloseResultType.RESIZE_REMOTE_VIDEO:
+        this.resizeRemoteVideo(dialogCloseResult.data.minimizeFlag);
+        break;
+
+      case DialogCloseResultType.DND:
+        this.handleDnd();
+        break;
+
+      case DialogCloseResultType.MUTE:
+        this.handleMute();
+        break;
+
+      case DialogCloseResultType.MEDIA_STREAM:
+        this.handleMediaStreaming(dialogCloseResult.data.clickedIcon);
+        break;
+
+      case DialogCloseResultType.REMOTE_ACCESS:
+        this.handleRemoteAccess(dialogCloseResult.data.action);
+        break;
+
+      case DialogCloseResultType.FULL_SCREEN:
+        this.handleVideoFullScreen(dialogCloseResult.data.makeFullScreenFlag);
+        break;
+
+      case DialogCloseResultType.CAMERA_FLIP:
+        this.handleCameraFlip();
+        break;
+
+      case DialogCloseResultType.ACCEPT_CALL:
+        this.acceptCall(dialogCloseResult.data.channel);
+        break;
+
+      case DialogCloseResultType.CLOSE_CALL:
+        this.closeCall(dialogCloseResult.data.action, dialogCloseResult.data.channel)
+        break;
+
+      default:
+      //do nothing here
+    }
+  }
+
   /*
    * handler to handle connection open event with server
    */
   onRouterConnect() {
-    this.signalingService.registerOnSignalingServer(this.userContextService.getUserName(), true);
+    const username: String = this.userContextService.getUserName()
+      ? this.userContextService.getUserName().trim()
+      : undefined;
+    if (username) {
+      this.openDialog(DialogType.PROGRESS, {
+        message: 'login in progress'
+      });
+      this.signalingService.registerOnSignalingServer(username, true);
+    } else {
+      this.openDialog(DialogType.APP_LOGIN);
+    }
+    this.snackBar.dismiss();
   }
 
   /**
@@ -392,6 +521,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         this.signalingService.isRegistered = signalingMessage.success;
         this.userContextService.username = signalingMessage.username;
         this.coreAppUtilService.setStorageValue(AppConstants.STORAGE_USER, signalingMessage.username);
+        this.closeDialog();
 
         /**
          * 
@@ -403,7 +533,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         try {
           await this.registerApplicationUser(AppConstants.APPLICATION_NAMES.P2P);
           await this.fetchActiveUsersList();
-        } catch(error) {
+        } catch (error) {
           LoggerUtil.log(error);
           this.router.navigateByUrl('app');
         }
@@ -411,11 +541,11 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       } else {
 
         /**
-         * this is the case when user registration with server gets failed
-         *
-         * redirect the user to login page
-         */
-        this.router.navigateByUrl('login');
+         * user registeration failed case - 
+         * 
+         * close current progress dialog and open app login dialog again
+         **/
+        this.openDialog(DialogType.APP_LOGIN);
       }
       resolve();
     });
@@ -583,7 +713,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * 
    * @TODO refactor this whole approach
    */
-  async handleMediaStreaming(clickedIcon: string) {
+  async handleMediaStreaming(clickedIcon: String) {
 
     /**
      * if app is rendered on a mobile screen then feature menu shows up on
@@ -688,7 +818,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      *
      */
     if (channel === AppConstants.SOUND && !this.userContextService.isNativeApp) {
-      let isSoundAvailable = await this.talkWindowUtilService.isScreenSoundAvailable();
+      let isSoundAvailable = await this.isScreenSoundAvailable();
       if (!isSoundAvailable) {
         return;
       }
@@ -707,7 +837,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     /**
      * set the informational calling modal popup for user
      */
-    this.talkWindowUtilService.addPopupContext({
+    this.addPopupContext({
       type: AppConstants.POPUP_TYPE.CONNECT + channel,
       modalText: 'calling ' + this.userContextService.userToChat + '...',
       disconnect: true,
@@ -787,7 +917,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          */
         if (this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL] === undefined) {
           const popupMessage: any = this.messageService.buildPopupContext(AppConstants.POPUP_TYPE.CONNECTION_TIMEOUT, 'all');
-          this.talkWindowUtilService.flagPopupMessage(popupMessage);
+          this.flagPopupMessage(popupMessage);
 
           offerContainer.mediaStreams.forEach((streamContext: any) => {
             streamContext[AppConstants.TRACK].stop();
@@ -983,15 +1113,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   async sendMessageOnChannel(textMessage: any, userToChat: string) {
     try {
       if (textMessage !== '') {
-
-        // if (textMessage === '1234' && !this.isGrouped) {
-        //   if (this.userContextService.username === 'gaurav') {
-        //     this.createUserGoup();
-        //   }
-        //   this.registerUserInGroup();
-        //   //this.coreAppUtilService.delay(3000);
-        //   this.isGrouped = true;
-        // }
 
         /**
          * initialize user's webrtc context for the user to whom you wanted to
@@ -1398,7 +1519,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     /**
      * remove media stream request modal popup from screen
      */
-    this.talkWindowUtilService.removePopupContext([
+    this.removePopupContext([
       AppConstants.POPUP_TYPE.INVITE + channel
     ]);
 
@@ -1406,7 +1527,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      * show connecting... modal popup on screen
      *
      */
-    this.talkWindowUtilService.addPopupContext({
+    this.addPopupContext({
       type: AppConstants.POPUP_TYPE.CONNECTING + channel,
       modalText: 'connecting....',
       channel: channel
@@ -1463,7 +1584,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     /**
      * remove any active modal popup from UI                                                                                                                         [description]
      */
-    this.talkWindowUtilService.removePopupContext([
+    this.removePopupContext([
       AppConstants.POPUP_TYPE.INVITE + channel,
       AppConstants.POPUP_TYPE.DECLINE + channel,
       AppConstants.POPUP_TYPE.CONNECT + channel
@@ -1582,7 +1703,12 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * @param  hideFlag flag to distinguish whether to hide/show the popup
    */
   setIconsPopup(hideFlag?: boolean) {
-    this.talkWindowUtilService.setIconsPopup(hideFlag);
+    if (hideFlag) {
+      this.closeDialog();
+    } else {
+      this.openDialog(DialogType.ICONS_POPUP);
+    }
+    this.talkWindowUtilService.appRef.tick();
   }
 
   /**
@@ -1625,6 +1751,15 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   handleMediaStreamRequests(signalingMessage: any) {
     return new Promise<void>((resolve) => {
+
+      /**
+       * 
+       * @TODO try to remove it afterwards
+       */
+      if (!this.talkWindowContextService.bindingFlags.isDndOn
+        && this.talkWindowContextService.popupContext.size === 0) {
+        this.setIconsPopup(true);
+      }
 
       /**
        * delegate core request processing to service method
@@ -1793,7 +1928,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      */
     this.talkWindowContextService.mediaViewerContext[AppConstants.CONTENT_TYPE] = contentType;
     this.talkWindowContextService.mediaViewerContext[AppConstants.CONTENT_ID] = contentId;
-    this.talkWindowUtilService.appRef.tick();
+    this.openDialog(DialogType.MEDIA_VIEWER);
   }
 
   /**
@@ -1948,7 +2083,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       };
 
       this.remoteVideoUnlistenFn = this.renderer.listen(this.remoteVideo.nativeElement, 'click', setCentralIconFunction);
-      this.messageHistoryUnlistenFn = this.renderer.listen(this.messageHistoryDiv.nativeElement, 'click', setCentralIconFunction);
+      this.messageHistoryUnlistenFn = this.renderer.listen(this.messageHistory.nativeElement, 'click', setCentralIconFunction);
     } else {
 
       /**
@@ -2027,10 +2162,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          * active users list
          *
          */
-        const listElement: any = this.renderer.selectRootElement('#' + messagePayload[AppConstants.USERNAME] + '_contact', true);
+        const listElement: any = this.renderer.selectRootElement(`#contact-${messagePayload[AppConstants.USERNAME]}`, true);
         let isUserVisibleInViewport: any = await this.talkWindowUtilService.isElementInViewport(listElement);
         if (!isUserVisibleInViewport) {
-          LoggerUtil.log('user ' + messagePayload.user + ' is not visible in viewport');
+          LoggerUtil.log(`user ${messagePayload.user} is not visible in viewport`);
           this.coreAppUtilService.updateElemntPositionInArray(this.talkWindowContextService.activeUsers, messagePayload[AppConstants.USERNAME], 0);
         }
 
@@ -2055,8 +2190,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    */
   scrollMessages() {
-    const scrollHeight = this.renderer.selectRootElement('#message_history', true).scrollHeight;
-    this.renderer.setProperty(this.messageHistoryBox.nativeElement, 'scrollTop', scrollHeight);
+    const scrollHeight = this.renderer.selectRootElement('#message-history-div', true).scrollHeight;
+    this.renderer.setProperty(this.messageHistoryDiv.nativeElement, 'scrollTop', scrollHeight);
   }
 
   /**
@@ -2160,7 +2295,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * possible values => 'start', 'stop'
    * 
    */
-  handleRemoteAccess(action: string) {
+  handleRemoteAccess(action: String) {
 
     // remove the menu icons modal popup
     this.setIconsPopup(true);
@@ -2189,7 +2324,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         popupContext = this.messageService
           .buildPopupContext(AppConstants.POPUP_TYPE.CONNECT, AppConstants.REMOTE_CONTROL, this.userContextService.userToChat);
         popupContext['disconnect'] = true;
-        this.talkWindowUtilService.addPopupContext(popupContext);
+        this.addPopupContext(popupContext);
 
         /**
          * send remote access request to the selected user
@@ -2257,9 +2392,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
            * display appropriate modal popup message on UI
            *
            */
-          this.talkWindowUtilService.setIconsPopup(true);
+          this.setIconsPopup(true);
           this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME] = signalingMessage.from;
-          this.talkWindowUtilService.addPopupContext({
+          this.addPopupContext({
             type: AppConstants.POPUP_TYPE.INVITE + signalingMessage.channel,
             modalText: signalingMessage.from + ' has requested remote access',
             channel: signalingMessage.channel,
@@ -2301,10 +2436,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
            * popup message as media stream request has been accepted by user
            *
            */
-          this.talkWindowUtilService.removePopupContext([
+          this.removePopupContext([
             AppConstants.POPUP_TYPE.CONNECT + signalingMessage.channel
           ]);
-          this.talkWindowUtilService.addPopupContext({
+          this.addPopupContext({
             type: AppConstants.POPUP_TYPE.CONNECTING + signalingMessage.channel,
             modalText: 'connecting....',
             channel: signalingMessage.channel
@@ -2347,10 +2482,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       case AppConstants.DECLINE:
         LoggerUtil.log('remote access request has been declined by ' + signalingMessage.from);
         if (this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME]) {
-          this.talkWindowUtilService.removePopupContext([
+          this.removePopupContext([
             AppConstants.POPUP_TYPE.CONNECT + signalingMessage.channel
           ]);
-          this.talkWindowUtilService.addPopupContext({
+          this.addPopupContext({
             type: AppConstants.POPUP_TYPE.DECLINE + signalingMessage.channel,
             modalText: 'remote access request has been declined by ' + signalingMessage.from,
             channel: signalingMessage.channel,
@@ -2365,13 +2500,15 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * this will setup a webRTC connection for relaying mouse and keyboard events 
-   * over data channel to other peer whose screen user is currently viewing 
+   * close currently open dialog with appropriate data
+   * 
+   * @param data data to be passed to close handler
    * 
    */
-  async setUpRemoteAccessConnection() {
-
-
+  closeDialog(data = {}) {
+    if (this.dialogRef) {
+      this.dialogRef.close(data);
+    }
   }
 
   /**
@@ -2430,7 +2567,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
               this.remoteVideoDiv.nativeElement.clientHeight,
               this.remoteVideo, this.remoteVideoCanvas);
         }
-        this.talkWindowUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + AppConstants.REMOTE_CONTROL]);
+        this.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + AppConstants.REMOTE_CONTROL]);
         if (webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.TIMEOUT_JOB]) {
           LoggerUtil.log(signalingMessage.channel + ' data channel is connected so removing timeout cleaning job');
           clearTimeout(webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.TIMEOUT_JOB]);
@@ -2438,7 +2575,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         break;
 
       case AppConstants.WEBRTC_EVENTS.REMOTE_TRACK_RECEIVED:
-        this.talkWindowUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + signalingMessage.channel]);
+        this.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + signalingMessage.channel]);
 
         /**
          * 'screen' & 'sound' media streaming is one-way so remove the timeout cleanup job once media stream
@@ -2458,36 +2595,82 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * 
-   * @TODO this method will be moved afterwards, right now it's just for testing
-   * 
+   * this will add a popup context in the popup context array which is used by
+   * a modal box to display modal popup messages on UI
+   *
+   * @param popupContext popup context to add
    */
-  createUserGoup() {
-    const signalingMessage: BaseSignalingMessage = {
-      channel: MediaChannelType.CONNECTION,
-      from: this.userContextService.username,
-      to: AppConstants.MEDIA_SERVER,
-      type: SignalingMessageType.CREATE_GROUP,
-      userGroup: 'default-group',
-      userType: UserType.GROUP_CALL_USER,
-    };
-    this.coreDataChannelService.sendPayload(signalingMessage);
+  addPopupContext(popupContext: any) {
+    if (!this.talkWindowContextService.popupContext.has(popupContext.type)) {
+      this.talkWindowContextService.popupContext.set(popupContext.type, popupContext);
+
+      // open dialog  if this is the only popup context
+      if (this.talkWindowContextService.popupContext.size === 1) {
+        const data: any = {};
+        this.requestProcessingDialogRef = this.dialog.open(RequestProcessingDialogComponent, {
+          data,
+          disableClose: true
+        });
+        this.requestProcessingDialogRef.afterClosed().subscribe(this.handleDialogClose.bind(this));
+        this.talkWindowUtilService.appRef.tick();
+      }
+    }
   }
 
   /**
-   * 
-   * @TODO this method will be moved afterwards, right now it's just for testing
-   * 
+   * this will remove a popup context from the popup context array which is used
+   * by a modal box to display modal popup messages on UI
+   *
+    * @param popupTypes array containing the types of popup context that needed
+    * to be removed from
+    */
+  removePopupContext(popupTypes: string[]) {
+    popupTypes.forEach((type) => {
+      this.talkWindowContextService.popupContext.delete(type);
+    });
+    if (this.talkWindowContextService.popupContext.size === 0) {
+      const result: DialogCloseResult = {
+        type: DialogCloseResultType.BLANK_DIALOG_CLOSE,
+        data: {}
+      };
+      this.requestProcessingDialogRef.close(result);
+      this.talkWindowUtilService.appRef.tick();
+    }
+  }
+
+  /**
+   * this will flag a modal popup message on UI and will remove it after some
+   * after the specified timeout expires
+   *
+   * @param popupContext message popup context
+   *
+   * @param popTimeout message popup timeout after which popup will disappear
    */
-  registerUserInGroup() {
-    const signalingMessage: BaseSignalingMessage = {
-      channel: MediaChannelType.CONNECTION,
-      from: this.userContextService.username,
-      to: AppConstants.MEDIA_SERVER,
-      type: SignalingMessageType.REGISTER_USER_IN_GROUP,
-      userGroup: 'default-group',
-      userType: UserType.GROUP_CALL_USER,
-    };
-    this.coreDataChannelService.sendPayload(signalingMessage);
+  flagPopupMessage(popupContext: any, popTimeout?: number) {
+    this.addPopupContext(popupContext);
+    const timer: number = popTimeout ? popTimeout : AppConstants.ERROR_FLAG_TIMEOUT;
+    setTimeout(() => { this.removePopupContext([popupContext.type]); }, timer);
+  }
+
+  /**
+   * this will check if the system(screen sound) is available to be shared while
+   * on web app
+   *
+   * @return a promise containg the boolean result
+   */
+  isScreenSoundAvailable() {
+    return new Promise((resolve) => {
+      let isAvailable = true;
+      if (!this.userContextService.isNativeApp &&
+        this.userContextService.screenStream.getAudioTracks().length === 0) {
+        this.flagPopupMessage({
+          type: AppConstants.POPUP_TYPE.WARNING + AppConstants.SOUND,
+          modalText: 'please restart screen sharing with "share audio" checkbox to true, to share screen audio',
+          channel: AppConstants.SOUND
+        });
+        isAvailable = false;
+      }
+      resolve(isAvailable);
+    });
   }
 }

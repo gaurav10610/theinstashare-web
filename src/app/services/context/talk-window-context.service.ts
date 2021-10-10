@@ -135,7 +135,6 @@ export class TalkWindowContextService {
     isFullScreenMode: false, // this flag is set when user is viewing video stream in full screen
     isDndOn: false, // do not disturb flag
     isOnMute: false, // mute microphone flag
-    showIconsPopup: false,
     showVolumeSlider: false,
     showSidepanel: true,
     showChatWindow: false
@@ -230,7 +229,6 @@ export class TalkWindowContextService {
       isFullScreenMode: false,
       isDndOn: false,
       isOnMute: false,
-      showIconsPopup: false,
       showVolumeSlider: false,
       showSidepanel: true,
       showChatWindow: false
