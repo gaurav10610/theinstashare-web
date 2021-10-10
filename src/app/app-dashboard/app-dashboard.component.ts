@@ -54,11 +54,11 @@ export class AppDashboardComponent implements OnInit {
       {
         icon: 'peer-to-peer-100X100.png', cols: 1, rows: 1, color: 'black',
         appName: 'one to one', identifier: 'p2p'
-      },
-      {
-        icon: 'group-chat-100X100.png', cols: 1, rows: 1, color: 'black',
-        appName: 'group chat', identifier: 'group_chat'
       }
+      // {
+      //   icon: 'group-chat-100X100.png', cols: 1, rows: 1, color: 'black',
+      //   appName: 'group chat', identifier: 'group_chat'
+      // }
     ];
     this.setUpSignaling();
   }

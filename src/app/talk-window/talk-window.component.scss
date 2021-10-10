@@ -10,32 +10,12 @@
   }
 }
 
-.video-div {
-  width: 100%;
-  height: calc(100% - 60px);
-  position: relative;
-  background: #000;
+.full-screen-video {
+  grid-template-columns: 100%;
 }
 
 .scale-video {
   object-fit: cover;
-}
-
-.video-tag {
-  position: relative;
-  background: #000;
-}
-
-@media screen and (max-width: 735px) {
-  .video-div {
-    height: 100%;
-  }
-}
-
-.center-screen-video {
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
 }
 
 .remote-video-canvas {
@@ -77,17 +57,6 @@
   overflow-y: scroll;
 }
 
-.side-div {
-  display: inline-block;
-  font-size: 1.5em;
-  margin: 10px 15px 15px 15px;
-}
-
-.circle-icon {
-  padding: 10px;
-  border-radius: 50%;
-}
-
 .message-history-div {
   height: 100%;
   width: 100%;
@@ -115,49 +84,6 @@
   .message-class {
     max-width: 90%;
   }
-}
-
-.modal-button {
-  margin: 5px 10px 5px 10px;
-}
-
-.lgreen-color {
-  background: #20b2aa;
-}
-
-.crimson-color {
-  background: #dc143c;
-}
-
-.mgreen-color {
-  background: #3cb371;
-}
-
-.sgreen-color {
-  background: #00ff7f;
-}
-
-.grey-color {
-  background: #a9a9a9;
-}
-
-.cyan-color {
-  background: #00ffff;
-}
-
-.deepskyblue-color {
-  background: #00bfff;
-}
-
-.media-viewer-modal {
-  padding-top: 60px;
-}
-
-.call-buttons {
-  font-size: 1.5em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .draggable-div {

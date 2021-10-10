@@ -1,6 +1,7 @@
 <div id="container" class="full-height-width">
 
-  <div id="frame" class="full-height-width top-container">
+  <div id="frame"
+    [ngClass]="{'full-height-width top-container':true, 'full-screen-video':talkWindowContextService.bindingFlags.isFullScreenMode}">
 
     <!-- Draggable DIV -->
     <div id="draggable_div" class="draggable-div"
@@ -38,7 +39,8 @@
           <mat-list>
             <mat-list-item id="contact-{{user}}" *ngFor="let user of talkWindowContextService.activeUsers;"
               (click)="startTextChat(user)" class="pointer-cursor">
-              <mat-icon matListIcon>{{talkWindowContextService.getUserStatus(user) ? 'person': 'person_off'}}
+              <mat-icon [color]="userContextService.userToChat === user ?'accent':''" matListIcon>
+                {{talkWindowContextService.getUserStatus(user) ? 'person': 'person_off'}}
               </mat-icon>
               <h3 matLine> {{user}} </h3>
 
@@ -73,7 +75,7 @@
           <mat-icon>
             {{talkWindowContextService.getUserStatus(userContextService.userToChat) ? 'person': 'person_off'}}
           </mat-icon>
-          <span>{{userContextService.userToChat}}</span>
+          <span style="margin-left: 10px;">{{userContextService.userToChat}}</span>
           <span class="toolbar-spacer"></span>
 
           <button mat-icon-button aria-label="back icon button" *ngIf="userContextService.isMobile"
@@ -87,20 +89,22 @@
             <mat-icon>message</mat-icon>
           </button>
 
-          <button mat-icon-button aria-label="dnd icon button" *ngIf="!userContextService.isMobile"
-            (click)="handleDnd()">
+          <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isDndOn ? 'warn':''"
+            aria-label="dnd icon button" *ngIf="!userContextService.isMobile" (click)="handleDnd()">
             <mat-icon>
               {{talkWindowContextService.bindingFlags.isDndOn ? 'do_not_disturb_off' : 'do_not_disturb_on'}}
             </mat-icon>
           </button>
 
-          <button mat-icon-button aria-label="mute icon button"
+          <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isOnMute ? 'warn':''"
+            aria-label="mute icon button"
             *ngIf="!userContextService.isMobile && talkWindowContextService.bindingFlags.isAudioCalling"
             (click)="handleMute()">
             <mat-icon>{{talkWindowContextService.bindingFlags.isOnMute ? 'mic_off' : 'mic'}}</mat-icon>
           </button>
 
-          <button mat-icon-button aria-label="screen sharing icon button" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
+          <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isScreenSharing ? 'warn':''"
+            aria-label="screen sharing icon button" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
           || (!userContextService.isMobile && !talkWindowContextService.bindingFlags.isVideoCalling)"
             (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isScreenSharing ? 'stop-screen' : 'screen')">
             <mat-icon>
@@ -108,14 +112,16 @@
             </mat-icon>
           </button>
 
-          <button mat-icon-button aria-label="remote access icon button" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
+          <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isAccessingRemote ? 'warn':''"
+            aria-label="remote access icon button" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
           && talkWindowContextService.bindingFlags.haveRemoteVideoStream 
           && talkWindowContextService.remoteAccessContext['canAccessRemote']"
             (click)="handleRemoteAccess(talkWindowContextService.bindingFlags.isAccessingRemote ? 'stop' : 'start')">
             <mat-icon>mouse</mat-icon>
           </button>
 
-          <button mat-icon-button aria-label="system sound icon button" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
+          <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isSoundSharing ? 'warn':''"
+            aria-label="system sound icon button" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
           && talkWindowContextService.bindingFlags.haveLocalVideoStream 
           && (userContextService.isNativeApp || talkWindowContextService.bindingFlags.isSoundSharing)"
             (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isSoundSharing ? 'stop-sound' : 'sound')">
@@ -130,7 +136,8 @@
             <mat-icon>zoom_out_map</mat-icon>
           </button>
 
-          <button mat-icon-button aria-label="video call icon button"
+          <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isVideoCalling ? 'warn':''"
+            aria-label="video call icon button"
             *ngIf="!userContextService.isMobile && !talkWindowContextService.bindingFlags.isScreenSharing"
             (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isVideoCalling ? 'stop-video' :'video')">
             <mat-icon>
@@ -138,7 +145,8 @@
             </mat-icon>
           </button>
 
-          <button mat-icon-button aria-label="audio call icon button" *ngIf="!userContextService.isMobile"
+          <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isAudioCalling ? 'warn':''"
+            aria-label="audio call icon button" *ngIf="!userContextService.isMobile"
             (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isAudioCalling ? 'stop-audio' :'audio')">
             <mat-icon>
               {{talkWindowContextService.bindingFlags.isAudioCalling ? 'phone_disabled': 'phone_enabled'}}
@@ -154,22 +162,22 @@
       </div>
 
       <div #remote_video_div id="remote_video_div" [ngClass]="{
-        'full-height-width':talkWindowContextService.bindingFlags.haveRemoteVideoStream && talkWindowContextService.bindingFlags.isFullScreenMode,
         'hidden-class':!talkWindowContextService.bindingFlags.haveRemoteVideoStream,
         'local-video':talkWindowContextService.bindingFlags.minimizeVideo,
-        'video-div': talkWindowContextService.bindingFlags.haveRemoteVideoStream && !talkWindowContextService.bindingFlags.minimizeVideo
-      }">
+        'full-height-width':true,
+        'column-flex-display':true
+      }" style="background: black;">
 
         <video #remoteVideo id="remoteVideo" [ngClass]="{
-          'video-tag show-class':talkWindowContextService.bindingFlags.haveRemoteVideoStream,
-         'hidden-class':!talkWindowContextService.bindingFlags.haveRemoteVideoStream,
-         'scale-video':!talkWindowContextService.bindingFlags.isScreenSharing}" autoplay>
+          'hidden-class':!talkWindowContextService.bindingFlags.haveRemoteVideoStream,
+          'scale-video':!talkWindowContextService.bindingFlags.isScreenSharing,
+          'full-height-width': !talkWindowContextService.bindingFlags.isScreenSharing}" autoplay>
         </video>
 
         <!-- this is blank canvas used for remote access -->
         <canvas #remote_video_canvas id="remote_video_canvas" [ngClass]="{
           'remote-video-canvas':true, 
-          'hidden-class':!talkWindowContextService.bindingFlags.isScreenSharing 
+          'hidden-class':!talkWindowContextService.bindingFlags.isScreenSharing
           || !talkWindowContextService.bindingFlags.haveRemoteVideoStream 
           || !talkWindowContextService.bindingFlags.isAccessingRemote}" tabindex="0">
         </canvas>

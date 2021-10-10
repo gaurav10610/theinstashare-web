@@ -6,7 +6,6 @@ import { MatListModule } from '@angular/material/list';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatTabsModule } from '@angular/material/tabs';
 import { MatInputModule } from '@angular/material/input';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -28,12 +27,10 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     MatDividerModule,
     MatIconModule,
     MatChipsModule,
-    MatTabsModule,
     MatInputModule,
     MatGridListModule,
     MatDialogModule,
     MatFormFieldModule,
-    MatInputModule,
     MatButtonModule,
     MatProgressSpinnerModule,
     MatToolbarModule

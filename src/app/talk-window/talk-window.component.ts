@@ -234,8 +234,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     this.renderer.listen(this.remoteVideo.nativeElement, 'loadedmetadata', (event: any) => {
       if (this.talkWindowContextService.bindingFlags.isScreenSharing) {
         LoggerUtil.log('remote screen video stream has been loaded');
-        this.renderer.removeClass(this.remoteVideo.nativeElement, 'full-height-width');
-        this.renderer.addClass(this.remoteVideo.nativeElement, 'center-screen-video');
+        this.renderer.addClass(this.remoteVideoDiv.nativeElement, 'align-center');
+        this.renderer.addClass(this.remoteVideoDiv.nativeElement, 'center-content');
         this.webRemoteAccessService.calculateRemoteAccessParameters(this.remoteVideo.nativeElement.videoWidth,
           this.remoteVideo.nativeElement.videoHeight,
           this.remoteVideoDiv.nativeElement.clientWidth,
@@ -243,9 +243,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           this.remoteVideo, this.remoteVideoCanvas);
       } else {
         LoggerUtil.log('remote video stream has been loaded');
-        this.renderer.removeClass(this.remoteVideo.nativeElement, 'center-screen-video');
-        this.renderer.addClass(this.remoteVideo.nativeElement, 'full-height-width');
+        this.renderer.removeClass(this.remoteVideoDiv.nativeElement, 'align-center');
+        this.renderer.removeClass(this.remoteVideoDiv.nativeElement, 'center-content');
       }
+      this.talkWindowUtilService.appRef.tick();
     });
 
     //window resize event
@@ -1707,7 +1708,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     } else {
       this.openDialog(DialogType.ICONS_POPUP);
     }
-    // this.talkWindowUtilService.appRef.tick();
+    this.talkWindowUtilService.appRef.tick();
   }
 
   /**
@@ -2610,7 +2611,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           data,
           disableClose: true
         });
-        this.requestProcessingDialogRef.afterClosed().subscribe(this.handleDialogClose.bind(this));;
+        this.requestProcessingDialogRef.afterClosed().subscribe(this.handleDialogClose.bind(this));
+        this.talkWindowUtilService.appRef.tick();
       }
     }
   }
@@ -2632,6 +2634,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         data: {}
       };
       this.requestProcessingDialogRef.close(result);
+      this.talkWindowUtilService.appRef.tick();
     }
   }
 

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
-import { environment } from 'src/environments/environment';
+import { environment } from '../../environments/environment';
 import { AppLoginDialogComponent } from '../app-login-dialog/app-login-dialog.component';
 import { GroupLoginDialogComponent } from '../group-login-dialog/group-login-dialog.component';
 import { ProgressDialogComponent } from '../progress-dialog/progress-dialog.component';
