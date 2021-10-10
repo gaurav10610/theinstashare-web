@@ -36,7 +36,7 @@
 
         <div [ngClass]="{'flex-grow-full': true, 'vertical-scroll': true, 'no-scroll': true }">
           <mat-list>
-            <mat-list-item id="contact-{{user}}" *ngFor="let user of talkWindowContextService.activeUsers; last as last"
+            <mat-list-item id="contact-{{user}}" *ngFor="let user of talkWindowContextService.activeUsers;"
               (click)="startTextChat(user)" class="pointer-cursor">
               <mat-icon matListIcon>{{talkWindowContextService.getUserStatus(user) ? 'person': 'person_off'}}
               </mat-icon>
@@ -50,7 +50,7 @@
                 </mat-chip>
               </mat-chip-list>
 
-              <mat-divider [inset]="true" *ngIf="!last"></mat-divider>
+              <mat-divider [inset]="true"></mat-divider>
             </mat-list-item>
           </mat-list>
         </div>
@@ -288,8 +288,8 @@
   </div>
 </div>
 
-<!-- Modal Popup for displaying informational info or various requests -->
-<div id="myModal" class="{{(talkWindowContextService.popupContext.size === 0) ? 'hidden-class': 'modal show-class'}}">
+
+<!-- <div id="myModal" class="{{(talkWindowContextService.popupContext.size === 0) ? 'hidden-class': 'modal show-class'}}">
   <div id="myModalContent" class="modal-content"
     *ngFor="let context of talkWindowContextService.popupContext| keyvalue">
     <p id="modal-text" class="font-weight-bold" style="text-align:center; margin-bottom: 20px">
@@ -330,5 +330,5 @@
           (click)="closeCall('close', context.value.channel)">close</button>
       </div>
     </div>
-  </div>
-</div>
+  </div> 
+</div>-->

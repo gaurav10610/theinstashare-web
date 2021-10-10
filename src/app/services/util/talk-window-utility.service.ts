@@ -170,69 +170,6 @@ export class TalkWindowUtilityService {
   }
 
   /**
-   * this will add a popup context in the popup context array which is used by
-   * a modal box to display modal popup messages on UI
-   *
-   * @param popupContext popup context to add
-   */
-  addPopupContext(popupContext: any) {
-    if (!this.talkWindowContextService.popupContext.has(popupContext.type)) {
-      this.talkWindowContextService.popupContext.set(popupContext.type, popupContext);
-    }
-    this.appRef.tick();
-  }
-
-  /**
-  * this will remove a popup context from the popup context array which is used
-  * by a modal box to display modal popup messages on UI
-  *
-   * @param popupTypes array containing the types of popup context that needed
-   * to be removed from
-   */
-  removePopupContext(popupTypes: string[]) {
-    popupTypes.forEach((type) => {
-      this.talkWindowContextService.popupContext.delete(type);
-    });
-    this.appRef.tick();
-  }
-
-  /**
-   * this will flag a modal popup message on UI and will remove it after some
-   * after the specified timeout expires
-   *
-   * @param popupContext message popup context
-   *
-   * @param popTimeout message popup timeout after which popup will disappear
-   */
-  flagPopupMessage(popupContext: any, popTimeout?: number) {
-    this.addPopupContext(popupContext);
-    const timer: number = popTimeout ? popTimeout : AppConstants.ERROR_FLAG_TIMEOUT;
-    setTimeout(() => { this.removePopupContext([popupContext.type]); }, timer);
-  }
-
-  /**
-   * this will check if the system(screen sound) is available to be shared while
-   * on web app
-   *
-   * @return a promise containg the boolean result
-   */
-  isScreenSoundAvailable() {
-    return new Promise((resolve) => {
-      let isAvailable = true;
-      if (!this.userContextService.isNativeApp &&
-        this.userContextService.screenStream.getAudioTracks().length === 0) {
-        this.flagPopupMessage({
-          type: AppConstants.POPUP_TYPE.WARNING + AppConstants.SOUND,
-          modalText: 'please restart screen sharing with "share audio" checkbox to true, to share screen audio',
-          channel: AppConstants.SOUND
-        });
-        isAvailable = false;
-      }
-      resolve(isAvailable);
-    });
-  }
-
-  /**
    * this will simply send message to a user via data channel if it found to be in
    * open state and will return a boolean result
    *

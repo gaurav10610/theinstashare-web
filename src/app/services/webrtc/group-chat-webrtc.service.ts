@@ -535,7 +535,7 @@ export class GroupChatWebrtcService {
                 }
 
                 //remove any of the popup context
-                this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
+                //this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
                 resolve();
             } catch (error) {
                 LoggerUtil.log('there is an error occured while cleaning media channel context for channel: ' + channel);

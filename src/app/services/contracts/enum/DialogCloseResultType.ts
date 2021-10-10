@@ -12,5 +12,6 @@ export enum DialogCloseResultType {
     REMOTE_ACCESS = 'remote-access',
     FULL_SCREEN = 'fullscreen',
     CAMERA_FLIP = 'camera-flip',
-    ICONS_POPUP = 'icons-popup'
+    ACCEPT_CALL = 'accept-call',
+    CLOSE_CALL = 'close-call'
 }

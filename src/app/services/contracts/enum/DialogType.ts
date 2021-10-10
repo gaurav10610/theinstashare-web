@@ -4,5 +4,6 @@ export enum DialogType {
     INFORMATIONAL = 'information',
     PROGRESS = 'progress',
     MEDIA_VIEWER = 'media-viewer',
-    ICONS_POPUP = 'icons-popup'
+    ICONS_POPUP = 'icons-popup',
+    REQUEST_PROCESSING_DIALOG = 'request-processing'
 }

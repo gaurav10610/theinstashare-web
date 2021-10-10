@@ -17,13 +17,14 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MediaViewerDialogComponent } from '../media-viewer-dialog/media-viewer-dialog.component';
 import { IconsDialogComponent } from '../icons-dialog/icons-dialog.component';
-
+import { RequestProcessingDialogComponent } from '../request-processing-dialog/request-processing-dialog.component';
 
 @NgModule({
   declarations: [
     TalkWindowComponent,
     MediaViewerDialogComponent,
-    IconsDialogComponent
+    IconsDialogComponent,
+    RequestProcessingDialogComponent
   ],
   imports: [
     CommonModule,
