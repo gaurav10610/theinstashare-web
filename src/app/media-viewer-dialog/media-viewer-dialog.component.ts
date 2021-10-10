@@ -2,7 +2,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TalkWindowContextService } from '../services/context/talk-window-context.service';
 import { DialogCloseResult } from '../services/contracts/dialog/DialogCloseResult';
-import { DialogType } from '../services/contracts/enum/DialogType';
+import { DialogCloseResultType } from '../services/contracts/enum/DialogCloseResultType';
 
 @Component({
   selector: 'app-media-viewer-dialog',
@@ -33,7 +33,7 @@ export class MediaViewerDialogComponent implements OnInit {
    */
   closeMediaViewer(contentType: String) {
     const result: DialogCloseResult = {
-      type: DialogType.MEDIA_VIEWER,
+      type: DialogCloseResultType.MEDIA_VIEWER,
       data: {
         contentType
       }

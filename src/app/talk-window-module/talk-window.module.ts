@@ -16,11 +16,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MediaViewerDialogComponent } from '../media-viewer-dialog/media-viewer-dialog.component';
+import { IconsDialogComponent } from '../icons-dialog/icons-dialog.component';
+
 
 @NgModule({
   declarations: [
     TalkWindowComponent,
-    MediaViewerDialogComponent
+    MediaViewerDialogComponent,
+    IconsDialogComponent
   ],
   imports: [
     CommonModule,

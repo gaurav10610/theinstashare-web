@@ -1,9 +1,4 @@
 <div id="media_viewer" class="column-flex-display">
-    <div class="row-flex-display pointer-cursor" style="justify-content: flex-end;">
-        <mat-icon aria-hidden="false" aria-label="close icon" (click)="closeMediaViewer(contentType)">
-            close
-        </mat-icon>
-    </div>
     <div (click)="closeMediaViewer($event)" class="row-flex-display center-content">
         <img id="viewer_image" *ngIf="contentType === 'image'" src="{{content}}" (click)="closeMediaViewer(contentType)"
             class="media-class">

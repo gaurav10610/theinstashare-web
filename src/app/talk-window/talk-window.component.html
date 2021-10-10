@@ -251,6 +251,7 @@
 
       </div>
 
+      <!-- message input -->
       <div id="type-message" [ngClass]="{
         'hidden-class':talkWindowContextService.bindingFlags.haveRemoteVideoStream 
         && !talkWindowContextService.bindingFlags.minimizeVideo,
@@ -286,23 +287,6 @@
     </div>
   </div>
 </div>
-
-<!-- Media Viewer Modal Popup -->
-<!-- <div id="media_viewer" [ngClass]="{'modal media-viewer-modal':true,
- 'show-class':talkWindowContextService.mediaViewerContext['contentId'] !== undefined,
- 'hidden-class':talkWindowContextService.mediaViewerContext['contentId'] === undefined}"
-  (click)="closeMediaViewer($event)">
-  <div id="media_viewer_content" class="modal-content media-viewer-content" (click)="closeMediaViewer($event)">
-    <img id="viewer_image" class="message-media"
-      *ngIf="talkWindowContextService.mediaViewerContext['contentType'] === 'image'"
-      src="{{talkWindowContextService.sharedContent[talkWindowContextService.mediaViewerContext['contentId']]}}"
-      (click)="closeMediaViewer($event)">
-    <video id="viewer_video" class="message-media"
-      *ngIf="talkWindowContextService.mediaViewerContext['contentType'] === 'video'"
-      src="{{talkWindowContextService.sharedContent[talkWindowContextService.mediaViewerContext['contentId']]}}"
-      controls (click)="closeMediaViewer($event)"></video>
-  </div>
-</div> -->
 
 <!-- Modal Popup for displaying informational info or various requests -->
 <div id="myModal" class="{{(talkWindowContextService.popupContext.size === 0) ? 'hidden-class': 'modal show-class'}}">
@@ -344,81 +328,6 @@
 
         <button id="close" *ngIf="context.value.close" class="btn btn-dark btn-sm modal-button"
           (click)="closeCall('close', context.value.channel)">close</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="icons_modal" [ngStyle]="{'display':talkWindowContextService.bindingFlags.showIconsPopup ? 'block':'none'}"
-  class="modal" (click)="onFrameClick($event)">
-  <div class="modal-content">
-    <div style="text-align:center;">
-      <div *ngIf="userContextService.isMobile && talkWindowContextService.bindingFlags.haveRemoteVideoStream 
-        && !talkWindowContextService.bindingFlags.minimizeVideo"
-        class="side-div pointer-cursor circle-icon deepskyblue-color" (click)="resizeRemoteVideo(true)">
-        <i id="video_min-icon" class="fas fa-envelope" aria-hidden="true"></i>
-      </div>
-      <div [ngClass]="{'side-div pointer-cursor circle-icon':true,
-       'grey-color':talkWindowContextService.bindingFlags.isDndOn}" (click)="handleDnd()">
-        <i id="mobile_dnd-icon" class="fas fa-bell-slash" aria-hidden="true"></i>
-      </div>
-      <div [ngClass]="{'side-div pointer-cursor circle-icon':true,
-       'grey-color':talkWindowContextService.bindingFlags.isOnMute}"
-        *ngIf="talkWindowContextService.bindingFlags.isAudioCalling" (click)="handleMute()">
-        <i id="mobile_mute-icon" class="fas fa-microphone-alt-slash" aria-hidden="true"></i>
-      </div>
-      <div [ngClass]="{'side-div pointer-cursor circle-icon':true,
-        'crimson-color':talkWindowContextService.bindingFlags.isScreenSharing,
-        'sgreen-color':!talkWindowContextService.bindingFlags.isScreenSharing}" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
-        || (userContextService.isNativeApp && !talkWindowContextService.bindingFlags.isVideoCalling)"
-        (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isScreenSharing ? 'stop-screen' : 'screen')">
-        <i id="mobile_screen-icon" class="fas fa-desktop" aria-hidden="true"></i>
-      </div>
-
-      <!-- remote access icon -->
-      <div [ngClass]="{'side-div pointer-cursor circle-icon':true, 
-          'crimson-color':talkWindowContextService.bindingFlags.isAccessingRemote, 
-          'sgreen-color':!talkWindowContextService.bindingFlags.isAccessingRemote}"
-        *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
-          && talkWindowContextService.bindingFlags.haveRemoteVideoStream && talkWindowContextService.remoteAccessContext['canAccessRemote']"
-        (click)="handleRemoteAccess(talkWindowContextService.bindingFlags.isAccessingRemote ? 'stop' : 'start')">
-        <i id="profile_remote_access-icon" class="fas fa-mouse" aria-hidden="true"></i>
-      </div>
-
-      <div [ngClass]="{'side-div pointer-cursor circle-icon':true,
-        'crimson-color':talkWindowContextService.bindingFlags.isSoundSharing,
-        'sgreen-color':!talkWindowContextService.bindingFlags.isSoundSharing}"
-        *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
-        && talkWindowContextService.bindingFlags.haveLocalVideoStream && (userContextService.isNativeApp || talkWindowContextService.bindingFlags.isSoundSharing)"
-        (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isSoundSharing ? 'stop-sound' : 'sound')">
-        <i id="mobile_sound-icon" class="fas fa-play-circle" aria-hidden="true"></i>
-      </div>
-      <div [ngClass]="{'side-div pointer-cursor circle-icon':true,
-        'crimson-color':talkWindowContextService.bindingFlags.isVideoCalling,
-        'cyan-color':!talkWindowContextService.bindingFlags.isVideoCalling}"
-        *ngIf="!talkWindowContextService.bindingFlags.isScreenSharing"
-        (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isVideoCalling ? 'stop-video' :'video')">
-        <i id="mobile_video-icon"
-          class="{{talkWindowContextService.bindingFlags.isVideoSharing ? 'fas fa-video-slash':'fas fa-video'}}"
-          aria-hidden="true"></i>
-      </div>
-      <div [ngClass]="{'side-div pointer-cursor circle-icon':true,
-        'crimson-color':talkWindowContextService.bindingFlags.isAudioCalling,
-        'mgreen-color':!talkWindowContextService.bindingFlags.isAudioCalling}"
-        (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isAudioCalling ? 'stop-audio' :'audio')">
-        <i id="mobile_audio-icon"
-          class="{{talkWindowContextService.bindingFlags.isAudioCalling ? 'fas fa-phone-slash':'fas fa-phone'}}"
-          aria-hidden="true"></i>
-      </div>
-      <div class="side-div pointer-cursor circle-icon"
-        *ngIf="!userContextService.isMobile && talkWindowContextService.bindingFlags.haveRemoteVideoStream"
-        (click)="handleVideoFullScreen(false)">
-        <i id="fullscreen-icon" class="fas fa-compress" aria-hidden="true"></i>
-      </div>
-      <div class="side-div pointer-cursor circle-icon"
-        *ngIf="userContextService.isMobile && talkWindowContextService.bindingFlags.isVideoCalling"
-        (click)="handleCameraFlip()">
-        <i id="mobile_flip-icon" class="fas fa-camera" aria-hidden="true"></i>
       </div>
     </div>
   </div>

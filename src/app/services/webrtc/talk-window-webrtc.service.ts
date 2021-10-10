@@ -511,13 +511,11 @@ export class TalkWindowWebrtcService {
 
 
           /**
-           * if UI is currently displaying the icons popup then hide it, then set
-           * the media call context with info from request message
+           * set the media call context with info from request message
            *
            * display appropriate modal popup message on UI
            *
            */
-          this.appUtilService.setIconsPopup(true);
           this.appUtilService.addPopupContext({
             type: AppConstants.POPUP_TYPE.INVITE + signalingMessage.channel,
             modalText: signalingMessage.from + ' calling...',

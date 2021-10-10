@@ -12,6 +12,7 @@ import { GroupChatContextService } from '../services/context/group-chat-window/g
 import { UserContextService } from '../services/context/user.context.service';
 import { CreateDataChannelType } from '../services/contracts/CreateDataChannelType';
 import { DialogCloseResult } from '../services/contracts/dialog/DialogCloseResult';
+import { DialogCloseResultType } from '../services/contracts/enum/DialogCloseResultType';
 import { DialogType } from '../services/contracts/enum/DialogType';
 import { CoreDataChannelService } from '../services/data-channel/core-data-channel.service';
 import { LoggerUtil } from '../services/logging/LoggerUtil';
@@ -487,14 +488,14 @@ export class GroupChatWindowComponent implements OnInit {
   handleDialogClose(dialogueCloseResult: DialogCloseResult) {
     LoggerUtil.log(`dialog got closed with result: ${JSON.stringify(dialogueCloseResult)}`);
     switch (dialogueCloseResult.type) {
-      case DialogType.APP_LOGIN:
+      case DialogCloseResultType.APP_LOGIN:
         this.openDialog(DialogType.PROGRESS, {
           message: 'login in progress'
         });
         this.signalingService.registerOnSignalingServer(dialogueCloseResult.data.username, true);
         break;
 
-      case DialogType.GROUP_LOGIN:
+      case DialogCloseResultType.GROUP_LOGIN:
         break;
 
       default:

@@ -25,6 +25,8 @@ import { ProgressDialogComponent } from '../progress-dialog/progress-dialog.comp
 import { GroupLoginDialogComponent } from '../group-login-dialog/group-login-dialog.component';
 import { AppLoginDialogComponent } from '../app-login-dialog/app-login-dialog.component';
 import { MediaViewerDialogComponent } from '../media-viewer-dialog/media-viewer-dialog.component';
+import { IconsDialogComponent } from '../icons-dialog/icons-dialog.component';
+import { DialogCloseResultType } from '../services/contracts/enum/DialogCloseResultType';
 
 @Component({
   selector: 'app-talk-window',
@@ -289,9 +291,15 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
       case DialogType.MEDIA_VIEWER:
         this.dialogRef = this.dialog.open(MediaViewerDialogComponent, {
-          data,
-          disableClose: true
+          data
+        });
+        break;
+
+      case DialogType.ICONS_POPUP:
+        this.dialogRef = this.dialog.open(IconsDialogComponent, {
+          data
         })
+        break;
 
       default:
       //do nothing here
@@ -301,21 +309,52 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
   /**
    * this will handle dialog close
-   * @param dialogueCloseResult result data sent by the component contained in the dialog which got closed
+   * @param dialogCloseResult result data sent by the component contained in the dialog which got closed
    * 
    */
-  handleDialogClose(dialogueCloseResult: DialogCloseResult) {
-    LoggerUtil.log(`dialog got closed with result: ${JSON.stringify(dialogueCloseResult)}`);
-    switch (dialogueCloseResult.type) {
-      case DialogType.APP_LOGIN:
+  handleDialogClose(dialogCloseResult?: DialogCloseResult) {
+    if (dialogCloseResult === undefined) {
+      return;
+    }
+    LoggerUtil.log(`dialog got closed with result: ${JSON.stringify(dialogCloseResult)}`);
+    switch (dialogCloseResult.type) {
+      case DialogCloseResultType.APP_LOGIN:
         this.openDialog(DialogType.PROGRESS, {
           message: 'login in progress'
         });
-        this.signalingService.registerOnSignalingServer(dialogueCloseResult.data.username, true);
+        this.signalingService.registerOnSignalingServer(dialogCloseResult.data.username, true);
         break;
 
-      case DialogType.MEDIA_VIEWER:
-        LoggerUtil.log(`media viewer dialog closed for content type: ${dialogueCloseResult.data.contentType}`);
+      case DialogCloseResultType.MEDIA_VIEWER:
+        LoggerUtil.log(`media viewer dialog closed for content type: ${dialogCloseResult.data.contentType}`);
+        break;
+
+      case DialogCloseResultType.RESIZE_REMOTE_VIDEO:
+        this.resizeRemoteVideo(dialogCloseResult.data.minimizeFlag);
+        break;
+
+      case DialogCloseResultType.DND:
+        this.handleDnd();
+        break;
+
+      case DialogCloseResultType.MUTE:
+        this.handleMute();
+        break;
+
+      case DialogCloseResultType.MEDIA_STREAM:
+        this.handleMediaStreaming(dialogCloseResult.data.clickedIcon);
+        break;
+
+      case DialogCloseResultType.REMOTE_ACCESS:
+        this.handleRemoteAccess(dialogCloseResult.data.action);
+        break;
+
+      case DialogCloseResultType.FULL_SCREEN:
+        this.handleVideoFullScreen(dialogCloseResult.data.makeFullScreenFlag);
+        break;
+
+      case DialogCloseResultType.CAMERA_FLIP:
+        this.handleCameraFlip();
         break;
 
       default:
@@ -659,7 +698,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * 
    * @TODO refactor this whole approach
    */
-  async handleMediaStreaming(clickedIcon: string) {
+  async handleMediaStreaming(clickedIcon: String) {
 
     /**
      * if app is rendered on a mobile screen then feature menu shows up on
@@ -1649,7 +1688,12 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * @param  hideFlag flag to distinguish whether to hide/show the popup
    */
   setIconsPopup(hideFlag?: boolean) {
-    this.talkWindowUtilService.setIconsPopup(hideFlag);
+    if (hideFlag) {
+      this.closeDialog();
+    } else {
+      this.openDialog(DialogType.ICONS_POPUP);
+    }
+    // this.talkWindowUtilService.appRef.tick();
   }
 
   /**
@@ -1692,6 +1736,15 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   handleMediaStreamRequests(signalingMessage: any) {
     return new Promise<void>((resolve) => {
+
+      /**
+       * 
+       * @TODO try to remove it afterwards
+       */
+      if (!this.talkWindowContextService.bindingFlags.isDndOn
+        && this.talkWindowContextService.popupContext.size === 0) {
+        this.setIconsPopup(true);
+      }
 
       /**
        * delegate core request processing to service method
@@ -2227,7 +2280,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * possible values => 'start', 'stop'
    * 
    */
-  handleRemoteAccess(action: string) {
+  handleRemoteAccess(action: String) {
 
     // remove the menu icons modal popup
     this.setIconsPopup(true);
@@ -2324,7 +2377,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
            * display appropriate modal popup message on UI
            *
            */
-          this.talkWindowUtilService.setIconsPopup(true);
+          this.setIconsPopup(true);
           this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME] = signalingMessage.from;
           this.talkWindowUtilService.addPopupContext({
             type: AppConstants.POPUP_TYPE.INVITE + signalingMessage.channel,

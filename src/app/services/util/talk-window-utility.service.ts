@@ -95,21 +95,6 @@ export class TalkWindowUtilityService {
   }
 
   /**
-   * this will set the display(show/hide) of icons modal popup on UI
-   *
-   * @param hideFlag an optional boolean flag to distinguish whether to show or
-   * hide the icons popup
-   */
-  setIconsPopup(hideFlag?: boolean) {
-    if (hideFlag) {
-      this.talkWindowContextService.bindingFlags.showIconsPopup = false;
-    } else {
-      this.talkWindowContextService.bindingFlags.showIconsPopup = true;
-    }
-    this.appRef.tick();
-  }
-
-  /**
    * this will flag an error message in the app for a time period and then will
    * remove it
    *
