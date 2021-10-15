@@ -1,10 +1,11 @@
 <div class="column-flex-display full-height-width">
 
     <div class="dashboard-header">
-        <mat-toolbar class="dashboard-header">
+        <mat-toolbar color="primary" class="dashboard-header">
             <img src="{{assetsPath + 'title-40X40.png'}}" alt="" />
-            <img src="{{assetsPath + 'theinstashare-191X40.png'}}" alt="" />
-            <span class="spacer"></span>
+            <!-- <img src="{{assetsPath + 'theinstashare-191X40.png'}}" alt="" /> -->
+            <span style="margin-left: 10px;">TheInstashare</span>
+            <span class="toolbar-spacer"></span>
             <button mat-icon-button aria-label="" (click)="logout()">
               <mat-icon>logout</mat-icon>
             </button>

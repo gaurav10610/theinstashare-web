@@ -1,24 +1,46 @@
-<div id="login-form" class="column-flex-display full-height-width center-content align-center">
+<div class="column-flex-display full-height-width">
 
-  <div class="row-flex-display center-content branding-class">
-    <img src="{{assetsPath + 'images/icons/title-40X40.png'}}" alt="" />
-    <img src="{{assetsPath + 'images/icons/theinstashare-191X40.png'}}" alt="" />
+  <div class="dashboard-header">
+    <mat-toolbar color="primary" class="dashboard-header">
+      <img src="{{assetsPath + 'images/icons/title-40X40.png'}}" alt="" />
+      <!-- <img src="{{assetsPath + 'images/icons/theinstashare-191X40.png'}}" alt="" /> -->
+      <span class="header-font">TheInstashare</span>
+      <span class="toolbar-spacer"></span>
+      <!-- <div class="toolbar-spacer row-flex-display">
+        <img src="{{assetsPath + 'images/icons/theinstashare-191X40.png'}}" alt="" />
+      </div> -->
+      <button mat-icon-button aria-label=""
+        (click)="redirectToCodeRepo()">
+        <mat-icon>code</mat-icon>
+      </button>
+    </mat-toolbar>
   </div>
 
-  <div class="column-flex-display form-field-class">
+  <div style="width: 100%;" class="column-flex-display form-field-class flex-grow-full center-content align-center">
+    <div class="column-flex-display form-field-class">
 
-    <!-- input field -->
-    <mat-form-field appearance="outline" color="primary">
-      <mat-label>{{inputFieldLabel}}</mat-label>
-      <input #usernameInput matInput placeholder="Enter user name to start" (keyup)="login($event)">
-    </mat-form-field>
+      <!-- input field -->
+      <mat-form-field appearance="outline" color="primary" style="width: 100%;">
+        <mat-label>{{inputFieldLabel}}</mat-label>
+        <input #usernameInput matInput placeholder="Enter user name to start" (keyup)="login($event)"
+          autocomplete="off">
+      </mat-form-field>
 
-    <p *ngIf="errorMessage !== undefined" style="color: red;">*{{errorMessage}}</p>
+      <p *ngIf="errorMessage !== undefined" style="color: red;">*{{errorMessage}}</p>
 
-    <button mat-raised-button color="primary" class="button-class" (click)="login()" *ngIf="!isRegistering">
-      <p>LOGIN</p>
+      <button mat-raised-button color="primary" class="button-class" (click)="login()" *ngIf="!isRegistering"
+        style="width: 100%;">
+        <p>LOGIN</p>
+      </button>
+      <mat-spinner diameter=50 color="primary" *ngIf="isRegistering"></mat-spinner>
+    </div>
+  </div>
+
+  <div class="row-flex-display center-content align-center">
+    <button mat-icon-button aria-label="">
+      <mat-icon>copyright</mat-icon>
     </button>
-    <mat-spinner diameter=50 color="primary" *ngIf="isRegistering"></mat-spinner>
+    <span>BSD 3-Clause License</span>
   </div>
 
 </div>

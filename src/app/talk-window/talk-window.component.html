@@ -18,7 +18,7 @@
       <!-- username header -->
       <div class="username-header">
         <mat-toolbar color="primary">
-          <span>Logged in as: {{userContextService.username}}</span>
+          <span class="header-font hide-horizontal-overflow">Logged in as: {{userContextService.username}}</span>
           <span class="toolbar-spacer"></span>
           <button mat-icon-button aria-label="logout icon button" (click)="logout()">
             <mat-icon>logout</mat-icon>
@@ -32,7 +32,7 @@
         <!-- no body is online -->
         <div id="no_one_online" style="margin-top: 10px;" class="row-flex-display center-content"
           *ngIf="talkWindowContextService.activeUsers.length === 0">
-          <span>Nobody is Online!!</span>
+          <span style="font-size: large;">Nobody is Online!!</span>
         </div>
 
         <div [ngClass]="{'flex-grow-full': true, 'vertical-scroll': true, 'no-scroll': true }">
@@ -75,7 +75,7 @@
           <mat-icon>
             {{talkWindowContextService.getUserStatus(userContextService.userToChat) ? 'person': 'person_off'}}
           </mat-icon>
-          <span style="margin-left: 10px;">{{userContextService.userToChat}}</span>
+          <span style="margin-left: 10px;" class="header-font">{{userContextService.userToChat}}</span>
           <span class="toolbar-spacer"></span>
 
           <button mat-icon-button aria-label="back icon button" *ngIf="userContextService.isMobile"

@@ -1,23 +1,9 @@
 .dashboard-header {
-    background: #2c3e50;
     height: 60px;
-}
-
-.spacer {
-    flex: 1 1 auto;
-}
-
-.apps-container {
-    width: 100%;
-    height: calc(100%-60px);
 }
 
 .grid-tile {
     border: 1px solid #2c3e50;
     border-radius: 10px;
     padding: 10px;
-}
-
-.app-name {
-    font-size: large;
 }

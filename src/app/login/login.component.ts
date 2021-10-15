@@ -145,4 +145,8 @@ export class LoginComponent implements OnInit {
         LoggerUtil.log('unknown message type');
     }
   }
+
+  redirectToCodeRepo() {
+    window.open('https://github.com/gaurav10610/theinstashare-web', '_blank');
+  }
 }
