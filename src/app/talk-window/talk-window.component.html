@@ -13,11 +13,11 @@
 
     <!-- sidepanel -->
     <div id="sidepanel" [ngClass]="{'hidden-class':talkWindowContextService.bindingFlags.isFullScreenMode || !talkWindowContextService.bindingFlags.showSidepanel,
-       'column-flex-display': true, 'border-class': true }">
+       'column-flex-display': true, 'border-class': true, 'border-box-class': true }">
 
       <!-- username header -->
       <div class="username-header">
-        <mat-toolbar color="primary">
+        <mat-toolbar color="primary" class="username-header">
           <span class="header-font hide-horizontal-overflow">Logged in as: {{userContextService.username}}</span>
           <span class="toolbar-spacer"></span>
           <button mat-icon-button aria-label="logout icon button" (click)="logout()">
@@ -39,7 +39,7 @@
           <mat-list>
             <mat-list-item id="contact-{{user}}" *ngFor="let user of talkWindowContextService.activeUsers;"
               (click)="startTextChat(user)" class="pointer-cursor">
-              <mat-icon [color]="userContextService.userToChat === user ?'accent':''" matListIcon>
+              <mat-icon [color]="userContextService.userToChat === user ?'primary':''" matListIcon>
                 {{talkWindowContextService.getUserStatus(user) ? 'person': 'person_off'}}
               </mat-icon>
               <h3 matLine> {{user}} </h3>
@@ -71,7 +71,7 @@
         [ngClass]="{'username-header': true,
       'hidden-class':(userContextService.isMobile && talkWindowContextService.bindingFlags.haveRemoteVideoStream 
       && !talkWindowContextService.bindingFlags.minimizeVideo) || talkWindowContextService.bindingFlags.isFullScreenMode}">
-        <mat-toolbar color="primary">
+        <mat-toolbar color="primary" class="username-header">
           <mat-icon>
             {{talkWindowContextService.getUserStatus(userContextService.userToChat) ? 'person': 'person_off'}}
           </mat-icon>
@@ -264,23 +264,21 @@
         'hidden-class':talkWindowContextService.bindingFlags.haveRemoteVideoStream 
         && !talkWindowContextService.bindingFlags.minimizeVideo,
         'row-flex-display': true,
-        'type-message-class': true,
-        'align-center': true,
-        'center-content': true}">
+        'type-message-class': true}">
 
-        <div class="flex-grow-full hide-vertical-overflow" style="height: 100%;">
+        <div class="flex-grow-full hide-vertical-overflow hide-horizontal-overflow" style="height: 100%;">
           <input #text_msg maxlength="256" placeholder="Enter your message" class="full-height-width"
             (keyup)="sendTextMessage($event)">
         </div>
         <input id="file_input" type="file" style="display:none" (change)="startSharingFile($event)" multiple />
 
-        <div class="border-class column-flex-display center-content" style="height: 100%;">
+        <div class="border-class column-flex-display center-content border-box-class" style="height: 100%;">
           <button mat-icon-button color="accent" aria-label="attachment icon button" (click)="openFileDialog()">
             <mat-icon>attachment</mat-icon>
           </button>
         </div>
 
-        <div class="border-class column-flex-display center-content" style="height: 100%;">
+        <div class="border-class column-flex-display center-content border-box-class" style="height: 100%;">
           <button mat-icon-button color="primary" aria-label="send message icon button" (click)="sendTextMessage()">
             <mat-icon>send</mat-icon>
           </button>

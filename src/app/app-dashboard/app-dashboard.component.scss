@@ -7,3 +7,21 @@
     border-radius: 10px;
     padding: 10px;
 }
+
+.app-class {
+    width: 15%;
+    margin: 10px;
+    border-radius: 10px;
+    padding: 5px;
+}
+
+@media screen and (max-width: 735px) {
+    .app-class {
+        width: 40%;
+    }
+  }
+
+.apps-container{
+    display: flex;
+    flex-wrap: wrap;
+}

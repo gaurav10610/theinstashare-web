@@ -282,7 +282,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         this.dialogRef = this.dialog.open(AppLoginDialogComponent, {
           disableClose: true,
           panelClass: 'dialog-class',
-          data
+          data,
+          width: this.userContextService.isMobile ? '300px' : undefined
         });
         break;
 
@@ -304,7 +305,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
       case DialogType.ICONS_POPUP:
         this.dialogRef = this.dialog.open(IconsDialogComponent, {
-          data
+          data,
+          width: this.userContextService.isMobile ? '300px' : undefined
         });
         break;
 
