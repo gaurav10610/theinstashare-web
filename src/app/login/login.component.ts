@@ -35,6 +35,14 @@ export class LoginComponent implements OnInit {
 
   async ngOnInit() {
     LoggerUtil.log('ngOnit of login component');
+
+    // check if router is connected to server
+    if (!this.signalingService.signalingRouter.connected) {
+      this.snackBar.open('disconnected from server....', undefined, {
+        panelClass: ['indigo-background']
+      });
+    }
+
     // setTimeout(() => { this.stopNotification = false; }, 5000);
 
     try {
@@ -63,6 +71,12 @@ export class LoginComponent implements OnInit {
     this.signalingService.signalingRouter.off('reconnect');
     this.signalingService.signalingRouter.off('message');
     const eventsConfig = {
+      onopen: () => {
+        this.snackBar.dismiss();
+      },
+      onreconnect: () => {
+        this.snackBar.dismiss();
+      },
       onmessage: this.onRouterMessage.bind(this),
       onclose: () => {
         this.snackBar.open('disconnected from server....');
@@ -135,6 +149,7 @@ export class LoginComponent implements OnInit {
           this.isRegistering = false;
 
           this.signalingService.signalingRouter.off('message');
+          this.signalingService.signalingRouter.off('connect');
           this.router.navigateByUrl('app');
         } else {
           this.errorMessage = 'username is either invalid or already been taken';

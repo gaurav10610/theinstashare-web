@@ -40,6 +40,8 @@ export class WebRemoteAccessService {
    * 
    * @param remoteVideoHeight remote videp height
    * 
+   * @param localRemoteVideoWidth local remote video width
+   * 
    * @param localRemoteVideoHeight local remote video height
    * 
    * @param remoteVideo remote video html native element 
@@ -70,7 +72,7 @@ export class WebRemoteAccessService {
     if (localRemoteVideoHeight < localRemoteVideoWidth) {
 
       minHeight = Math.min(remoteVideoHeight, localRemoteVideoHeight);
-      this.renderer.setProperty(remoteVideo.nativeElement, 'height', minHeight);
+      // this.renderer.setProperty(remoteVideo.nativeElement, 'height', minHeight);
       this.talkWindowUtilService.appRef.tick();
 
       minWidth = remoteVideo.nativeElement.clientWidth;
@@ -80,7 +82,7 @@ export class WebRemoteAccessService {
     } else {
 
       minWidth = Math.min(remoteVideoWidth, localRemoteVideoWidth);
-      this.renderer.setProperty(remoteVideo.nativeElement, 'width', minWidth);
+      // this.renderer.setProperty(remoteVideo.nativeElement, 'width', minWidth);
       this.talkWindowUtilService.appRef.tick();
 
       minHeight = remoteVideo.nativeElement.clientHeight;

@@ -27,13 +27,13 @@
         </mat-icon>
     </button>
 
-    <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isAccessingRemote ? 'warn':'primary'"
+    <!-- <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isAccessingRemote ? 'warn':'primary'"
         aria-label="remote access icon button"
         *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
         && talkWindowContextService.bindingFlags.haveRemoteVideoStream && talkWindowContextService.remoteAccessContext['canAccessRemote']"
         (click)="handleRemoteAccess(talkWindowContextService.bindingFlags.isAccessingRemote ? 'stop' : 'start')">
         <mat-icon>mouse</mat-icon>
-    </button>
+    </button> -->
 
     <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isSoundSharing ? 'warn':'primary'"
         aria-label="system sound icon button"

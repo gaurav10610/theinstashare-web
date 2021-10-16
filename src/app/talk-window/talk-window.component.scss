@@ -18,13 +18,13 @@
   object-fit: cover;
 }
 
-.remote-video-canvas {
-  position: absolute;
-  z-index: 10;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-}
+// .remote-video-canvas {
+//   position: absolute;
+//   z-index: 10;
+//   left: 50%;
+//   top: 50%;
+//   transform: translate(-50%, -50%);
+// }
 
 .local-video {
   height: 200px;
@@ -98,4 +98,9 @@
   padding: 10px;
   cursor: pointer;
   z-index: 12;
+}
+
+.max-height-width {
+  max-width: 100%;
+  max-height: 100%;
 }

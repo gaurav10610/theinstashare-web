@@ -93,7 +93,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     // check if router is connected to server
     if (!this.signalingService.signalingRouter.connected) {
       this.snackBar.open('disconnected from server....', undefined, {
-        panelClass: ['snackbar-class']
+        panelClass: ['indigo-background']
       });
     }
 
@@ -234,17 +234,19 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     this.renderer.listen(this.remoteVideo.nativeElement, 'loadedmetadata', (event: any) => {
       if (this.talkWindowContextService.bindingFlags.isScreenSharing) {
         LoggerUtil.log('remote screen video stream has been loaded');
-        this.renderer.addClass(this.remoteVideoDiv.nativeElement, 'align-center');
+        // this.renderer.addClass(this.remoteVideoDiv.nativeElement, 'align-center');
         this.renderer.addClass(this.remoteVideoDiv.nativeElement, 'center-content');
-        this.webRemoteAccessService.calculateRemoteAccessParameters(this.remoteVideo.nativeElement.videoWidth,
+        this.webRemoteAccessService.calculateRemoteAccessParameters(
+          this.remoteVideo.nativeElement.videoWidth,
           this.remoteVideo.nativeElement.videoHeight,
           this.remoteVideoDiv.nativeElement.clientWidth,
           this.remoteVideoDiv.nativeElement.clientHeight,
-          this.remoteVideo, this.remoteVideoCanvas);
+          this.remoteVideo,
+          this.remoteVideoCanvas
+        );
       } else {
         LoggerUtil.log('remote video stream has been loaded');
         this.renderer.removeClass(this.remoteVideoDiv.nativeElement, 'align-center');
-        this.renderer.removeClass(this.remoteVideoDiv.nativeElement, 'center-content');
       }
       this.talkWindowUtilService.appRef.tick();
     });

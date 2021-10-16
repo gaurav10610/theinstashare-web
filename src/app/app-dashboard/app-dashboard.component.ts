@@ -31,6 +31,11 @@ export class AppDashboardComponent implements OnInit {
   isRegistering: Boolean = false;
 
   ngOnInit(): void {
+    if (!this.signalingService.signalingRouter.connected) {
+      this.snackBar.open('disconnected from server....', undefined, {
+        panelClass: ['indigo-background']
+      });
+    }
     //remove existing signaling event listeners
     this.signalingService.signalingRouter.off('connect');
     this.signalingService.signalingRouter.off('disconnect');
@@ -50,7 +55,7 @@ export class AppDashboardComponent implements OnInit {
         description: 'one to one'
       },
       {
-        iconText: 'More apps coming soon...', identifier: 'temp'
+        iconText: 'More apps are coming soon...', identifier: 'temp'
       }
       // {
       //   icon: 'group-chat-100X100.png',
