@@ -47,7 +47,7 @@ export class AppDashboardComponent implements OnInit {
     this.tiles = [
       {
         icon: 'peer-to-peer-100X100.png', identifier: 'p2p',
-        description: 'one to one'
+        description: 'peer to peer chat'
       },
       {
         iconText: 'More apps are coming soon...', identifier: 'temp'
