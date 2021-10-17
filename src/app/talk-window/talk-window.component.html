@@ -112,13 +112,13 @@
             </mat-icon>
           </button>
 
-          <!-- <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isAccessingRemote ? 'warn':''"
+          <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isAccessingRemote ? 'warn':''"
             aria-label="remote access icon button" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
           && talkWindowContextService.bindingFlags.haveRemoteVideoStream 
           && talkWindowContextService.remoteAccessContext['canAccessRemote']"
             (click)="handleRemoteAccess(talkWindowContextService.bindingFlags.isAccessingRemote ? 'stop' : 'start')">
             <mat-icon>mouse</mat-icon>
-          </button> -->
+          </button>
 
           <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isSoundSharing ? 'warn':''"
             aria-label="system sound icon button" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
@@ -175,7 +175,7 @@
         </video>
 
         <!-- this is blank canvas used for remote access -->
-        <canvas #remote_video_canvas id="remote_video_canvas" [ngClass]="{
+        <canvas #remote_video_canvas id="remote_video_canvas" style="position: absolute;" [ngClass]="{
           'hidden-class':!talkWindowContextService.bindingFlags.isScreenSharing
           || !talkWindowContextService.bindingFlags.haveRemoteVideoStream 
           || !talkWindowContextService.bindingFlags.isAccessingRemote}" tabindex="0">

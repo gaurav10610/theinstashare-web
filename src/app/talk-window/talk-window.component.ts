@@ -733,6 +733,11 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     const channel: string = tokens[tokens.length - 1];
     let isStopRequest: boolean = tokens.length > 1;
 
+    if (isStopRequest && channel === AppConstants.AUDIO &&
+      this.talkWindowContextService.bindingFlags.isVideoCalling) {
+      this.handleMediaStreaming('stop-video');
+    }
+
     if (isStopRequest) {
       LoggerUtil.log('handling media stream stop request for channel: ' + channel);
 
