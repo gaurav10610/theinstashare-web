@@ -90,13 +90,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   async ngOnInit() {
 
-    // check if router is connected to server
-    if (!this.signalingService.signalingRouter.connected) {
-      this.snackBar.open('disconnected from server....', undefined, {
-        panelClass: ['indigo-background']
-      });
-    }
-
     if (this.signalingService.isRegistered) {
 
       /**
@@ -246,7 +239,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         );
       } else {
         LoggerUtil.log('remote video stream has been loaded');
-        this.renderer.removeClass(this.remoteVideoDiv.nativeElement, 'align-center');
+        this.renderer.removeClass(this.remoteVideoDiv.nativeElement, 'center-content');
       }
       this.talkWindowUtilService.appRef.tick();
     });
@@ -382,7 +375,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   }
 
   /*
-   * handler to handle connection open event with server
+   * handle connection open event with server
    */
   onRouterConnect() {
     const username: String = this.userContextService.getUserName()
@@ -400,7 +393,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * handler to handle messages received via server or via webrtc datachannel
+   * handle messages received via server or via webrtc datachannel
    *
    *
    * while sending any message to other user app gives first priority to existing

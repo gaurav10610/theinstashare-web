@@ -17,7 +17,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 export class LoginComponent implements OnInit {
 
   constructor(
-    private apiService: ApiService,
     private router: Router,
     public signalingService: SignalingService,
     private userContextService: UserContextService,
@@ -35,13 +34,6 @@ export class LoginComponent implements OnInit {
 
   async ngOnInit() {
     LoggerUtil.log('ngOnit of login component');
-
-    // check if router is connected to server
-    if (!this.signalingService.signalingRouter.connected) {
-      this.snackBar.open('disconnected from server....', undefined, {
-        panelClass: ['indigo-background']
-      });
-    }
 
     // setTimeout(() => { this.stopNotification = false; }, 5000);
 

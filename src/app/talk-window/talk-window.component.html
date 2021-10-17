@@ -170,13 +170,12 @@
 
         <video #remoteVideo id="remoteVideo" [ngClass]="{
           'hidden-class':!talkWindowContextService.bindingFlags.haveRemoteVideoStream,
-          'scale-video':!talkWindowContextService.bindingFlags.isScreenSharing,
-          'full-height-width': !talkWindowContextService.bindingFlags.isScreenSharing}" autoplay>
+          'scale-video': !talkWindowContextService.bindingFlags.isScreenSharing && userContextService.isMobile
+        }" autoplay>
         </video>
 
         <!-- this is blank canvas used for remote access -->
         <canvas #remote_video_canvas id="remote_video_canvas" [ngClass]="{
-          'remote-video-canvas':true, 
           'hidden-class':!talkWindowContextService.bindingFlags.isScreenSharing
           || !talkWindowContextService.bindingFlags.haveRemoteVideoStream 
           || !talkWindowContextService.bindingFlags.isAccessingRemote}" tabindex="0">
@@ -184,13 +183,15 @@
 
       </div>
 
-      <div id="local_video_div" [ngClass]="{'local-video':talkWindowContextService.bindingFlags.haveLocalVideoStream  
+      <div id="local_video_div" [ngClass]="{
+        'local-video':talkWindowContextService.bindingFlags.haveLocalVideoStream  
         && !talkWindowContextService.bindingFlags.minimizeVideo,
         'mobile-local-video':talkWindowContextService.bindingFlags.isFullScreenMode || userContextService.isMobile,
         'hidden-class': !talkWindowContextService.bindingFlags.haveLocalVideoStream 
         || talkWindowContextService.bindingFlags.minimizeVideo 
-        || talkWindowContextService.bindingFlags.isScreenSharing}">
-        <video #localVideo id="localVideo" class="local-video mobile-local-video show-class" autoplay></video>
+        || talkWindowContextService.bindingFlags.isScreenSharing,
+        'column-flex-display':true}">
+        <video #localVideo id="localVideo" class="scale-video mirror-video" autoplay></video>
       </div>
 
       <div #messageHistory id="message-history" [ngClass]="{

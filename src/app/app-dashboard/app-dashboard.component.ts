@@ -31,11 +31,6 @@ export class AppDashboardComponent implements OnInit {
   isRegistering: Boolean = false;
 
   ngOnInit(): void {
-    if (!this.signalingService.signalingRouter.connected) {
-      this.snackBar.open('disconnected from server....', undefined, {
-        panelClass: ['indigo-background']
-      });
-    }
     //remove existing signaling event listeners
     this.signalingService.signalingRouter.off('connect');
     this.signalingService.signalingRouter.off('disconnect');

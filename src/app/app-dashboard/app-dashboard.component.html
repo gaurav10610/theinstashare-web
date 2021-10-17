@@ -19,11 +19,11 @@
             (click)="registerApplicationUser(tile.identifier)">
 
             <div
-                [ngClass]="{'text-center':true, 'hidden-class': userContextService.selectedApp === tile.identifier && isRegistering}">
+            *ngIf="tile.icon" [ngClass]="{'text-center':true, 'hidden-class': userContextService.selectedApp === tile.identifier && isRegistering}">
                 <img src="{{assetsPath + tile.icon}}" alt="" />
             </div>
             <span *ngIf="!tile.icon" class="header-font">{{tile.iconText}}</span>
-            <span *ngIf="tile.description" class="header-font">{{tile.description}}</span>
+            <span *ngIf="tile.description && !isRegistering" class="header-font">{{tile.description}}</span>
 
             <mat-progress-spinner *ngIf="userContextService.selectedApp === tile.identifier && isRegistering"
                 color="primary" mode="indeterminate" value="value">
