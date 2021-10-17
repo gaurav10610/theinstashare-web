@@ -90,13 +90,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   async ngOnInit() {
 
-    // check if router is connected to server
-    if (!this.signalingService.signalingRouter.connected) {
-      this.snackBar.open('disconnected from server....', undefined, {
-        panelClass: ['snackbar-class']
-      });
-    }
-
     if (this.signalingService.isRegistered) {
 
       /**
@@ -234,16 +227,18 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     this.renderer.listen(this.remoteVideo.nativeElement, 'loadedmetadata', (event: any) => {
       if (this.talkWindowContextService.bindingFlags.isScreenSharing) {
         LoggerUtil.log('remote screen video stream has been loaded');
-        this.renderer.addClass(this.remoteVideoDiv.nativeElement, 'align-center');
+        // this.renderer.addClass(this.remoteVideoDiv.nativeElement, 'align-center');
         this.renderer.addClass(this.remoteVideoDiv.nativeElement, 'center-content');
-        this.webRemoteAccessService.calculateRemoteAccessParameters(this.remoteVideo.nativeElement.videoWidth,
+        this.webRemoteAccessService.calculateRemoteAccessParameters(
+          this.remoteVideo.nativeElement.videoWidth,
           this.remoteVideo.nativeElement.videoHeight,
           this.remoteVideoDiv.nativeElement.clientWidth,
           this.remoteVideoDiv.nativeElement.clientHeight,
-          this.remoteVideo, this.remoteVideoCanvas);
+          this.remoteVideo,
+          this.remoteVideoCanvas
+        );
       } else {
         LoggerUtil.log('remote video stream has been loaded');
-        this.renderer.removeClass(this.remoteVideoDiv.nativeElement, 'align-center');
         this.renderer.removeClass(this.remoteVideoDiv.nativeElement, 'center-content');
       }
       this.talkWindowUtilService.appRef.tick();
@@ -282,7 +277,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         this.dialogRef = this.dialog.open(AppLoginDialogComponent, {
           disableClose: true,
           panelClass: 'dialog-class',
-          data
+          data,
+          width: this.userContextService.isMobile ? '300px' : undefined
         });
         break;
 
@@ -304,7 +300,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
       case DialogType.ICONS_POPUP:
         this.dialogRef = this.dialog.open(IconsDialogComponent, {
-          data
+          data,
+          width: this.userContextService.isMobile ? '300px' : undefined
         });
         break;
 
@@ -378,7 +375,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   }
 
   /*
-   * handler to handle connection open event with server
+   * handle connection open event with server
    */
   onRouterConnect() {
     const username: String = this.userContextService.getUserName()
@@ -396,7 +393,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * handler to handle messages received via server or via webrtc datachannel
+   * handle messages received via server or via webrtc datachannel
    *
    *
    * while sending any message to other user app gives first priority to existing
@@ -735,6 +732,11 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     const tokens: string[] = clickedIcon.split('-');
     const channel: string = tokens[tokens.length - 1];
     let isStopRequest: boolean = tokens.length > 1;
+
+    if (isStopRequest && channel === AppConstants.AUDIO &&
+      this.talkWindowContextService.bindingFlags.isVideoCalling) {
+      this.handleMediaStreaming('stop-video');
+    }
 
     if (isStopRequest) {
       LoggerUtil.log('handling media stream stop request for channel: ' + channel);

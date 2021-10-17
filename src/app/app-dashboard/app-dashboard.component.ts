@@ -26,7 +26,6 @@ export class AppDashboardComponent implements OnInit {
   ) { }
 
   tiles: any[];
-  totalColumns: Number;
   //assets path
   assetsPath = environment.is_native_app ? 'assets/images/icons/' : '../../assets/images/icons/';
   isRegistering: Boolean = false;
@@ -42,21 +41,19 @@ export class AppDashboardComponent implements OnInit {
     this.isRegistering = false;
     this.userContextService.selectedApp = undefined;
 
-    if (this.userContextService.isMobile) {
-      this.totalColumns = 2;
-    } else {
-      this.totalColumns = 10;
-    }
     /**
      * add apps here
      */
     this.tiles = [
       {
-        icon: 'peer-to-peer-100X100.png', cols: 1, rows: 1, color: 'black',
-        appName: 'one to one', identifier: 'p2p'
+        icon: 'peer-to-peer-100X100.png', identifier: 'p2p',
+        description: 'peer to peer chat'
+      },
+      {
+        iconText: 'More apps are coming soon...', identifier: 'temp'
       }
       // {
-      //   icon: 'group-chat-100X100.png', cols: 1, rows: 1, color: 'black',
+      //   icon: 'group-chat-100X100.png',
       //   appName: 'group chat', identifier: 'group_chat'
       // }
     ];
@@ -209,6 +206,9 @@ export class AppDashboardComponent implements OnInit {
    * @param applicationName name of the selected application
    */
   async registerApplicationUser(applicationName: String) {
+    if (applicationName === 'temp') {
+      return; // coming soon label
+    }
     if (this.isRegistering) {
       LoggerUtil.log('already registering user');
     } else {

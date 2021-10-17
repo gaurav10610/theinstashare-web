@@ -16,14 +16,7 @@
 
 .scale-video {
   object-fit: cover;
-}
-
-.remote-video-canvas {
-  position: absolute;
-  z-index: 10;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  height: 100%;
 }
 
 .local-video {
@@ -32,13 +25,18 @@
   position: absolute;
   right: 0;
   top: 60px;
-  background: #fff;
+  background:black;
   z-index: 10;
-  object-fit: cover;
 }
 
 .mobile-local-video {
   top: 0;
+}
+
+.mirror-video {
+  transform: rotateY(180deg);
+  -webkit-transform:rotateY(180deg); /* Safari and Chrome */
+  -moz-transform:rotateY(180deg);
 }
 
 @media screen and (max-width: 735px) {
@@ -98,4 +96,9 @@
   padding: 10px;
   cursor: pointer;
   z-index: 12;
+}
+
+.max-height-width {
+  max-width: 100%;
+  max-height: 100%;
 }

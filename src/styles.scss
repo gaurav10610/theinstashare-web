@@ -33,6 +33,10 @@
   border: 1px solid black;
 }
 
+.border-box-class {
+  box-sizing: border-box;
+}
+
 .dialog-class .mat-dialog-container {
   background: white;
 }
@@ -87,8 +91,16 @@
   overflow-y: hidden;
 }
 
+.hide-horizontal-overflow {
+  overflow-x: hidden;
+}
+
 .vertical-scroll {
   overflow-y: scroll;
+}
+
+.header-font {
+  font-family: monospace, "Courier New", Courier;
 }
 
 html,

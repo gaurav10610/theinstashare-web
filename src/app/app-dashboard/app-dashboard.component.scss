@@ -1,15 +1,5 @@
 .dashboard-header {
-    background: #2c3e50;
     height: 60px;
-}
-
-.spacer {
-    flex: 1 1 auto;
-}
-
-.apps-container {
-    width: 100%;
-    height: calc(100%-60px);
 }
 
 .grid-tile {
@@ -18,6 +8,20 @@
     padding: 10px;
 }
 
-.app-name {
-    font-size: large;
+.app-class {
+    width: 15%;
+    margin: 10px;
+    border-radius: 10px;
+    padding: 5px;
+}
+
+@media screen and (max-width: 735px) {
+    .app-class {
+        width: 40%;
+    }
+  }
+
+.apps-container{
+    display: flex;
+    flex-wrap: wrap;
 }

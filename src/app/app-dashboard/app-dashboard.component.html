@@ -1,29 +1,33 @@
 <div class="column-flex-display full-height-width">
 
     <div class="dashboard-header">
-        <mat-toolbar class="dashboard-header">
+        <mat-toolbar color="primary" class="dashboard-header">
             <img src="{{assetsPath + 'title-40X40.png'}}" alt="" />
-            <img src="{{assetsPath + 'theinstashare-191X40.png'}}" alt="" />
-            <span class="spacer"></span>
+            <!-- <img src="{{assetsPath + 'theinstashare-191X40.png'}}" alt="" /> -->
+            <span style="margin-left: 10px;" class="header-font">TheInstashare</span>
+            <span class="toolbar-spacer"></span>
             <button mat-icon-button aria-label="" (click)="logout()">
-              <mat-icon>logout</mat-icon>
+                <mat-icon>logout</mat-icon>
             </button>
-          </mat-toolbar>
+        </mat-toolbar>
     </div>
 
     <!-- container for all the applications -->
     <div id="apps-container" class="apps-container">
-        <mat-grid-list cols="{{totalColumns}}" rowHeight="1:1" style="margin:5px;">
-            <mat-grid-tile *ngFor="let tile of tiles" [colspan]="tile.cols" [rowspan]="tile.rows" class="grid-tile pointer-cursor"
-                (click)="registerApplicationUser(tile.identifier)">
-                <div
-                    [ngClass]="{'text-center':true, 'hidden-class': userContextService.selectedApp === tile.identifier && isRegistering}">
-                    <img src="{{assetsPath + tile.icon}}" alt="" />
-                </div>
-                <mat-progress-spinner *ngIf="userContextService.selectedApp === tile.identifier && isRegistering"
-                    color="warn" mode="indeterminate" value="value">
-                </mat-progress-spinner>
-            </mat-grid-tile>
-        </mat-grid-list>
+        <div *ngFor="let tile of tiles"
+            class="app-class column-flex-display align-center center-content border-class border-box-class pointer-cursor"
+            (click)="registerApplicationUser(tile.identifier)">
+
+            <div
+            *ngIf="tile.icon" [ngClass]="{'text-center':true, 'hidden-class': userContextService.selectedApp === tile.identifier && isRegistering}">
+                <img src="{{assetsPath + tile.icon}}" alt="" />
+            </div>
+            <span *ngIf="!tile.icon" class="header-font">{{tile.iconText}}</span>
+            <span *ngIf="tile.description && !isRegistering" class="header-font">{{tile.description}}</span>
+
+            <mat-progress-spinner *ngIf="userContextService.selectedApp === tile.identifier && isRegistering"
+                color="primary" mode="indeterminate" value="value">
+            </mat-progress-spinner>
+        </div>
     </div>
 </div>

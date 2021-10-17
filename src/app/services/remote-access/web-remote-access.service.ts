@@ -40,6 +40,8 @@ export class WebRemoteAccessService {
    * 
    * @param remoteVideoHeight remote videp height
    * 
+   * @param localRemoteVideoWidth local remote video width
+   * 
    * @param localRemoteVideoHeight local remote video height
    * 
    * @param remoteVideo remote video html native element 
@@ -49,6 +51,9 @@ export class WebRemoteAccessService {
   calculateRemoteAccessParameters(remoteVideoWidth: any, remoteVideoHeight: any,
     localRemoteVideoWidth: any, localRemoteVideoHeight: any,
     remoteVideo: any, remoteVideoCanvas: any) {
+    LoggerUtil.log(remoteVideo.nativeElement.clientWidth);
+    LoggerUtil.log(remoteVideo.nativeElement.clientHeight);
+
 
     /**
      * set remote height and width in remote access context
@@ -67,27 +72,35 @@ export class WebRemoteAccessService {
      * if width of viewer device is less than it's height then do vice-versa of above  
      * 
      */
-    if (localRemoteVideoHeight < localRemoteVideoWidth) {
+    // if (localRemoteVideoHeight < localRemoteVideoWidth) {
 
-      minHeight = Math.min(remoteVideoHeight, localRemoteVideoHeight);
-      this.renderer.setProperty(remoteVideo.nativeElement, 'height', minHeight);
-      this.talkWindowUtilService.appRef.tick();
+    //   minHeight = Math.min(remoteVideoHeight, localRemoteVideoHeight);
+    //   this.renderer.setProperty(remoteVideo.nativeElement, 'height', minHeight);
+    //   this.talkWindowUtilService.appRef.tick();
 
-      minWidth = remoteVideo.nativeElement.clientWidth;
-      this.renderer.setProperty(remoteVideoCanvas.nativeElement, 'height', minHeight);
-      this.renderer.setProperty(remoteVideoCanvas.nativeElement, 'width', minWidth);
-      this.talkWindowUtilService.appRef.tick();
-    } else {
+    //   minWidth = remoteVideo.nativeElement.clientWidth;
+    //   this.renderer.setProperty(remoteVideoCanvas.nativeElement, 'height', minHeight);
+    //   this.renderer.setProperty(remoteVideoCanvas.nativeElement, 'width', minWidth);
+    //   this.talkWindowUtilService.appRef.tick();
+    // } else {
 
-      minWidth = Math.min(remoteVideoWidth, localRemoteVideoWidth);
-      this.renderer.setProperty(remoteVideo.nativeElement, 'width', minWidth);
-      this.talkWindowUtilService.appRef.tick();
+    //   minWidth = Math.min(remoteVideoWidth, localRemoteVideoWidth);
+    //   this.renderer.setProperty(remoteVideo.nativeElement, 'width', minWidth);
+    //   this.talkWindowUtilService.appRef.tick();
 
-      minHeight = remoteVideo.nativeElement.clientHeight;
-      this.renderer.setProperty(remoteVideoCanvas.nativeElement, 'height', minHeight);
-      this.renderer.setProperty(remoteVideoCanvas.nativeElement, 'width', minWidth);
-      this.talkWindowUtilService.appRef.tick();
-    }
+    //   minHeight = remoteVideo.nativeElement.clientHeight;
+    //   this.renderer.setProperty(remoteVideoCanvas.nativeElement, 'height', minHeight);
+    //   this.renderer.setProperty(remoteVideoCanvas.nativeElement, 'width', minWidth);
+    //   this.talkWindowUtilService.appRef.tick();
+    // }
+
+    minHeight = remoteVideo.nativeElement.clientHeight;
+    minWidth = remoteVideo.nativeElement.clientWidth;
+
+    //this is temporary
+    this.renderer.setProperty(remoteVideoCanvas.nativeElement, 'height', minHeight);
+    this.renderer.setProperty(remoteVideoCanvas.nativeElement, 'width', minWidth);
+    this.talkWindowUtilService.appRef.tick();
 
     this.talkWindowContextService.remoteAccessContext['heightScalingRatio'] = remoteVideoHeight / minHeight;
     this.talkWindowContextService.remoteAccessContext['widthScalingRatio'] = remoteVideoWidth / minWidth;
