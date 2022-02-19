@@ -15,7 +15,7 @@
             <div *ngIf="context.value.disconnect" (click)="closeCall('disconnect', context.value.channel)"
                 style="margin: 10px;">
                 <button mat-raised-button color="warn" aria-label="icon button">
-                    <mat-icon style="margin-right: 5px;">{{iconsMap[context.value.channel]}}</mat-icon>
+                    <mat-icon style="margin-right: 5px;">{{declineIconsMap[context.value.channel]}}</mat-icon>
                     <span>Cancel</span>
                 </button>
             </div>
@@ -30,7 +30,7 @@
             <div *ngIf="context.value.decline" (click)="closeCall('decline', context.value.channel)"
                 style="margin: 10px;">
                 <button mat-raised-button color="warn" aria-label="icon button">
-                    <mat-icon style="margin-right: 5px;">{{iconsMap[context.value.channel]}}</mat-icon>
+                    <mat-icon style="margin-right: 5px;">{{declineIconsMap[context.value.channel]}}</mat-icon>
                     <span>Decline</span>
                 </button>
             </div>

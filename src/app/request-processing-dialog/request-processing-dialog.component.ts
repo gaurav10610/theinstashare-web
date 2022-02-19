@@ -26,6 +26,15 @@ export class RequestProcessingDialogComponent implements OnInit {
     'remoteControl': 'mouse'
   };
 
+  // decline icons map
+  declineIconsMap: Object = {
+    'video': 'videocam_off',
+    'audio': 'phone_disabled',
+    'screen': 'desktop_access_disabled',
+    'sound': 'volume_off',
+    'remoteControl': 'mouse'
+  };
+
   ngOnInit(): void {
   }
 
