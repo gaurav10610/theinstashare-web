@@ -1500,7 +1500,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       if (this.userContextService.getUserWebrtcContext(userToChat)) {
         this.userContextService.getUserWebrtcContext(userToChat).unreadCount = 0;
       }
-      this.talkWindowUtilService.appRef.tick();
       this.scrollMessages();
       this.userContextService.userToChat = userToChat;
     }
@@ -1544,6 +1543,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     if (channel === AppConstants.VIDEO && !this.talkWindowContextService.bindingFlags.isAudioCalling) {
       this.webrtcService.cleanMediaContextIfNotConnected(userToChat, AppConstants.AUDIO);
     }
+    this.talkWindowUtilService.appRef.tick();
   }
 
   /**
