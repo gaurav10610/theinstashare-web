@@ -28,6 +28,7 @@ import { MediaViewerDialogComponent } from '../media-viewer-dialog/media-viewer-
 import { IconsDialogComponent } from '../icons-dialog/icons-dialog.component';
 import { DialogCloseResultType } from '../services/contracts/enum/DialogCloseResultType';
 import { RequestProcessingDialogComponent } from '../request-processing-dialog/request-processing-dialog.component';
+import { CoreFileStreamer } from '../services/file-sharing/CoreFileStreamer';
 
 @Component({
   selector: 'app-talk-window',
@@ -1205,6 +1206,39 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     this.renderer.selectRootElement('#file_input', true).click();
   }
 
+  async testFileStreamer(event: any) {
+    /**
+     * start iterating selected files
+     */
+    for (let i = 0; i < event.target.files.length; i++) {
+      // const contentType = await this.talkWindowUtilService.resolveFileType(event.target.files[i].type.split('/')[1]);
+      // LoggerUtil.log("reading file of type: " + contentType);
+
+      const fileStreamer: CoreFileStreamer = new CoreFileStreamer(event.target.files[i]);
+      const dataArray: any[] = [];
+      while (!fileStreamer.isEndOfFile()) {
+
+        // const data: any = await fileStreamer.readBlockAsDataUrl();
+        // LoggerUtil.log(data.replace('data:application/octet-stream;base64,', ''));
+
+        const data: any = await fileStreamer.readBlockAsArrayBuffer();
+        const dataChunk: any = {
+          buffer: data
+        }
+        LoggerUtil.log(JSON.stringify(dataChunk));
+        dataArray.push(dataChunk);
+      }
+      LoggerUtil.log("Successfully read: " + event.target.files[i].name);
+      const newDataArray = dataArray.map(chunk => chunk.buffer);
+      const fileData = new Blob(newDataArray);
+      const url = window.URL.createObjectURL(fileData);
+      const downloadAnchor = this.renderer.createElement('a');
+      this.renderer.setProperty(downloadAnchor, 'href', url);
+      this.renderer.setProperty(downloadAnchor, 'download', event.target.files[i].name);
+      downloadAnchor.click();
+    }
+  }
+
   /**
    * this will share the file over a data channel and then clean it
    * @param event event object
@@ -1224,9 +1258,16 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         this.userContextService.initializeFileQueue(userToChat);
       }
 
+      /**
+       * start iterating selected files
+       */
       for (let i = 0; i < event.target.files.length; i++) {
         const contentType = await this.talkWindowUtilService.resolveFileType(event.target.files[i].type.split('/')[1]);
         const contentId: any = await this.coreAppUtilService.generateIdentifier();
+
+        /**
+         * enqueue the file for reading and sending to other peer
+         */
         webrtcContext[AppConstants.FILE_QUEUE].enqueue({
           id: contentId,
           file: event.target.files[i],
@@ -1238,6 +1279,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           fileName: event.target.files[i].name
         });
 
+        /**
+         * update chat message window with file
+         */
         this.updateChatMessages({
           id: contentId,
           status: AppConstants.CHAT_MESSAGE_STATUS.SENT,
