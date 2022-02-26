@@ -8,5 +8,6 @@ export const environment = {
   production: false,
   api_endpoint_base: 'http://localhost:9191/instashare/users/',
   api_media_server_base: 'http://localhost:9696/instashare/media-server/',
-  rtc_api_endpoint_base: 'http://localhost:9090'
+  rtc_api_endpoint_base: 'http://localhost:9090',
+  google_tracking_id: 'G-RJDZ532DZP'
 };

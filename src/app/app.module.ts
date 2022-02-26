@@ -22,6 +22,34 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { NgxGoogleAnalyticsModule, NgxGoogleAnalyticsRouterModule } from 'ngx-google-analytics';
+import { environment } from 'src/environments/environment';
+
+const moduleImports: any[] = [
+  BrowserModule,
+  AppRoutingModule,
+  HttpClientModule,
+  BrowserAnimationsModule,
+  MatSnackBarModule,
+  MatProgressSpinnerModule,
+  MatListModule,
+  MatDividerModule,
+  MatIconModule,
+  MatChipsModule,
+  MatTabsModule,
+  MatGridListModule,
+  MatDialogModule,
+  MatFormFieldModule,
+  MatInputModule,
+  MatButtonModule,
+  MatToolbarModule,
+  MatProgressBarModule,
+];
+
+if (environment.production) {
+  moduleImports.push(NgxGoogleAnalyticsModule.forRoot(environment.google_tracking_id));
+  moduleImports.push(NgxGoogleAnalyticsRouterModule);
+}
 
 @NgModule({
   declarations: [
@@ -31,26 +59,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
     AppLoginDialogComponent,
     InformationDialogComponent
   ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    HttpClientModule,
-    BrowserAnimationsModule,
-    MatSnackBarModule,
-    MatProgressSpinnerModule,
-    MatListModule,
-    MatDividerModule,
-    MatIconModule,
-    MatChipsModule,
-    MatTabsModule,
-    MatGridListModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatToolbarModule,
-    MatProgressBarModule
-  ],
+  imports: moduleImports,
   providers: [],
   bootstrap: [AppComponent]
 })

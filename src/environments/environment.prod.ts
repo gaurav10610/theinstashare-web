@@ -3,5 +3,6 @@ export const environment = {
   production: true,
   api_endpoint_base: 'https://www.theinstashare.com/instashare/users/',
   api_media_server_base: 'https://www.theinstashare.com/instashare/media-server/',
-  rtc_api_endpoint_base: 'https://www.theinstashare.com'
+  rtc_api_endpoint_base: 'https://www.theinstashare.com',
+  google_tracking_id: 'G-RJDZ532DZP'
 };
