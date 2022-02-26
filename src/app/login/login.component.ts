@@ -8,6 +8,7 @@ import { UserContextService } from '../services/context/user.context.service';
 import { environment } from '../../environments/environment';
 import { CoreMediaCaptureService } from '../services/media-capture/core-media-capture.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { GoogleAnalyticsService } from 'ngx-google-analytics';
 
 @Component({
   selector: 'app-signin-root',
@@ -21,7 +22,8 @@ export class LoginComponent implements OnInit {
     public signalingService: SignalingService,
     private userContextService: UserContextService,
     private coreMediaCaptureService: CoreMediaCaptureService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private gaService: GoogleAnalyticsService
   ) { }
 
   inputFieldLabel: String = 'Username';
@@ -33,6 +35,9 @@ export class LoginComponent implements OnInit {
   isRegistering: Boolean = false;
 
   async ngOnInit() {
+
+    this.gaService.pageView('/login', 'Login');
+
     LoggerUtil.log('ngOnit of login component');
 
     // setTimeout(() => { this.stopNotification = false; }, 5000);
@@ -142,6 +147,7 @@ export class LoginComponent implements OnInit {
 
           this.signalingService.signalingRouter.off('message');
           this.signalingService.signalingRouter.off('connect');
+          this.gaService.event('login_event', 'user_logged_in', 'User logged in', message[AppConstants.USERNAME], true);
           this.router.navigateByUrl('app');
         } else {
           this.errorMessage = 'username is either invalid or already been taken';

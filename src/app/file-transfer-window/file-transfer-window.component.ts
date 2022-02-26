@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { GoogleAnalyticsService } from 'ngx-google-analytics';
 
 @Component({
   selector: 'app-file-transfer-window',
@@ -7,9 +8,12 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 })
 export class FileTransferWindowComponent implements OnInit, OnDestroy {
 
-  constructor() { }
+  constructor(
+    private gaService: GoogleAnalyticsService
+  ) { }
 
   ngOnInit(): void {
+    this.gaService.pageView('/file-transfer', 'File Transfer');
   }
 
   /**

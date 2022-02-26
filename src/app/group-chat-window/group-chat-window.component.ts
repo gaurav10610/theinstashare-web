@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
+import { GoogleAnalyticsService } from 'ngx-google-analytics';
 import { environment } from '../../environments/environment';
 import { AppLoginDialogComponent } from '../app-login-dialog/app-login-dialog.component';
 import { GroupLoginDialogComponent } from '../group-login-dialog/group-login-dialog.component';
@@ -39,7 +40,8 @@ export class GroupChatWindowComponent implements OnInit {
     private apiService: ApiService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private router: Router
+    private router: Router,
+    private gaService: GoogleAnalyticsService
   ) { }
 
   dialogRef: MatDialogRef<any>;
@@ -71,6 +73,10 @@ export class GroupChatWindowComponent implements OnInit {
   currentTab: String = 'contacts'; // or 'chat'
 
   ngOnInit(): void {
+
+    this.gaService.pageView('/group-chat', 'Group Chat', undefined, {
+      user: this.userContextService.getUserName()
+    });
 
     //remove existing signaling event listeners
     this.signalingService.signalingRouter.off('connect');

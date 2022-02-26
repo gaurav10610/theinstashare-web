@@ -29,6 +29,7 @@ import { IconsDialogComponent } from '../icons-dialog/icons-dialog.component';
 import { DialogCloseResultType } from '../services/contracts/enum/DialogCloseResultType';
 import { RequestProcessingDialogComponent } from '../request-processing-dialog/request-processing-dialog.component';
 import { CoreFileStreamer } from '../services/file-sharing/CoreFileStreamer';
+import { GoogleAnalyticsService } from 'ngx-google-analytics';
 
 @Component({
   selector: 'app-talk-window',
@@ -53,6 +54,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     private coreDataChannelService: CoreDataChannelService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
+    private gaService: GoogleAnalyticsService
   ) { }
 
   isGrouped: boolean = false;
@@ -90,6 +92,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * angular OnInit hook
    */
   async ngOnInit() {
+
+    this.gaService.pageView('/talk', 'One to One Chat', undefined, {
+      user: this.userContextService.getUserName()
+    });
 
     if (this.signalingService.isRegistered) {
 

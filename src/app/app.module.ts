@@ -22,7 +22,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { NgxGoogleAnalyticsModule, NgxGoogleAnalyticsRouterModule } from 'ngx-google-analytics';
+import { NgxGoogleAnalyticsModule } from 'ngx-google-analytics';
 import { environment } from 'src/environments/environment';
 
 const moduleImports: any[] = [
@@ -48,7 +48,6 @@ const moduleImports: any[] = [
 
 if (environment.production) {
   moduleImports.push(NgxGoogleAnalyticsModule.forRoot(environment.google_tracking_id));
-  moduleImports.push(NgxGoogleAnalyticsRouterModule);
 }
 
 @NgModule({

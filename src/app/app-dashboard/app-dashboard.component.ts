@@ -8,6 +8,7 @@ import { ApiService } from '../services/api/api.service';
 import { AppConstants } from '../services/AppConstants';
 import { Router } from '@angular/router';
 import { CoreAppUtilityService } from '../services/util/core-app-utility.service';
+import { GoogleAnalyticsService } from 'ngx-google-analytics';
 
 @Component({
   selector: 'app-app-dashboard',
@@ -23,6 +24,7 @@ export class AppDashboardComponent implements OnInit {
     private apiService: ApiService,
     private router: Router,
     private coreAppUtilService: CoreAppUtilityService,
+    private gaService: GoogleAnalyticsService
   ) { }
 
   tiles: any[];
@@ -31,6 +33,11 @@ export class AppDashboardComponent implements OnInit {
   isRegistering: Boolean = false;
 
   ngOnInit(): void {
+
+    this.gaService.pageView('/app', 'App Dashboard', undefined, {
+      user: this.userContextService.getUserName()
+    });
+
     //remove existing signaling event listeners
     this.signalingService.signalingRouter.off('connect');
     this.signalingService.signalingRouter.off('disconnect');
@@ -47,7 +54,7 @@ export class AppDashboardComponent implements OnInit {
     this.tiles = [
       {
         icon: 'peer-to-peer-100X100.png', identifier: 'p2p',
-        description: 'peer to peer chat'
+        description: 'One to One Chat'
       },
       {
         iconText: 'More apps are coming soon...', identifier: 'temp'
