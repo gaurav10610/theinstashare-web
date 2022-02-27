@@ -68,7 +68,7 @@ export class GroupChatWindowComponent implements OnInit {
     { text: 'Two', cols: 1, rows: 1 }
   ];
 
-  totalsVideoStreamsColumns: Number;
+  totalVideoStreamsColumns: Number;
 
   currentTab: String = 'contacts'; // or 'chat'
 
@@ -85,9 +85,9 @@ export class GroupChatWindowComponent implements OnInit {
     this.signalingService.signalingRouter.off('reconnect');
 
     if (this.userContextService.isMobile) {
-      this.totalsVideoStreamsColumns = 1;
+      this.totalVideoStreamsColumns = 1;
     } else {
-      this.totalsVideoStreamsColumns = 2;
+      this.totalVideoStreamsColumns = 2;
     }
 
     this.groupChatWebrtcService.onDataChannelMessage = this.onDataChannelMessage.bind(this);

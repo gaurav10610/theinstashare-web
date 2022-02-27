@@ -12,10 +12,15 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { FileTransferWindowComponent } from '../file-transfer-window/file-transfer-window.component';
 
 
 @NgModule({
-  declarations: [],
+  declarations: [
+    FileTransferWindowComponent
+  ],
   imports: [
     CommonModule,
     FileTransferWindowRoutingModule,
@@ -29,7 +34,9 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     MatFormFieldModule,
     MatButtonModule,
     MatProgressSpinnerModule,
-    MatToolbarModule
+    MatToolbarModule,
+    MatCardModule,
+    MatProgressBarModule
   ]
 })
 export class FileTransferWindowModule { }
