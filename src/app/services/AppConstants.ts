@@ -334,6 +334,7 @@ export class AppConstants {
 
   public static APPLICATION_NAMES = {
     P2P: 'p2p',
-    GROUP_CHAT: 'group_chat'
+    GROUP_CHAT: 'group_chat',
+    FILE_TRANSFER: 'file_transfer'
   };
 }

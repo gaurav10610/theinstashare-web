@@ -32,6 +32,8 @@ export class LoginComponent implements OnInit {
     // adding github icon in registry
     this.matIconRegistry.addSvgIcon('github', this.domSanitizer
       .bypassSecurityTrustResourceUrl(this.assetsPath + 'images/icons/github-icon.svg'));
+    this.matIconRegistry.addSvgIcon('instashare_title', this.domSanitizer
+      .bypassSecurityTrustResourceUrl(this.assetsPath + 'images/icons/instashare-title.svg'));
   }
 
   inputFieldLabel: String = 'Username';

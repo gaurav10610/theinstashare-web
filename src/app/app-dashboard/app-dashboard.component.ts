@@ -9,6 +9,9 @@ import { AppConstants } from '../services/AppConstants';
 import { Router } from '@angular/router';
 import { CoreAppUtilityService } from '../services/util/core-app-utility.service';
 import { GoogleAnalyticsService } from 'ngx-google-analytics';
+import { DashboardAppIconContext } from '../services/contracts/DashboardAppIconContext';
+import { MatIconRegistry } from '@angular/material/icon';
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-app-dashboard',
@@ -24,10 +27,23 @@ export class AppDashboardComponent implements OnInit {
     private apiService: ApiService,
     private router: Router,
     private coreAppUtilService: CoreAppUtilityService,
-    private gaService: GoogleAnalyticsService
-  ) { }
+    private gaService: GoogleAnalyticsService,
+    private matIconRegistry: MatIconRegistry,
+    private domSanitizer: DomSanitizer
+  ) {
 
-  tiles: any[];
+    // adding svg icons
+    this.matIconRegistry.addSvgIcon('peer_chat_icon', this.domSanitizer
+      .bypassSecurityTrustResourceUrl(this.assetsPath + 'one-to-one-chat.svg'));
+    this.matIconRegistry.addSvgIcon('group_chat_icon', this.domSanitizer
+      .bypassSecurityTrustResourceUrl(this.assetsPath + 'group-chat.svg'));
+    this.matIconRegistry.addSvgIcon('file_tranfer_icon', this.domSanitizer
+      .bypassSecurityTrustResourceUrl(this.assetsPath + 'file-transfer.svg'));
+    this.matIconRegistry.addSvgIcon('coming_soon_icon', this.domSanitizer
+      .bypassSecurityTrustResourceUrl(this.assetsPath + 'coming-soon.svg'));
+  }
+
+  appIconsContext: DashboardAppIconContext[] = [];
   //assets path
   assetsPath = environment.is_native_app ? 'assets/images/icons/' : '../../assets/images/icons/';
   isRegistering: Boolean = false;
@@ -48,22 +64,26 @@ export class AppDashboardComponent implements OnInit {
     this.isRegistering = false;
     this.userContextService.selectedApp = undefined;
 
-    /**
-     * add apps here
-     */
-    this.tiles = [
-      {
-        icon: 'peer-to-peer-100X100.png', identifier: 'p2p',
-        description: 'One to One Chat'
-      },
-      {
-        iconText: 'More apps are coming soon...', identifier: 'temp'
-      }
-      // {
-      //   icon: 'group-chat-100X100.png',
-      //   appName: 'group chat', identifier: 'group_chat'
-      // }
-    ];
+    this.appIconsContext.push({
+      iconName: 'peer_chat_icon',
+      identifier: 'p2p',
+      iconText: '1:1 Chat'
+    });
+    this.appIconsContext.push({
+      iconName: 'group_chat_icon',
+      identifier: 'group_chat',
+      iconText: 'Group Chat'
+    });
+    this.appIconsContext.push({
+      iconName: 'file_tranfer_icon',
+      identifier: 'file_transfer',
+      iconText: 'File Transfer'
+    });
+    this.appIconsContext.push({
+      iconName: 'coming_soon_icon',
+      identifier: 'coming_soon_icon',
+      iconText: 'More Apps..'
+    });
     this.setUpSignaling();
   }
 
@@ -213,7 +233,7 @@ export class AppDashboardComponent implements OnInit {
    * @param applicationName name of the selected application
    */
   async registerApplicationUser(applicationName: String) {
-    if (applicationName === 'temp') {
+    if (applicationName === 'coming_soon_icon') {
       return; // coming soon label
     }
     if (this.isRegistering) {
@@ -259,6 +279,10 @@ export class AppDashboardComponent implements OnInit {
 
             case AppConstants.APPLICATION_NAMES.GROUP_CHAT:
               this.router.navigateByUrl('group-chat');
+              break;
+
+            case AppConstants.APPLICATION_NAMES.FILE_TRANSFER:
+              this.router.navigateByUrl('file-transfer');
               break;
           }
         } else {

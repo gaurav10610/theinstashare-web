@@ -1,114 +1,113 @@
 .full-height-width {
-    height: 100%;
-    width: 100%;
-  }
-  
-  .column-flex-display {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .row-flex-display {
-    display: flex;
-    flex-direction: row;
-  }
-  
-  .toolbar-spacer {
-    flex: 1 1 auto;
-  }
-  
-  .flex-grow-full {
-    flex-grow: 1;
-  }
-  
-  .center-content {
-    justify-content: center;
-  }
-  
-  .align-center {
-    align-items: center;
-  }
-  
-  .border-class {
-    border: 1px solid black;
-  }
-  
-  .border-box-class {
-    box-sizing: border-box;
-  }
-  
-  .dialog-class .mat-dialog-container {
-    background: white;
-  }
-  
-  .snackbar-class {
-    background: #2c3e50;
-    color: white;
-  }
-  
-  .app-background {
-    background: #2c3e50;
-  }
-  
-  .indigo-background {
-    background: #3f51b5;
-  }
-  
-  .pink-backgroud {
-    background: #ff4081;
-  }
-  
-  .color-black {
-    color: black;
-  }
-  
-  .color-white {
-    color: white;
-  }
-  
-  .hidden-class {
-    display: none;
-  }
-  
-  .show-class {
-    display: block;
-  }
-  
-  .pointer-cursor {
-    cursor: pointer;
-  }
-  
-  .no-scroll::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .no-scroll {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-  }
-  
-  .hide-vertical-overflow {
-    overflow-y: hidden;
-  }
-  
-  .hide-horizontal-overflow {
-    overflow-x: hidden;
-  }
-  
-  .vertical-scroll {
-    overflow-y: scroll;
-  }
-  
-  .header-font {
-    font-family: monospace, "Courier New", Courier;
-  }
-  
-  html,
-  body {
-    height: 100%;
-  }
-  body {
-    margin: 0;
-    font-family: Roboto, "Helvetica Neue", sans-serif;
-  }
-  
+  height: 100%;
+  width: 100%;
+}
+
+.column-flex-display {
+  display: flex;
+  flex-direction: column;
+}
+
+.row-flex-display {
+  display: flex;
+  flex-direction: row;
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+.flex-grow-full {
+  flex-grow: 1;
+}
+
+.center-content {
+  justify-content: center;
+}
+
+.align-center {
+  align-items: center;
+}
+
+.border-class {
+  border: 1px solid black;
+}
+
+.border-box-class {
+  box-sizing: border-box;
+}
+
+.dialog-class .mat-dialog-container {
+  background: white;
+}
+
+.snackbar-class {
+  background: #2c3e50;
+  color: white;
+}
+
+.indigo-background {
+  background: #3f51b5;
+}
+
+.pink-backgroud {
+  background: #ff4081;
+}
+
+.app-background {
+  background-color: #eaeded;
+}
+
+.color-black {
+  color: black;
+}
+
+.color-white {
+  color: white;
+}
+
+.hidden-class {
+  display: none;
+}
+
+.show-class {
+  display: block;
+}
+
+.pointer-cursor {
+  cursor: pointer;
+}
+
+.no-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scroll {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.hide-vertical-overflow {
+  overflow-y: hidden;
+}
+
+.hide-horizontal-overflow {
+  overflow-x: hidden;
+}
+
+.vertical-scroll {
+  overflow-y: scroll;
+}
+
+.header-font {
+  font-family: monospace, "Courier New", Courier;
+}
+
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}

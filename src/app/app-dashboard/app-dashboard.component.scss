@@ -2,26 +2,30 @@
     height: 60px;
 }
 
-.grid-tile {
-    border: 1px solid #2c3e50;
-    border-radius: 10px;
-    padding: 10px;
-}
-
 .app-class {
     width: 15%;
     margin: 10px;
     border-radius: 10px;
-    padding: 5px;
 }
 
 @media screen and (max-width: 735px) {
     .app-class {
         width: 40%;
     }
-  }
+}
 
-.apps-container{
+.apps-container {
     display: flex;
     flex-wrap: wrap;
+}
+
+@media screen and (max-width: 735px) {
+    .apps-container {
+        justify-content: center;
+    }
+}
+
+.icon-class {
+    transform: scale(2);
+    margin-bottom: 15px;
 }
