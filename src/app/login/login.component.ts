@@ -9,6 +9,8 @@ import { environment } from '../../environments/environment';
 import { CoreMediaCaptureService } from '../services/media-capture/core-media-capture.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { GoogleAnalyticsService } from 'ngx-google-analytics';
+import { MatIconRegistry } from "@angular/material/icon";
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-signin-root',
@@ -23,8 +25,14 @@ export class LoginComponent implements OnInit {
     private userContextService: UserContextService,
     private coreMediaCaptureService: CoreMediaCaptureService,
     private snackBar: MatSnackBar,
-    private gaService: GoogleAnalyticsService
-  ) { }
+    private gaService: GoogleAnalyticsService,
+    private matIconRegistry: MatIconRegistry,
+    private domSanitizer: DomSanitizer
+  ) {
+    // adding github icon in registry
+    this.matIconRegistry.addSvgIcon('github', this.domSanitizer
+      .bypassSecurityTrustResourceUrl(this.assetsPath + 'images/icons/github-icon.svg'));
+  }
 
   inputFieldLabel: String = 'Username';
   assetsPath = environment.is_native_app ? 'assets/' : '../../assets/';
