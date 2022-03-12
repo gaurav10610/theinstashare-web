@@ -28,7 +28,7 @@ export class TalkWindowContextService {
    * list of all active users
    * 
    */
-  activeUsers = [];
+  activeUsers: string[] = [];
 
   //This will contain the
   sharedContent: Object = {};

@@ -24,7 +24,7 @@ export class SignalingService {
   /* Registered flag that will keep track whether user
    * is registered with signaling server or not
    */
-  isRegistered = false;
+  isRegistered: Boolean = false;
 
   /*
    * For now it's a websocket connection to the signaling server

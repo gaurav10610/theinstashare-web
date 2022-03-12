@@ -69,11 +69,11 @@ export class AppDashboardComponent implements OnInit {
       identifier: 'p2p',
       iconText: '1:1 Chat'
     });
-    this.appIconsContext.push({
-      iconName: 'group_chat_icon',
-      identifier: 'group_chat',
-      iconText: 'Group Chat'
-    });
+    // this.appIconsContext.push({
+    //   iconName: 'group_chat_icon',
+    //   identifier: 'group_chat',
+    //   iconText: 'Group Chat'
+    // });
     this.appIconsContext.push({
       iconName: 'file_tranfer_icon',
       identifier: 'file_transfer',
