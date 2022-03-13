@@ -1,4 +1,4 @@
-import { ApplicationRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ApplicationRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
@@ -29,11 +29,11 @@ import { FileTransferService } from '../services/webrtc/file-transfer-webrtc.ser
   templateUrl: './file-transfer-window.component.html',
   styleUrls: ['./file-transfer-window.component.scss']
 })
-export class FileTransferWindowComponent implements OnInit, OnDestroy {
+export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor(
-    private userContextService: UserContextService,
-    private fileTransferContextService: FileTransferContextService,
+    public userContextService: UserContextService,
+    public contextService: FileTransferContextService,
     private fileTransferUtilService: FileTransferUtilityService,
     private fileTransferService: FileTransferService,
     private coreAppUtilService: CoreAppUtilityService,
@@ -53,18 +53,11 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy {
   //assets path
   assetsPath = environment.is_native_app ? 'assets/' : '../../assets/';
 
-  activeUsers: any[] = [
-    { name: 'gaurav', status: 'online' },
-    { name: 'gaurav', status: 'online' },
-    { name: 'gaurav', status: 'online' },
-    { name: 'gaurav', status: 'online' }
-  ];
-
   messages: any[] = [
-    { name: 'gaurav', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
-    { name: 'gaurav', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
-    { name: 'gaurav', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') },
-    { name: 'gaurav', message: 'I am good. How\'re you?', received: new Date().toLocaleString('en-US') }
+    { name: 'gaurav', message: 'I am good. How\'re you?', timestamp: new Date().toLocaleString('en-US'), sent: true, status: 'sent' },
+    { name: 'gaurav', message: 'I am good. How\'re you?', timestamp: new Date().toLocaleString('en-US'), sent: true, status: 'received' },
+    { name: 'gaurav', message: 'I am good. How\'re you?', timestamp: new Date().toLocaleString('en-US'), sent: false },
+    { name: 'gaurav', message: 'I am good. How\'re you?', timestamp: new Date().toLocaleString('en-US'), sent: false }
   ];
 
   currentTab: String = 'cloud-upload'; // or 'chat'
@@ -74,8 +67,11 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy {
     await this.setupSignaling();
   }
 
+  ngAfterViewInit() {
+  }
+
   /**
-   * do clean up here before this component  get destroyed
+   * do clean up here before this component get destroyed
    */
   ngOnDestroy(): void {
   }
@@ -164,9 +160,9 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy {
       .get(`${AppConstants.API_ENDPOINTS.GET_ALL_ACTIVE_USERS}?groupName=${AppConstants.APPLICATION_NAMES.FILE_TRANSFER}`).toPromise();
 
     //clear userStatus object
-    this.fileTransferContextService.userStatus.clear();
+    this.contextService.userStatus.clear();
     //clear active users list
-    this.fileTransferContextService.activeUsers = [];
+    this.contextService.activeUsers = [];
     data.users.forEach((user: string) => {
       this.fileTransferUtilService.updateUserStatus(true, user);
     });
@@ -209,6 +205,10 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy {
       switch (signalingMessage.type) {
         case AppConstants.REGISTER:
           await this.handleRegister(signalingMessage);
+          break;
+
+        case AppConstants.USER_ACTIVE_STATUS:
+          this.fileTransferUtilService.updateUserStatus(signalingMessage.connected, signalingMessage.username);
           break;
 
         default:
@@ -364,6 +364,25 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy {
    */
   selectTab(selectedTab: String) {
     this.currentTab = selectedTab;
+  }
+
+  /**
+   * this will handle selecting user from sidepanel
+   * 
+   * @param username 
+   */
+  selectUser(username: string) {
+    this.userContextService.userToChat = username;
+  }
+
+  /**
+   * back to contacts click handler
+   *
+   * this button is available only on mobile screen view
+   */
+  backToContacts() {
+    const userToChat = this.userContextService.userToChat;
+    this.userContextService.userToChat = undefined;
   }
 
   /**

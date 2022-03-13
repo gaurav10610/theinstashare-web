@@ -1,6 +1,7 @@
 <div id="frame" class="full-height-width top-container">
 
-    <div id="side-panel-div" class="column-flex-display border-class hide-vertical-overflow">
+    <div id="side-panel-div" class="column-flex-display border-class hide-vertical-overflow"
+        [ngStyle]="{'display': (userContextService.userToChat !== undefined && userContextService.isMobile)? 'none' : 'flex'}">
 
         <!-- header -->
         <div id="side-panel-div-header" class="dashboard-header text-center">
@@ -29,20 +30,19 @@
         <div class="flex-grow-full hide-vertical-overflow column-flex-display">
 
             <!-- contacts tab -->
-            <div [ngClass]="{
-                    'flex-grow-full': true,
-                    'vertical-scroll': true,
-                    'no-scroll': true
-                    }">
+            <div [ngClass]="{'flex-grow-full': true,'vertical-scroll': true,'no-scroll': true}">
                 <mat-list>
-                    <mat-list-item *ngFor="let user of activeUsers; last as last">
-                        <mat-icon matListIcon>{{user.status === 'online' ? 'person': 'person_off'}}
+                    <mat-list-item *ngFor="let username of contextService.activeUsers; last as last"
+                        class="pointer-cursor" (click)="selectUser(username)">
+                        <mat-icon [color]="userContextService.userToChat === username ?'primary':''" matListIcon>
+                            {{contextService.getUserStatus(username) ? 'person': 'person_off'}}
                         </mat-icon>
-                        <h3 matLine> {{user.name}} </h3>
-                        <mat-chip-list aria-label="Fish selection">
+                        <h3 matLine> {{username}} </h3>
+                        <mat-chip-list aria-label="Unread Message">
                             <mat-chip color="primary" selected>4</mat-chip>
                         </mat-chip-list>
-                        <mat-divider [inset]="true" *ngIf="!last"></mat-divider>
+                        <!-- <mat-divider [inset]="true" *ngIf="!last"></mat-divider> -->
+                        <mat-divider [inset]="true"></mat-divider>
                     </mat-list-item>
                 </mat-list>
             </div>
@@ -50,7 +50,8 @@
         </div>
     </div>
 
-    <div id="file-transfer-div" class="border-class column-flex-display">
+    <div id="file-transfer-div" class="border-class column-flex-display"
+        [ngStyle]="{'display': userContextService.userToChat !== undefined ? 'flex' : 'none'}">
 
         <!-- header -->
         <div id="file-transfer-div-header" class="dashboard-header text-center">
@@ -60,6 +61,11 @@
                 </button>
                 <span class="header-font">No User</span>
                 <span class="toolbar-spacer"></span>
+
+                <button mat-icon-button aria-label="back icon button" class="toolbar-icon" 
+                (click)="backToContacts()" *ngIf="userContextService.isMobile">
+                    <mat-icon>arrow_back</mat-icon>
+                </button>
 
                 <button mat-icon-button aria-label="chat icon button" class="toolbar-icon" (click)="selectTab('chat')">
                     <mat-icon>chat</mat-icon>
@@ -87,22 +93,28 @@
                 }">
 
             <div class="no-scroll vertical-scroll flex-grow-full">
-                <mat-list>
-                    <mat-list-item *ngFor="let message of messages">
-                        <mat-icon matListIcon>person</mat-icon>
-                        <h3 matLine> {{message.name}} </h3>
+                <div *ngFor="let message of messages" class="row-flex-display align-center" [ngStyle]="{
+                   'flex-direction': message.sent ? 'row-reverse' : 'row'
+                }">
+                    <mat-icon>person</mat-icon>
 
-                        <span matLine>
-                            <mat-chip-list aria-label="Fish selection">
-                                <mat-chip color="accent" selected>{{message.message}}</mat-chip>
-                            </mat-chip-list>
-                        </span>
+                    <mat-list>
+                        <mat-list-item>
+                            <!-- <h3 matLine> {{message.name}} </h3> -->
 
-                        <p matLine>
-                            {{message.received}}
-                        </p>
-                    </mat-list-item>
-                </mat-list>
+                            <span matLine>
+                                <mat-chip-list aria-label="Fish selection">
+                                    <mat-chip selected>{{message.message}}</mat-chip>
+                                </mat-chip-list>
+                            </span>
+
+                            <p matLine>
+                                {{message.timestamp}}
+                            </p>
+
+                        </mat-list-item>
+                    </mat-list>
+                </div>
             </div>
 
             <div class="input-message hide-vertical-overflow">

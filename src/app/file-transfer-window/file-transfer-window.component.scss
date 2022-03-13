@@ -4,6 +4,12 @@
     grid-template-rows: 100%;
 }
 
+@media screen and (max-width: 735px) {
+    .top-container {
+        grid-template-columns: 100% 100%;
+    }
+}
+
 .dashboard-header {
     width: 100%;
     height: 60px;
@@ -30,4 +36,9 @@
 
 .input-message {
     height: 60px;
+}
+
+.sent-message-class {
+    display: flex;
+    flex-direction: row-reverse;
 }
