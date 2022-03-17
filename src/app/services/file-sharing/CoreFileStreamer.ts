@@ -66,7 +66,7 @@ export class CoreFileStreamer {
   
     private testEndOfFile(): void {
       if (this.isEndOfFile()) {
-        LoggerUtil.log('Done reading file');
+        LoggerUtil.logAny('Done reading file');
       }
     }
   

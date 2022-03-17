@@ -37,7 +37,7 @@ export class SignalingService {
    */
   sendPayload(message: any) {
     this.signalingRouter.send(message);
-    LoggerUtil.log('sent payload via signaling server ' + JSON.stringify(message));
+    LoggerUtil.logAny('sent payload via signaling server ' + JSON.stringify(message));
   }
 
   /**
@@ -70,7 +70,7 @@ export class SignalingService {
    * Handler to handle signaling server connection open event
    */
   onRouterConnect() {
-    LoggerUtil.log('connection established with signaling server.');
+    LoggerUtil.logAny('connection established with signaling server.');
   }
 
   /**
@@ -78,7 +78,7 @@ export class SignalingService {
    */
   onRouterClose() {
     this.isRegistered = false;
-    LoggerUtil.log('diconnected from signaling server.');
+    LoggerUtil.logAny('diconnected from signaling server.');
   }
 
   /**

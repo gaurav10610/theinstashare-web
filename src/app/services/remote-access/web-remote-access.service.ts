@@ -51,8 +51,8 @@ export class WebRemoteAccessService {
   calculateRemoteAccessParameters(remoteVideoWidth: any, remoteVideoHeight: any,
     localRemoteVideoWidth: any, localRemoteVideoHeight: any,
     remoteVideo: any, remoteVideoCanvas: any) {
-    LoggerUtil.log(remoteVideo.nativeElement.clientWidth);
-    LoggerUtil.log(remoteVideo.nativeElement.clientHeight);
+    LoggerUtil.logAny(remoteVideo.nativeElement.clientWidth);
+    LoggerUtil.logAny(remoteVideo.nativeElement.clientHeight);
 
 
     /**
@@ -107,7 +107,7 @@ export class WebRemoteAccessService {
 
     this.talkWindowContextService.remoteAccessContext['offsetLeft'] = remoteVideoCanvas.nativeElement.getBoundingClientRect().left;
     this.talkWindowContextService.remoteAccessContext['offsetTop'] = remoteVideoCanvas.nativeElement.getBoundingClientRect().top;
-    LoggerUtil.log(this.talkWindowContextService.remoteAccessContext);
+    LoggerUtil.logAny(this.talkWindowContextService.remoteAccessContext);
   }
 
   /**

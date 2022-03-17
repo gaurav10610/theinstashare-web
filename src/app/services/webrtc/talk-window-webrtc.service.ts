@@ -84,7 +84,7 @@ export class TalkWindowWebrtcService {
   setupJobToCleanIdleDataConnection(channel: string, username: string) {
     const userWebrtcContext: any = this.userContextService.getUserWebrtcContext(username);
     const recurringJobId: any = setInterval(() => {
-      LoggerUtil.log('running recurring job to clean up idle ' + channel + ' connection for user: ' + username);
+      LoggerUtil.logAny('running recurring job to clean up idle ' + channel + ' connection for user: ' + username);
       const dataChannel: any = this.coreAppUtilService
         .getNestedValue(userWebrtcContext, AppConstants.MEDIA_CONTEXT, channel, AppConstants.DATACHANNEL);
 
@@ -93,14 +93,14 @@ export class TalkWindowWebrtcService {
         const lastUsedTime: any = userWebrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.LAST_USED];
 
         const idleTime: any = Date.now() - lastUsedTime;
-        LoggerUtil.log(channel + ' connection with user ' + username + ' has been idle for: ' + idleTime + 'ms');
+        LoggerUtil.logAny(channel + ' connection with user ' + username + ' has been idle for: ' + idleTime + 'ms');
         /**
          * if data channel is being idle after some time then clean up the webrtc connection 
          * and close the data channel 
          * 
          */
         if (idleTime > AppConstants.DATACHANNEL_IDLE_THRESHOLD) {
-          LoggerUtil.log(channel + ' data channel with user ' + username + ' was idle so cleaning it up');
+          LoggerUtil.logAny(channel + ' data channel with user ' + username + ' was idle so cleaning it up');
 
           /**
            * 
@@ -112,7 +112,7 @@ export class TalkWindowWebrtcService {
         const recurringJobId: any = this.coreAppUtilService
           .getNestedValue(userWebrtcContext, AppConstants.MEDIA_CONTEXT, channel, AppConstants.RECURRING_JOB_ID);
         if (recurringJobId) {
-          LoggerUtil.log('removed recurring job for ' + channel + ' connection with user ' + username);
+          LoggerUtil.logAny('removed recurring job for ' + channel + ' connection with user ' + username);
           //clear the interval job
           clearInterval(recurringJobId);
         }
@@ -120,7 +120,7 @@ export class TalkWindowWebrtcService {
 
     }, AppConstants.IDLE_CONN_CLEAN_UP_JOB_TIME);
 
-    LoggerUtil.log('a recurring job has been setup to clean up idle ' + channel + ' connection for user ' + username);
+    LoggerUtil.logAny('a recurring job has been setup to clean up idle ' + channel + ' connection for user ' + username);
 
     /**
      * set recurring job id in user's webrtc context so that it can be later
@@ -141,7 +141,7 @@ export class TalkWindowWebrtcService {
    */
   registerWebrtcEventListeners(peerConnection: any, userToChat: any) {
     return new Promise<void>((resolve, reject) => {
-      LoggerUtil.log('registering webrtc events on webrtc connection for ' + userToChat);
+      LoggerUtil.logAny('registering webrtc events on webrtc connection for ' + userToChat);
       try {
 
 
@@ -150,7 +150,7 @@ export class TalkWindowWebrtcService {
          * process onnegotiationneeded event here
          */
         peerConnection.onnegotiationneeded = async (event) => {
-          LoggerUtil.log(userToChat + ' webrtc connection needs renegotiation');
+          LoggerUtil.logAny(userToChat + ' webrtc connection needs renegotiation');
         };
 
         /**
@@ -159,7 +159,7 @@ export class TalkWindowWebrtcService {
          * 
          */
         peerConnection.onsignalingstatechange = () => {
-          LoggerUtil.log(userToChat + ' webrtc connection signaling state: ' + peerConnection.signalingState);
+          LoggerUtil.logAny(userToChat + ' webrtc connection signaling state: ' + peerConnection.signalingState);
           const webrtcContext = this.userContextService.getUserWebrtcContext(userToChat);
           switch (peerConnection.signalingState) {
 
@@ -188,7 +188,7 @@ export class TalkWindowWebrtcService {
                 try {
                   callback.callbackFunction(callback.callbackContext);
                 } catch (e) {
-                  LoggerUtil.log(e);
+                  LoggerUtil.logAny(e);
                 }
               }
               break;
@@ -200,7 +200,7 @@ export class TalkWindowWebrtcService {
          * process connection state change event here
          */
         peerConnection.onconnectionstatechange = async () => {
-          LoggerUtil.log(userToChat + ' webrtc connection state change: ' + peerConnection.connectionState);
+          LoggerUtil.logAny(userToChat + ' webrtc connection state change: ' + peerConnection.connectionState);
 
           const webrtcContext = this.userContextService.getUserWebrtcContext(userToChat);
 
@@ -255,7 +255,7 @@ export class TalkWindowWebrtcService {
         this.registerMediaTrackEvents(peerConnection, userToChat);
         resolve();
       } catch (error) {
-        LoggerUtil.log('there is an error while registering events on peer connection');
+        LoggerUtil.logAny('there is an error while registering events on peer connection');
         reject(error);
       }
     });
@@ -301,7 +301,7 @@ export class TalkWindowWebrtcService {
             break;
         }
       }
-      LoggerUtil.log(channel + ' stream track received');
+      LoggerUtil.logAny(channel + ' stream track received');
 
       switch (channel) {
         case AppConstants.AUDIO:
@@ -393,7 +393,7 @@ export class TalkWindowWebrtcService {
       }
       if (connected) {
         if (webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TIMEOUT_JOB]) {
-          LoggerUtil.log('media stream connection for ' + channel + ' is connected so removing timeout cleaning job');
+          LoggerUtil.logAny('media stream connection for ' + channel + ' is connected so removing timeout cleaning job');
           clearTimeout(webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TIMEOUT_JOB]);
         }
       }
@@ -419,7 +419,7 @@ export class TalkWindowWebrtcService {
       const dataChannel = event.channel;
       const channel: string = dataChannel.label;
       this.coreWebrtcService.mediaContextInit(channel, userToChat);
-      LoggerUtil.log(channel + ' data channel has been received');
+      LoggerUtil.logAny(channel + ' data channel has been received');
       const webrtcContext: any = this.userContextService.getUserWebrtcContext(userToChat);
       webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.DATACHANNEL] = dataChannel;
 
@@ -431,7 +431,7 @@ export class TalkWindowWebrtcService {
         this.onDataChannelMessage(msgEvent.data);
       }
 
-      LoggerUtil.log('message listener registered on received ' + channel + ' data channel');
+      LoggerUtil.logAny('message listener registered on received ' + channel + ' data channel');
 
       /**
        * if this data channel is meant for sending text messages then register
@@ -439,7 +439,7 @@ export class TalkWindowWebrtcService {
        *
        */
       dataChannel.onopen = () => {
-        LoggerUtil.log(channel + ' data channel has been opened');
+        LoggerUtil.logAny(channel + ' data channel has been opened');
 
         /**
          * 
@@ -462,7 +462,7 @@ export class TalkWindowWebrtcService {
           this.talkWindowContextService.bindingFlags.haveSharedRemoteAccess = true;
           this.talkWindowRemovePopupContextFn([AppConstants.POPUP_TYPE.CONNECTING + AppConstants.REMOTE_CONTROL]);
           if (webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TIMEOUT_JOB]) {
-            LoggerUtil.log(channel + ' data channel is connected so removing timeout cleaning job');
+            LoggerUtil.logAny(channel + ' data channel is connected so removing timeout cleaning job');
             clearTimeout(webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TIMEOUT_JOB]);
           }
         }
@@ -624,7 +624,7 @@ export class TalkWindowWebrtcService {
         this.userContextService.webrtcContext = {};
         resolve();
       } catch (error) {
-        LoggerUtil.log(error);
+        LoggerUtil.logAny(error);
         reject(error);
       }
     });
@@ -686,7 +686,7 @@ export class TalkWindowWebrtcService {
         this.talkWindowRemovePopupContextFn([AppConstants.POPUP_TYPE.CONNECTING + channel]);
         resolve();
       } catch (error) {
-        LoggerUtil.log('there is an error occured while cleaning media channel context for channel: ' + channel);
+        LoggerUtil.logAny('there is an error occured while cleaning media channel context for channel: ' + channel);
         reject(error);
       }
     });
@@ -725,7 +725,7 @@ export class TalkWindowWebrtcService {
         }
         resolve();
       } catch (error) {
-        LoggerUtil.log('there is an error occured while cleaning data channel context for channel: ' + channel);
+        LoggerUtil.logAny('there is an error occured while cleaning data channel context for channel: ' + channel);
         reject(error);
       }
     });
@@ -763,7 +763,7 @@ export class TalkWindowWebrtcService {
         this.cleanDataChannelContext(channel, mediaContext[channel]);
         delete mediaContext[channel];
       } else {
-        LoggerUtil.log(channel + ' data channel connection with ' + username + ' found connected after timeout');
+        LoggerUtil.logAny(channel + ' data channel connection with ' + username + ' found connected after timeout');
       }
     }, AppConstants.CONNECTION_TIMEOUT);
   }
@@ -838,7 +838,7 @@ export class TalkWindowWebrtcService {
         }
         this.cleanMediaStreamContext(channel, mediaContext[channel]);
       } else {
-        LoggerUtil.log('media stream connection for ' + channel + ' channel found connected after timeout');
+        LoggerUtil.logAny('media stream connection for ' + channel + ' channel found connected after timeout');
       }
     }, AppConstants.CONNECTION_TIMEOUT);
   }
@@ -857,7 +857,7 @@ export class TalkWindowWebrtcService {
    * @param popupContexts list of informational modal popup context that needs to be shown
    */
   processChannelStreamDisconnect(channel: string, username: string, sendDisonnectNotification: boolean, popupContexts?: any[]) {
-    LoggerUtil.log('stopping ' + channel + ' stream session with ' + username);
+    LoggerUtil.logAny('stopping ' + channel + ' stream session with ' + username);
 
     /**
      * send appropriate media stream disconnect message to other peer
@@ -896,7 +896,7 @@ export class TalkWindowWebrtcService {
    */
   webrtcConnectionDisconnectHandler(username: string, popupContexts?: any[]) {
     return new Promise<void>((resolve) => {
-      LoggerUtil.log('handling webrtc connection disconnect for ' + username);
+      LoggerUtil.logAny('handling webrtc connection disconnect for ' + username);
       const webrtcContext: any = this.userContextService.getUserWebrtcContext(username);
 
       /**
@@ -967,7 +967,7 @@ export class TalkWindowWebrtcService {
    * 
    */
   async onDataChannelMessage(jsonMessage: string) {
-    LoggerUtil.log('message received on data channel : ' + jsonMessage);
+    LoggerUtil.logAny('message received on data channel : ' + jsonMessage);
     const message: any = JSON.parse(jsonMessage);
     switch (message.type) {
 
@@ -1133,7 +1133,7 @@ export class TalkWindowWebrtcService {
    * @param  eventObject : media context update event object
    */
   mediaCallContextUpdateHandler(eventObject: MediaContextUpdateEventType) {
-    LoggerUtil.log('media context for property: ' + eventObject.property + ' with value: ' + eventObject.value);
+    LoggerUtil.logAny('media context for property: ' + eventObject.property + ' with value: ' + eventObject.value);
     const propertyValue: boolean = <boolean>eventObject.value;
     switch (eventObject.property) {
       case 'haveLocalAudioStream':
@@ -1195,7 +1195,7 @@ export class TalkWindowWebrtcService {
     return new Promise<void>(async (resolve, reject) => {
       try {
 
-        LoggerUtil.log('setting up new webrtc connection');
+        LoggerUtil.logAny('setting up new webrtc connection');
 
         /**
          * 
@@ -1249,7 +1249,7 @@ export class TalkWindowWebrtcService {
                 offer: offer
               });
             }).catch((error) => {
-              LoggerUtil.log(error);
+              LoggerUtil.logAny(error);
               reject('There is an error while generating offer on peer connection');
             });
           } else {
@@ -1269,7 +1269,7 @@ export class TalkWindowWebrtcService {
                 answer: answer
               });
             }).catch((error) => {
-              LoggerUtil.log('there is an error while generating answer');
+              LoggerUtil.logAny('there is an error while generating answer');
               reject(error);
             }); // Here ends create answer
           }
@@ -1280,7 +1280,7 @@ export class TalkWindowWebrtcService {
            */
         }
       } catch (e) {
-        LoggerUtil.log(e);
+        LoggerUtil.logAny(e);
         reject('there is an exception occured while establishing connection with ' + username);
       }
     });
@@ -1324,7 +1324,7 @@ export class TalkWindowWebrtcService {
            */
           const offerContainer: any = await this.coreWebrtcService.getDataChannelOffer(peerConnection, createDataChannelType.channel);
           const dataChannel: any = offerContainer.dataChannel;
-          LoggerUtil.log('registered message listener on ' + createDataChannelType.channel + ' data channel');
+          LoggerUtil.logAny('registered message listener on ' + createDataChannelType.channel + ' data channel');
 
           // remote datachannel onmessage listener
           dataChannel.onmessage = (msgEvent: any) => {
@@ -1348,7 +1348,7 @@ export class TalkWindowWebrtcService {
            */
           webrtcContext[AppConstants.MEDIA_CONTEXT][createDataChannelType.channel][AppConstants.DATACHANNEL] = dataChannel;
         } else {
-          LoggerUtil.log('webrtc connection is not in connected state for user: ' + createDataChannelType.username);
+          LoggerUtil.logAny('webrtc connection is not in connected state for user: ' + createDataChannelType.username);
           /**
            * 
            * if webrtc connection is not in connetcted state then add the setup data channel function 

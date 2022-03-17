@@ -15,7 +15,7 @@ export class UserContextService {
   ) {
     this.isMobile = this.deviceService.isMobile();
     if (this.isMobile) {
-      LoggerUtil.log('this is a mobile device');
+      LoggerUtil.logAny('this is a mobile device');
     }
   }
 

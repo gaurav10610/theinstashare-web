@@ -162,18 +162,18 @@ export class AppDashboardComponent implements OnInit {
    */
   async onRouterMessage(signalingMessage: any) {
     try {
-      LoggerUtil.log(`received message via ${signalingMessage.via}: ${JSON.stringify(signalingMessage)}`);
+      LoggerUtil.logAny(`received message via ${signalingMessage.via}: ${JSON.stringify(signalingMessage)}`);
       switch (signalingMessage.type) {
         case AppConstants.REGISTER:
           await this.handleRegister(signalingMessage);
           break;
 
         default:
-          LoggerUtil.log('received unknown signaling message with type: ' + signalingMessage.type);
+          LoggerUtil.logAny('received unknown signaling message with type: ' + signalingMessage.type);
       }
     } catch (err) {
-      LoggerUtil.log(`error occured while handling received signaling message: ${JSON.stringify(signalingMessage)}`);
-      LoggerUtil.log(err);
+      LoggerUtil.logAny(`error occured while handling received signaling message: ${JSON.stringify(signalingMessage)}`);
+      LoggerUtil.logAny(err);
     }
   }
 
@@ -237,9 +237,9 @@ export class AppDashboardComponent implements OnInit {
       return; // coming soon label
     }
     if (this.isRegistering) {
-      LoggerUtil.log('already registering user');
+      LoggerUtil.logAny('already registering user');
     } else {
-      LoggerUtil.log(`user selected application: ${applicationName}`);
+      LoggerUtil.logAny(`user selected application: ${applicationName}`);
       this.userContextService.selectedApp = applicationName;
       this.isRegistering = true;
       try {
@@ -255,7 +255,7 @@ export class AppDashboardComponent implements OnInit {
         }).toPromise();
 
         if (data && data.registered) {
-          LoggerUtil.log(`user was succussfully registered for app: ${this.userContextService.selectedApp}`);
+          LoggerUtil.logAny(`user was succussfully registered for app: ${this.userContextService.selectedApp}`);
           this.coreAppUtilService.setStorageValue(AppConstants.STORAGE_APPLICATION, applicationName.toString());
 
           /**
@@ -286,11 +286,11 @@ export class AppDashboardComponent implements OnInit {
               break;
           }
         } else {
-          LoggerUtil.log('user registration was unsuccessful');
+          LoggerUtil.logAny('user registration was unsuccessful');
         }
       } catch (e) {
-        LoggerUtil.log('error while registering user for selected application');
-        LoggerUtil.log(e);
+        LoggerUtil.logAny('error while registering user for selected application');
+        LoggerUtil.logAny(e);
         this.isRegistering = false;
         this.userContextService.selectedApp = undefined;
       }
@@ -301,7 +301,7 @@ export class AppDashboardComponent implements OnInit {
    * logout from theinstshare
    */
   logout() {
-    LoggerUtil.log('logging out.........');
+    LoggerUtil.logAny('logging out.........');
     /**
      * send de-register message to server to notify that user has opted to
      * logout

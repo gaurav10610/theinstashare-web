@@ -69,9 +69,9 @@ export class CoreDataChannelService {
       const webrtcContext: any = this.userContextService.getUserWebrtcContext(jsonMessage.to);
       webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.DATACHANNEL].send(JSON.stringify(jsonMessage));
     } catch (e) {
-      LoggerUtil.log('error occured while sending following message via data channel');
-      LoggerUtil.log(JSON.stringify(jsonMessage));
+      LoggerUtil.logAny('error occured while sending following message via data channel');
+      LoggerUtil.logAny(JSON.stringify(jsonMessage));
     }
-    LoggerUtil.log('sent payload via data channel : ' + JSON.stringify(jsonMessage));
+    LoggerUtil.logAny('sent payload via data channel : ' + JSON.stringify(jsonMessage));
   }
 }

@@ -35,7 +35,7 @@ export class GroupLoginDialogComponent implements OnInit {
    * handle keyup event on input field
    */
   handleKeyUpEvent() {
-    LoggerUtil.log('input field keyup event');
+    LoggerUtil.logAny('input field keyup event');
     this.errorMessage = undefined
   }
 
@@ -52,7 +52,7 @@ export class GroupLoginDialogComponent implements OnInit {
       this.errorMessage = 'invalid group name';
       return;
     }
-    LoggerUtil.log(`user selected operation: ${operation} with group name: ${groupName}`);
+    LoggerUtil.logAny(`user selected operation: ${operation} with group name: ${groupName}`);
     this.isRegistering = true;
 
     /**
@@ -103,8 +103,8 @@ export class GroupLoginDialogComponent implements OnInit {
         await this.apiService.get(`group/${groupName}`, AppConstants.MEDIA_SERVER).toPromise();
         resolve(true);
       } catch (e) {
-        LoggerUtil.log(`error occured while checking group existence for group: ${groupName}`);
-        LoggerUtil.log(e);
+        LoggerUtil.logAny(`error occured while checking group existence for group: ${groupName}`);
+        LoggerUtil.logAny(e);
         resolve(false);
       }
     });

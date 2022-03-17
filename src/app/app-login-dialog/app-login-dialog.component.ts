@@ -54,13 +54,13 @@ export class AppLoginDialogComponent implements OnInit {
   async doLogin() {
     this.isRegistering = true;
     const username: String = this.usernameInput.nativeElement.value.trim();
-    LoggerUtil.log(`validating username: ${username}`);
+    LoggerUtil.logAny(`validating username: ${username}`);
     const isUsernameTaken: Boolean = await this.signalingService.checkIfUsernameTaken(username);
     if (isUsernameTaken) {
       this.errorMessage = 'username is either invalid or already been taken';
       this.isRegistering = false;
     } else {
-      LoggerUtil.log(`username is valid and available, so trying login`);
+      LoggerUtil.logAny(`username is valid and available, so trying login`);
       this.isRegistering = false;
       const result: DialogCloseResult = {
         type: DialogCloseResultType.APP_LOGIN,

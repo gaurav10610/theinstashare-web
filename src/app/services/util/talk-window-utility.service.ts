@@ -43,7 +43,7 @@ export class TalkWindowUtilityService {
    */
   loadChatHistory(username: string) {
     return new Promise<void>((resolve) => {
-      LoggerUtil.log('loading chat history for ' + username);
+      LoggerUtil.logAny('loading chat history for ' + username);
 
       /**
        * if user's message context doesn't exist then initialize it
@@ -286,10 +286,10 @@ export class TalkWindowUtilityService {
     }, channel);
     if (isAckSent) {
       if (message.id) {
-        LoggerUtil.log('acknowledgement sent for message with id: ' + message.id + ' from '
+        LoggerUtil.logAny('acknowledgement sent for message with id: ' + message.id + ' from '
           + message[AppConstants.USERNAME]);
       } else {
-        LoggerUtil.log('error while sending acknowledgement for: ' + JSON.stringify(message));
+        LoggerUtil.logAny('error while sending acknowledgement for: ' + JSON.stringify(message));
       }
     }
   }

@@ -130,7 +130,7 @@ export class GroupChatWindowComponent implements OnInit {
       try {
         await this.registerApplicationUser(AppConstants.APPLICATION_NAMES.GROUP_CHAT);
       } catch (error) {
-        LoggerUtil.log(error);
+        LoggerUtil.logAny(error);
         this.router.navigateByUrl('app');
       }
     } else {
@@ -175,7 +175,7 @@ export class GroupChatWindowComponent implements OnInit {
    */
   async onRouterMessage(signalingMessage: any) {
     try {
-      LoggerUtil.log(`received message via ${signalingMessage.via}: ${JSON.stringify(signalingMessage)}`);
+      LoggerUtil.logAny(`received message via ${signalingMessage.via}: ${JSON.stringify(signalingMessage)}`);
       switch (signalingMessage.type) {
         case AppConstants.REGISTER:
           await this.handleApplicationRegister(signalingMessage);
@@ -197,11 +197,11 @@ export class GroupChatWindowComponent implements OnInit {
           this.handleWebrtcEvent(signalingMessage);
 
         default:
-          LoggerUtil.log(`received unknown signaling message with type: ${signalingMessage.type}`);
+          LoggerUtil.logAny(`received unknown signaling message with type: ${signalingMessage.type}`);
       }
     } catch (err) {
-      LoggerUtil.log(`error occured while handling received signaling message: ${JSON.stringify(signalingMessage)}`);
-      LoggerUtil.log(err);
+      LoggerUtil.logAny(`error occured while handling received signaling message: ${JSON.stringify(signalingMessage)}`);
+      LoggerUtil.logAny(err);
     }
   }
 
@@ -212,7 +212,7 @@ export class GroupChatWindowComponent implements OnInit {
    * @param signalingMessage received signaling message 
    */
   async handleWebrtcEvent(signalingMessage: any) {
-    LoggerUtil.log(`handling webrtc event from : ${signalingMessage.from}`);
+    LoggerUtil.logAny(`handling webrtc event from : ${signalingMessage.from}`);
     const webrtcContext: any = this.userContextService.getUserWebrtcContext(signalingMessage.from);
     switch (signalingMessage.event) {
 
@@ -221,7 +221,7 @@ export class GroupChatWindowComponent implements OnInit {
        * webrtc data channel open event received from remote user's end
        */
       case AppConstants.WEBRTC_EVENTS.CHANNEL_OPEN:
-        LoggerUtil.log(`${signalingMessage.channel} data channel has been opened with user: ${signalingMessage.from}`);
+        LoggerUtil.logAny(`${signalingMessage.channel} data channel has been opened with user: ${signalingMessage.from}`);
         webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTED;
         switch (signalingMessage.channel) {
 
@@ -306,7 +306,7 @@ export class GroupChatWindowComponent implements OnInit {
         }
         resolve();
       } catch (e) {
-        LoggerUtil.log('there is an error while consuming webrtc offer received from ' + signalingMessage.from);
+        LoggerUtil.logAny('there is an error while consuming webrtc offer received from ' + signalingMessage.from);
         reject(e);
       }
     });
@@ -364,7 +364,7 @@ export class GroupChatWindowComponent implements OnInit {
         try {
           await this.registerApplicationUser(AppConstants.APPLICATION_NAMES.GROUP_CHAT);
         } catch (error) {
-          LoggerUtil.log(error);
+          LoggerUtil.logAny(error);
           this.router.navigateByUrl('app');
         }
       } else {
@@ -393,7 +393,7 @@ export class GroupChatWindowComponent implements OnInit {
         }).toPromise();
 
         if (data && data.registered) {
-          LoggerUtil.log(`user was succussfully registered for app: ${applicationName}`);
+          LoggerUtil.logAny(`user was succussfully registered for app: ${applicationName}`);
           this.userContextService.selectedApp = applicationName;
           this.coreAppUtilService.setStorageValue(AppConstants.STORAGE_APPLICATION, applicationName.toString());
           /**
@@ -418,7 +418,7 @@ export class GroupChatWindowComponent implements OnInit {
           reject('user application registration was unsuccessful');
         }
       } catch (e) {
-        LoggerUtil.log(e);
+        LoggerUtil.logAny(e);
         this.userContextService.selectedApp = undefined;
         reject('user applcation registration was unsuccessful');
       }
@@ -492,7 +492,7 @@ export class GroupChatWindowComponent implements OnInit {
    * 
    */
   handleDialogClose(dialogueCloseResult: DialogCloseResult) {
-    LoggerUtil.log(`dialog got closed with result: ${JSON.stringify(dialogueCloseResult)}`);
+    LoggerUtil.logAny(`dialog got closed with result: ${JSON.stringify(dialogueCloseResult)}`);
     switch (dialogueCloseResult.type) {
       case DialogCloseResultType.APP_LOGIN:
         this.openDialog(DialogType.PROGRESS, {
@@ -513,7 +513,7 @@ export class GroupChatWindowComponent implements OnInit {
    * logout from theinstshare
    */
   logout() {
-    LoggerUtil.log('logging out.........');
+    LoggerUtil.logAny('logging out.........');
     /**
      * send de-register message to server to notify that user has opted to
      * logout
@@ -531,7 +531,7 @@ export class GroupChatWindowComponent implements OnInit {
    * 
    */
   async onDataChannelMessage(jsonMessage: string) {
-    LoggerUtil.log(`message received on data channel: ${jsonMessage}`);
+    LoggerUtil.logAny(`message received on data channel: ${jsonMessage}`);
     const message: any = JSON.parse(jsonMessage);
     switch (message.type) {
 

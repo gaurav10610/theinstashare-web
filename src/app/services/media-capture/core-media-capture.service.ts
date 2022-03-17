@@ -83,7 +83,7 @@ export class CoreMediaCaptureService {
    */
   takeCameraAndMicrophoneAccess() {
     return new Promise<string>(async (resolve, reject) => {
-      LoggerUtil.log('asking for camera and microphone permission');
+      LoggerUtil.logAny('asking for camera and microphone permission');
       if (!this.userContextService.isCameraAccessible || !this.userContextService.isMicrophoneAccessible) {
         try {
           const stream: any = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
@@ -93,7 +93,7 @@ export class CoreMediaCaptureService {
           this.userContextService.isMicrophoneAccessible = true;
           resolve('success');
         } catch (error) {
-          LoggerUtil.log(error);
+          LoggerUtil.logAny(error);
           reject('please check camera/microphone permissions');
         }
       } else {

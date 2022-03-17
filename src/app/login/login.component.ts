@@ -48,13 +48,13 @@ export class LoginComponent implements OnInit {
 
     this.gaService.pageView('/login', 'Login');
 
-    LoggerUtil.log('ngOnit of login component');
+    LoggerUtil.logAny('ngOnit of login component');
 
     // setTimeout(() => { this.stopNotification = false; }, 5000);
 
     try {
       const message: string = await this.coreMediaCaptureService.takeCameraAndMicrophoneAccess();
-      LoggerUtil.log('got camera/microphone permissions');
+      LoggerUtil.logAny('got camera/microphone permissions');
     } catch (errorMessage) {
       this.snackBar.open(errorMessage);
     }
@@ -165,7 +165,7 @@ export class LoginComponent implements OnInit {
         }
         break;
       default:
-        LoggerUtil.log('unknown message type');
+        LoggerUtil.logAny('unknown message type');
     }
   }
 

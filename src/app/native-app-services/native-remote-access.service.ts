@@ -17,7 +17,7 @@ export class NativeRemoteAccessService {
    * 
    */
   handleNativeEvents(nativeEventMessage: any) {
-    LoggerUtil.log('received native event message ' + JSON.stringify(nativeEventMessage));
+    LoggerUtil.logAny('received native event message ' + JSON.stringify(nativeEventMessage));
   }
 
   /**

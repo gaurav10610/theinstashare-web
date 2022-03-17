@@ -42,7 +42,7 @@ export class CoreWebrtcService {
         }
         resolve(initializedConnection);
       } catch (error) {
-        LoggerUtil.log(error);
+        LoggerUtil.logAny(error);
         reject('there is an error while initializing peer connection');
       }
     });
@@ -175,11 +175,11 @@ export class CoreWebrtcService {
             mediaStreams: mediaStreams
           });
         }).catch((error: any) => {
-          LoggerUtil.log('There is an error while generating offer on peer connection.');
+          LoggerUtil.logAny('There is an error while generating offer on peer connection.');
           reject(error);
         });
       } catch (error) {
-        LoggerUtil.log('There is an error while generating offer on peer connection');
+        LoggerUtil.logAny('There is an error while generating offer on peer connection');
         reject(error);
       }
     });
@@ -215,7 +215,7 @@ export class CoreWebrtcService {
           dataChannel: dataChannel
         });
       }).catch((error: any) => {
-        LoggerUtil.log('There is an error while generating offer on peer connection.');
+        LoggerUtil.logAny('There is an error while generating offer on peer connection.');
         reject(error);
       });
     });
@@ -259,7 +259,7 @@ export class CoreWebrtcService {
           }
         });
       }).catch((error: any) => {
-        LoggerUtil.log('there is an error while generating answer');
+        LoggerUtil.logAny('there is an error while generating answer');
         reject(error);
       }); // Here ends create answer
     });
@@ -330,7 +330,7 @@ export class CoreWebrtcService {
           mediaStreams: mediaStreams
         });
       }).catch((error: any) => {
-        LoggerUtil.log('there is an error while generating answer');
+        LoggerUtil.logAny('there is an error while generating answer');
         reject(error);
       }); // Here ends create answer
     });
@@ -353,7 +353,7 @@ export class CoreWebrtcService {
         }
         const dataChannel = peerConnection.createDataChannel(channelId);
         dataChannel.onerror = (error: any) => {
-          LoggerUtil.log(error);
+          LoggerUtil.logAny(error);
         };
         resolve(dataChannel);
       } catch (error) {
@@ -421,10 +421,10 @@ export class CoreWebrtcService {
         }
       }
       if (line === -1) {
-        LoggerUtil.log('Could not find the m line for: ' + media);
+        LoggerUtil.logAny('Could not find the m line for: ' + media);
         resolve(sdp);
       }
-      LoggerUtil.log('Found the m line for: ' + media + ' at line: ' + line);
+      LoggerUtil.logAny('Found the m line for: ' + media + ' at line: ' + line);
       line++;
       while (lines[line].indexOf('i=') === 0 || lines[line].indexOf('c=') === 0) {
         line++;

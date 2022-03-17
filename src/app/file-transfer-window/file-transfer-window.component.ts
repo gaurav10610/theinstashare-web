@@ -110,7 +110,7 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
         try {
           await this.registerApplicationUser(AppConstants.APPLICATION_NAMES.FILE_TRANSFER);
         } catch (error) {
-          LoggerUtil.log(error);
+          LoggerUtil.logAny(error);
           this.router.navigateByUrl('app');
         }
       }
@@ -145,7 +145,7 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
     }));
 
     if (data && data.registered) {
-      LoggerUtil.log(`user was succussfully registered for app: ${applicationName}`);
+      LoggerUtil.logAny(`user was succussfully registered for app: ${applicationName}`);
       this.userContextService.selectedApp = applicationName;
       this.coreAppUtilService.setStorageValue(AppConstants.STORAGE_APPLICATION, applicationName.toString());
       return 'user application registration was successful';
@@ -206,7 +206,7 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
    */
   async onRouterMessage(signalingMessage: any) {
     try {
-      LoggerUtil.log('received message via ' + signalingMessage.via + ': ' + JSON.stringify(signalingMessage));
+      LoggerUtil.logAny('received message via ' + signalingMessage.via + ': ' + JSON.stringify(signalingMessage));
       switch (signalingMessage.type) {
         case AppConstants.REGISTER:
           await this.handleRegister(signalingMessage);
@@ -217,13 +217,13 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
           break;
 
         default:
-          LoggerUtil.log('received unknown signaling message with type: ' + signalingMessage.type);
+          LoggerUtil.logAny('received unknown signaling message with type: ' + signalingMessage.type);
       }
       this.applicationRef.tick();
     } catch (err) {
-      LoggerUtil.log('error occured while handling received signaling message');
-      LoggerUtil.log(JSON.stringify(signalingMessage));
-      LoggerUtil.log(err);
+      LoggerUtil.logAny('error occured while handling received signaling message');
+      LoggerUtil.logAny(JSON.stringify(signalingMessage));
+      LoggerUtil.logAny(err);
     }
   }
 
@@ -268,7 +268,7 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
         await this.registerApplicationUser(AppConstants.APPLICATION_NAMES.FILE_TRANSFER);
         await this.fetchActiveUsersList();
       } catch (error) {
-        LoggerUtil.log(error);
+        LoggerUtil.logAny(error);
         this.router.navigateByUrl('app');
       }
 
@@ -333,7 +333,7 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
     if (dialogCloseResult === undefined) {
       return;
     }
-    LoggerUtil.log(`dialog got closed with result: ${JSON.stringify(dialogCloseResult)}`);
+    LoggerUtil.logAny(`dialog got closed with result: ${JSON.stringify(dialogCloseResult)}`);
     switch (dialogCloseResult.type) {
       case DialogCloseResultType.APP_LOGIN:
         this.openDialog(DialogType.PROGRESS, {
@@ -343,7 +343,7 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
         break;
 
       case DialogCloseResultType.MEDIA_VIEWER:
-        LoggerUtil.log(`media viewer dialog closed for content type: ${dialogCloseResult.data.contentType}`);
+        LoggerUtil.logAny(`media viewer dialog closed for content type: ${dialogCloseResult.data.contentType}`);
         break;
 
       default:
@@ -393,12 +393,11 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
   /**
    * send text message from input
    */
-  sendTextMessage(event?: KeyboardEvent) {
+  sendTextMessage(event?: KeyboardEvent): void {
     //get the currenty selected user
     const userToChat = this.userContextService.userToChat;
 
     /**
-     * 
      * call made via keyup input message event
      */
     if (event) {
@@ -408,6 +407,7 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
          * send typed text message over webrtc datachannel
          */
         this.sendMessageOnChannel(this.messageInput.nativeElement.value, userToChat);
+
         //clear the text box
         this.renderer.setProperty(this.messageInput.nativeElement, 'value', '');
         /**
@@ -439,20 +439,20 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
 
       }
     } catch (error) {
-      LoggerUtil.log(error);
-      LoggerUtil.log('error occured while sending message: ' + textMessage + ' to user: ' + username);
+      LoggerUtil.logAny(error);
+      LoggerUtil.logAny('error occured while sending message: ' + textMessage + ' to user: ' + username);
     }
   }
 
   /**
-    * this will update text message sent/received via data channel in the appropriate
-    * user's message context and in the current chat window as well if message
-    * sender is the currently selected user
-    *
-    * @param messageContext json payload containing the message
-    *
-    * @return a promise containing the message read status i.e 'seen','received' etc
-    */
+   * this will update text message sent/received via data channel in the appropriate
+   * user's message context and in the current chat window as well if message
+   * sender is the currently selected user
+   *
+   * @param messageContext json payload containing the message
+   *
+   * @return a promise containing the message read status i.e 'seen','received' etc
+   */
   async updateChatMessages(messageContext: MessageContext): Promise<string> {
 
     /**
@@ -496,7 +496,7 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
       const listElement: any = this.renderer.selectRootElement(`#contact-${messageContext[AppConstants.USERNAME]}`, true);
       let isUserVisibleInViewport: any = await this.utilityService.isElementInViewport(listElement);
       if (!isUserVisibleInViewport) {
-        LoggerUtil.log(`user ${messageContext.username} is not visible in viewport`);
+        LoggerUtil.logAny(`user ${messageContext.username} is not visible in viewport`);
         this.coreAppUtilService.updateElemntPositionInArray(this.contextService.activeUsers, messageContext[AppConstants.USERNAME], 0);
       }
 
@@ -542,7 +542,7 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
    */
   logout() {
     try {
-      LoggerUtil.log('logging out.........');
+      LoggerUtil.logAny('logging out.........');
       /**
        * send de-register message to server to notify that user has opted to
        * logout
@@ -552,7 +552,7 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
       this.userContextService.resetCoreAppContext();
       this.router.navigateByUrl('login');
     } catch (error) {
-      LoggerUtil.log('error encounterd while resetting webrtc context');
+      LoggerUtil.logAny('error encounterd while resetting webrtc context');
       this.router.navigateByUrl('login');
     }
   }

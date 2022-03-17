@@ -122,7 +122,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         try {
           await this.registerApplicationUser(AppConstants.APPLICATION_NAMES.P2P);
         } catch (error) {
-          LoggerUtil.log(error);
+          LoggerUtil.logAny(error);
           this.router.navigateByUrl('app');
         }
       }
@@ -211,7 +211,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      * populate os type to be utilised by remote access mechanism later on 
      */
     this.talkWindowContextService.remoteAccessContext['localOS'] = this.talkWindowUtilService.getOSType();
-    LoggerUtil.log('local operating system: ' + this.talkWindowContextService.remoteAccessContext['localOS']);
+    LoggerUtil.logAny('local operating system: ' + this.talkWindowContextService.remoteAccessContext['localOS']);
 
     this.fileReader = new FileReader();
   }
@@ -233,7 +233,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     //get remote video height and width
     this.renderer.listen(this.remoteVideo.nativeElement, 'loadedmetadata', (event: any) => {
       if (this.talkWindowContextService.bindingFlags.isScreenSharing) {
-        LoggerUtil.log('remote screen video stream has been loaded');
+        LoggerUtil.logAny('remote screen video stream has been loaded');
         // this.renderer.addClass(this.remoteVideoDiv.nativeElement, 'align-center');
         this.renderer.addClass(this.remoteVideoDiv.nativeElement, 'center-content');
         this.webRemoteAccessService.calculateRemoteAccessParameters(
@@ -245,7 +245,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           this.remoteVideoCanvas
         );
       } else {
-        LoggerUtil.log('remote video stream has been loaded');
+        LoggerUtil.logAny('remote video stream has been loaded');
         this.renderer.removeClass(this.remoteVideoDiv.nativeElement, 'center-content');
       }
       this.talkWindowUtilService.appRef.tick();
@@ -253,7 +253,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
     //window resize event
     this.renderer.listen(window, 'resize', (event: any) => {
-      LoggerUtil.log('window resize event fired');
+      LoggerUtil.logAny('window resize event fired');
 
       /**
        * only handle this event if user is in screen sharing seesion to re-calulate some 
@@ -327,7 +327,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     if (dialogCloseResult === undefined) {
       return;
     }
-    LoggerUtil.log(`dialog got closed with result: ${JSON.stringify(dialogCloseResult)}`);
+    LoggerUtil.logAny(`dialog got closed with result: ${JSON.stringify(dialogCloseResult)}`);
     switch (dialogCloseResult.type) {
       case DialogCloseResultType.APP_LOGIN:
         this.openDialog(DialogType.PROGRESS, {
@@ -337,7 +337,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         break;
 
       case DialogCloseResultType.MEDIA_VIEWER:
-        LoggerUtil.log(`media viewer dialog closed for content type: ${dialogCloseResult.data.contentType}`);
+        LoggerUtil.logAny(`media viewer dialog closed for content type: ${dialogCloseResult.data.contentType}`);
         break;
 
       case DialogCloseResultType.RESIZE_REMOTE_VIDEO:
@@ -414,7 +414,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   async onRouterMessage(signalingMessage: any) {
     try {
-      LoggerUtil.log('received message via ' + signalingMessage.via + ': ' + JSON.stringify(signalingMessage));
+      LoggerUtil.logAny('received message via ' + signalingMessage.via + ': ' + JSON.stringify(signalingMessage));
       switch (signalingMessage.type) {
         case AppConstants.REGISTER:
           await this.handleRegister(signalingMessage);
@@ -457,13 +457,13 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           break;
 
         default:
-          LoggerUtil.log('received unknown signaling message with type: ' + signalingMessage.type);
+          LoggerUtil.logAny('received unknown signaling message with type: ' + signalingMessage.type);
       }
       this.talkWindowUtilService.appRef.tick();
     } catch (err) {
-      LoggerUtil.log('error occured while handling received signaling message');
-      LoggerUtil.log(JSON.stringify(signalingMessage));
-      LoggerUtil.log(err);
+      LoggerUtil.logAny('error occured while handling received signaling message');
+      LoggerUtil.logAny(JSON.stringify(signalingMessage));
+      LoggerUtil.logAny(err);
     }
   }
 
@@ -480,7 +480,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         }).toPromise();
 
         if (data && data.registered) {
-          LoggerUtil.log(`user was succussfully registered for app: ${applicationName}`);
+          LoggerUtil.logAny(`user was succussfully registered for app: ${applicationName}`);
           this.userContextService.selectedApp = applicationName;
           this.coreAppUtilService.setStorageValue(AppConstants.STORAGE_APPLICATION, applicationName.toString());
           resolve('user application registration was successful');
@@ -489,7 +489,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           reject('user application registration was unsuccessful');
         }
       } catch (e) {
-        LoggerUtil.log(e);
+        LoggerUtil.logAny(e);
         this.userContextService.selectedApp = undefined;
         reject('user applcation registration was unsuccessful');
       }
@@ -538,7 +538,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           await this.registerApplicationUser(AppConstants.APPLICATION_NAMES.P2P);
           await this.fetchActiveUsersList();
         } catch (error) {
-          LoggerUtil.log(error);
+          LoggerUtil.logAny(error);
           this.router.navigateByUrl('app');
         }
 
@@ -686,7 +686,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         }
         resolve();
       } catch (e) {
-        LoggerUtil.log('there is an error while consuming webrtc offer received from ' + signalingMessage.from);
+        LoggerUtil.logAny('there is an error while consuming webrtc offer received from ' + signalingMessage.from);
         reject(e);
       }
     });
@@ -746,7 +746,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     }
 
     if (isStopRequest) {
-      LoggerUtil.log('handling media stream stop request for channel: ' + channel);
+      LoggerUtil.logAny('handling media stream stop request for channel: ' + channel);
 
       /**
        * set the informational disconnect modal popup for user
@@ -801,7 +801,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       }
 
     } else {
-      LoggerUtil.log('handling media stream start request for channel: ' + channel);
+      LoggerUtil.logAny('handling media stream start request for channel: ' + channel);
       /**
        * 
        * handle media stream start request
@@ -874,7 +874,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   async startMediaStream(startMediaStreamType: StartMediaStreamType) {
     try {
-      LoggerUtil.log('handling media stream start request for accepted call ' + startMediaStreamType.requiredMediaTracks.toString());
+      LoggerUtil.logAny('handling media stream start request for accepted call ' + startMediaStreamType.requiredMediaTracks.toString());
       const username = startMediaStreamType.username ? startMediaStreamType.username : this.userContextService.userToChat;
 
       /**
@@ -914,7 +914,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           offerContainer = await this.coreWebrtcService
             .generateOfferWithMediaTracks(peerConnection, startMediaStreamType.channel, startMediaStreamType.requiredMediaTracks);
         } catch (error) {
-          LoggerUtil.log('unable to capture video stream from choosen camera');
+          LoggerUtil.logAny('unable to capture video stream from choosen camera');
           this.talkWindowUtilService.flagError('unable to capture video stream from camera, please check permissions');
           this.webrtcService.cleanMediaStreamContext(startMediaStreamType.channel,
             webrtcContext[AppConstants.MEDIA_CONTEXT][startMediaStreamType.channel]);
@@ -1019,8 +1019,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         }
       }
     } catch (e) {
-      LoggerUtil.log('there is an error encountered while starting ' + startMediaStreamType.channel + ' media stream');
-      LoggerUtil.log(e);
+      LoggerUtil.logAny('there is an error encountered while starting ' + startMediaStreamType.channel + ' media stream');
+      LoggerUtil.logAny(e);
     }
   }
 
@@ -1044,8 +1044,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        */
       this.setChatWindow(false);
 
-      LoggerUtil.log('selected user: ' + selectedUser);
-      LoggerUtil.log('previous selected user: ' + this.userContextService.userToChat);
+      LoggerUtil.logAny('selected user: ' + selectedUser);
+      LoggerUtil.logAny('previous selected user: ' + this.userContextService.userToChat);
 
       /**
        * when user want to chat with a person other than the currently selected
@@ -1067,7 +1067,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         this.talkWindowUtilService.appRef.tick();
         this.scrollMessages();
       } else {
-        LoggerUtil.log('already connected with user: ' + selectedUser);
+        LoggerUtil.logAny('already connected with user: ' + selectedUser);
       }
     } else {
 
@@ -1161,7 +1161,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           }));
         } else {
 
-          LoggerUtil.log('text data channel is not in open state for user: ' + userToChat);
+          LoggerUtil.logAny('text data channel is not in open state for user: ' + userToChat);
 
           if (webrtcContext[AppConstants.MESSAGE_QUEUE] === undefined) {
             this.userContextService.initializeMessageQueue(userToChat);
@@ -1179,7 +1179,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
           // when data channel open request has already been raised, then just queue the messages
           if (this.coreAppUtilService.isDataChannelConnecting(webrtcContext, AppConstants.TEXT)) {
-            LoggerUtil.log('text data channel is in connecting state for user: ' + userToChat);
+            LoggerUtil.logAny('text data channel is in connecting state for user: ' + userToChat);
 
             /**
              * do nothing here as message has been queued and will be sent when
@@ -1201,7 +1201,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         }
       }
     } catch (e) {
-      LoggerUtil.log(e);
+      LoggerUtil.logAny(e);
     }
   }
 
@@ -1231,10 +1231,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         const dataChunk: any = {
           buffer: data
         }
-        LoggerUtil.log(JSON.stringify(dataChunk));
+        LoggerUtil.logAny(JSON.stringify(dataChunk));
         dataArray.push(dataChunk);
       }
-      LoggerUtil.log("Successfully read: " + event.target.files[i].name);
+      LoggerUtil.logAny("Successfully read: " + event.target.files[i].name);
       const newDataArray = dataArray.map(chunk => chunk.buffer);
       const fileData = new Blob(newDataArray);
       const url = window.URL.createObjectURL(fileData);
@@ -1303,11 +1303,11 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
       if (this.coreAppUtilService.isDataChannelConnected(webrtcContext, AppConstants.FILE)) {
 
-        LoggerUtil.log('file data channel found open');
+        LoggerUtil.logAny('file data channel found open');
         this.talkWindowUtilService.readFile(this.fileReader, webrtcContext[AppConstants.FILE_QUEUE].front());
       } else {
 
-        LoggerUtil.log('file data channel is not in open state for user: ' + userToChat);
+        LoggerUtil.logAny('file data channel is not in open state for user: ' + userToChat);
 
         if (this.coreAppUtilService.isDataChannelConnecting(webrtcContext, AppConstants.FILE)) {
 
@@ -1741,10 +1741,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       this.showLoader = false;
       this.userContextService.applicationSignOut();
 
-      LoggerUtil.log('selected user while logging out: ' + this.userContextService.userToChat);
+      LoggerUtil.logAny('selected user while logging out: ' + this.userContextService.userToChat);
       this.router.navigateByUrl('login');
     } catch (error) {
-      LoggerUtil.log('error encounterd while resetting webrtc context.');
+      LoggerUtil.logAny('error encounterd while resetting webrtc context.');
       this.router.navigateByUrl('login');
     }
   }
@@ -1872,7 +1872,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * @TODO refactor it afterwards and
    */
   async handleCameraFlip() {
-    LoggerUtil.log('flipping the camera');
+    LoggerUtil.logAny('flipping the camera');
 
     // remove the menu icons modal popup after selecting camera flip
     this.setIconsPopup(true);
@@ -1900,7 +1900,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       offerContainer = await this.coreWebrtcService
         .generateOfferWithMediaTracks(webrtcContext[AppConstants.CONNECTION], AppConstants.VIDEO, [AppConstants.VIDEO]);
     } catch (error) {
-      LoggerUtil.log('unable to capture video stream from choosen camera');
+      LoggerUtil.logAny('unable to capture video stream from choosen camera');
       this.talkWindowUtilService.flagError('unable to capture video stream from camera, please check permissions');
       this.userContextService.defaultCamera = lastSelectedCamera;
       return;
@@ -1990,7 +1990,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   closeMediaViewer(event: any) {
     event.stopImmediatePropagation();
-    LoggerUtil.log('close media viewer action triggered');
+    LoggerUtil.logAny('close media viewer action triggered');
     if (event.target.id.includes(AppConstants.VIDEO)) {
       this.renderer.selectRootElement('#viewer_video', true).pause();
     } else {
@@ -2046,7 +2046,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      *
      */
     if (this.userContextService.userToChat === signalingMessage.from) {
-      LoggerUtil.log('attempting ' + signalingMessage.channel + ' stream sender reconnection');
+      LoggerUtil.logAny('attempting ' + signalingMessage.channel + ' stream sender reconnection');
       const userWebrtcContext: any = this.userContextService.getUserWebrtcContext(this.userContextService.userToChat);
 
       /**
@@ -2217,7 +2217,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         const listElement: any = this.renderer.selectRootElement(`#contact-${messagePayload[AppConstants.USERNAME]}`, true);
         let isUserVisibleInViewport: any = await this.talkWindowUtilService.isElementInViewport(listElement);
         if (!isUserVisibleInViewport) {
-          LoggerUtil.log(`user ${messagePayload.user} is not visible in viewport`);
+          LoggerUtil.logAny(`user ${messagePayload.user} is not visible in viewport`);
           this.coreAppUtilService.updateElemntPositionInArray(this.talkWindowContextService.activeUsers, messagePayload[AppConstants.USERNAME], 0);
         }
 
@@ -2359,7 +2359,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * start remote access
        */
       case 'start':
-        LoggerUtil.log("request for remote access has been sent");
+        LoggerUtil.logAny("request for remote access has been sent");
 
         /**
          * set remote access request context
@@ -2430,7 +2430,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * 
        */
       case AppConstants.INVITE:
-        LoggerUtil.log('received remote access request from: ' + signalingMessage.from);
+        LoggerUtil.logAny('received remote access request from: ' + signalingMessage.from);
 
         /**
          * process this message only if user is in screen sharing seesion
@@ -2473,7 +2473,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        *
        */
       case AppConstants.ACCEPT:
-        LoggerUtil.log('remote access request has been accepted by ' + signalingMessage.from);
+        LoggerUtil.logAny('remote access request has been accepted by ' + signalingMessage.from);
 
         if (this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME]) {
           /**
@@ -2532,7 +2532,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        *
        */
       case AppConstants.DECLINE:
-        LoggerUtil.log('remote access request has been declined by ' + signalingMessage.from);
+        LoggerUtil.logAny('remote access request has been declined by ' + signalingMessage.from);
         if (this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME]) {
           this.removePopupContext([
             AppConstants.POPUP_TYPE.CONNECT + signalingMessage.channel
@@ -2570,7 +2570,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * @param signalingMessage received signaling message 
    */
   handleWebrtcEvent(signalingMessage: any) {
-    LoggerUtil.log('handling webrtc event: ' + signalingMessage.event);
+    LoggerUtil.logAny('handling webrtc event: ' + signalingMessage.event);
     const webrtcContext: any = this.userContextService.getUserWebrtcContext(signalingMessage.from);
     switch (signalingMessage.event) {
 
@@ -2579,7 +2579,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * webrtc data channel open event received from remote user's end
        */
       case AppConstants.WEBRTC_EVENTS.CHANNEL_OPEN:
-        LoggerUtil.log(signalingMessage.channel + ' data channel has been opened with user: ' + signalingMessage.from);
+        LoggerUtil.logAny(signalingMessage.channel + ' data channel has been opened with user: ' + signalingMessage.from);
         webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTED;
         switch (signalingMessage.channel) {
 
@@ -2621,7 +2621,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         }
         this.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + AppConstants.REMOTE_CONTROL]);
         if (webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.TIMEOUT_JOB]) {
-          LoggerUtil.log(signalingMessage.channel + ' data channel is connected so removing timeout cleaning job');
+          LoggerUtil.logAny(signalingMessage.channel + ' data channel is connected so removing timeout cleaning job');
           clearTimeout(webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.TIMEOUT_JOB]);
         }
         break;
@@ -2636,7 +2636,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          */
         if (signalingMessage.channel === AppConstants.SCREEN || signalingMessage.channel === AppConstants.SOUND) {
           if (webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.TIMEOUT_JOB]) {
-            LoggerUtil.log('media stream connection for ' + signalingMessage.channel + ' is connected so removing timeout cleaning job');
+            LoggerUtil.logAny('media stream connection for ' + signalingMessage.channel + ' is connected so removing timeout cleaning job');
             clearTimeout(webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.TIMEOUT_JOB]);
           }
         }
