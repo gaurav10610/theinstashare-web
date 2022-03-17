@@ -45,7 +45,7 @@
               <h3 matLine> {{user}} </h3>
 
               <!-- unread message badge -->
-              <mat-chip-list aria-label="Fish selection" *ngIf="userContextService.getUserWebrtcContext(user) !== null && 
+              <mat-chip-list aria-label="Unread Message" *ngIf="userContextService.getUserWebrtcContext(user) !== null && 
               userContextService.getUserWebrtcContext(user).unreadCount !== 0">
                 <mat-chip color="primary" selected>
                   {{userContextService.getUserWebrtcContext(user).unreadCount}}

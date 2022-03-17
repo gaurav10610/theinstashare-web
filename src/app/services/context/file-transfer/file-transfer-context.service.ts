@@ -40,8 +40,20 @@ export class FileTransferContextService implements MessageContextSpec {
         this.bindingFlags = new Map();
         this.bindingFlags.set('showSidePanel', true);
         this.bindingFlags.set('showMessagePanel', true);
+    }
 
+    hasMessageContext(username: string): boolean {
+        return this.messageContext.has(username);
+    }
 
+    initializeMessageContext(username: string): void {
+        if (!this.hasMessageContext(username)) {
+            this.messageContext.set(username, []);
+        }
+    }
+
+    getMessageContext(username: string): MessageContext[] {
+        return this.messageContext.get(username);
     }
 
     getUserStatus(username: string): boolean {

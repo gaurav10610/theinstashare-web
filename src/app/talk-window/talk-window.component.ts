@@ -1082,7 +1082,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    * @param event
    */
-  sendTextMessage(event?: any) {
+  sendTextMessage(event?: KeyboardEvent) {
     //get the currenty selected user
     const userToChat = this.userContextService.userToChat;
 

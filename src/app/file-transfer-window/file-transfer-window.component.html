@@ -32,13 +32,14 @@
             <!-- contacts tab -->
             <div [ngClass]="{'flex-grow-full': true,'vertical-scroll': true,'no-scroll': true}">
                 <mat-list>
-                    <mat-list-item *ngFor="let username of contextService.activeUsers; last as last"
+                    <mat-list-item id="contact-{{username}}" *ngFor="let username of contextService.activeUsers; last as last"
                         class="pointer-cursor" (click)="selectUser(username)">
                         <mat-icon [color]="userContextService.userToChat === username ?'primary':''" matListIcon>
                             {{contextService.getUserStatus(username) ? 'person': 'person_off'}}
                         </mat-icon>
                         <h3 matLine> {{username}} </h3>
-                        <mat-chip-list aria-label="Unread Message">
+                        <mat-chip-list aria-label="Unread Message" *ngIf="userContextService.getUserWebrtcContext(username) !== null && 
+                        userContextService.getUserWebrtcContext(username).unreadCount !== 0">
                             <mat-chip color="primary" selected>4</mat-chip>
                         </mat-chip-list>
                         <!-- <mat-divider [inset]="true" *ngIf="!last"></mat-divider> -->
@@ -62,8 +63,8 @@
                 <span class="header-font">No User</span>
                 <span class="toolbar-spacer"></span>
 
-                <button mat-icon-button aria-label="back icon button" class="toolbar-icon" 
-                (click)="backToContacts()" *ngIf="userContextService.isMobile">
+                <button mat-icon-button aria-label="back icon button" class="toolbar-icon" (click)="backToContacts()"
+                    *ngIf="userContextService.isMobile">
                     <mat-icon>arrow_back</mat-icon>
                 </button>
 
@@ -92,7 +93,7 @@
                     'column-flex-display': true
                 }">
 
-            <div class="no-scroll vertical-scroll flex-grow-full">
+            <div id="message-history-div" #messageHistoryDiv class="no-scroll vertical-scroll flex-grow-full">
                 <div *ngFor="let message of messages" class="row-flex-display align-center" [ngStyle]="{
                    'flex-direction': message.sent ? 'row-reverse' : 'row'
                 }">
@@ -103,7 +104,7 @@
                             <!-- <h3 matLine> {{message.name}} </h3> -->
 
                             <span matLine>
-                                <mat-chip-list aria-label="Fish selection">
+                                <mat-chip-list aria-label="Text Message">
                                     <mat-chip selected>{{message.message}}</mat-chip>
                                 </mat-chip-list>
                             </span>
@@ -117,11 +118,25 @@
                 </div>
             </div>
 
-            <div class="input-message hide-vertical-overflow">
-                <mat-form-field appearance="outline" style="width: 100%;" color="primary">
-                    <mat-label>Enter your message</mat-label>
-                    <input matInput #messageInput maxlength="256" placeholder="Enter your message">
-                </mat-form-field>
+            <!-- Message Input -->
+            <div class="input-message hide-vertical-overflow row-flex-display">
+
+                <!-- Input Message Test Field -->
+                <div class="flex-grow-full column-flex-display">
+                    <mat-form-field appearance="outline" style="width: 100%;" color="primary">
+                        <mat-label>Enter your message</mat-label>
+                        <input matInput #textMessage maxlength="256" placeholder="Enter your message"
+                            (keyup)="sendTextMessage($event)">
+                    </mat-form-field>
+                </div>
+
+                <!-- Send Message Button -->
+                <div class="column-flex-display center-content">
+                    <button mat-icon-button color="primary" aria-label="send message icon button"
+                        (click)="sendTextMessage()">
+                        <mat-icon>send</mat-icon>
+                    </button>
+                </div>
             </div>
 
         </div>
@@ -441,5 +456,7 @@
         </div>
 
     </div>
+
+    <audio id="messageTune" style="display:none" muted src="{{assetsPath + 'media/message.mp3'}}"></audio>
 
 </div>

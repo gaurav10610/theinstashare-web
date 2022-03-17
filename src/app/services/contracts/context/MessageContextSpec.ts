@@ -5,4 +5,7 @@ import { MessageContext } from "./MessageContext";
  */
 export interface MessageContextSpec {
     messageContext: Map<string, MessageContext[]>;
+    hasMessageContext(username: string): boolean;
+    initializeMessageContext(username: string): void;
+    getMessageContext(username: string): MessageContext[];
 }
