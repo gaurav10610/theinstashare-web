@@ -94,8 +94,8 @@
                 }">
 
             <div id="message-history-div" #messageHistoryDiv class="no-scroll vertical-scroll flex-grow-full">
-                <div *ngFor="let message of messages" class="row-flex-display align-center" [ngStyle]="{
-                   'flex-direction': message.sent ? 'row-reverse' : 'row'
+                <div *ngFor="let message of contextService.getMessageContext(userContextService.userToChat)" class="row-flex-display align-center" [ngStyle]="{
+                   'flex-direction': message.isSent ? 'row-reverse' : 'row'
                 }">
                     <mat-icon>person</mat-icon>
 

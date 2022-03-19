@@ -14,6 +14,8 @@ import { AppConstants } from '../services/AppConstants';
 import { FileTransferContextService } from '../services/context/file-transfer/file-transfer-context.service';
 import { UserContextService } from '../services/context/user.context.service';
 import { MessageContext } from '../services/contracts/context/MessageContext';
+import { CreateDataChannelType } from '../services/contracts/CreateDataChannelType';
+import { DataChannelInfo } from '../services/contracts/datachannel/DataChannelInfo';
 import { DialogCloseResult } from '../services/contracts/dialog/DialogCloseResult';
 import { DialogCloseResultType } from '../services/contracts/enum/DialogCloseResultType';
 import { DialogType } from '../services/contracts/enum/DialogType';
@@ -58,18 +60,16 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
   //assets path
   assetsPath = environment.is_native_app ? 'assets/' : '../../assets/';
 
-  messages: any[] = [
-    { name: 'gaurav', message: 'I am good. How\'re you?', timestamp: new Date().toLocaleString('en-US'), sent: true, status: 'sent' },
-    { name: 'gaurav', message: 'I am good. How\'re you?', timestamp: new Date().toLocaleString('en-US'), sent: true, status: 'received' },
-    { name: 'gaurav', message: 'I am good. How\'re you?', timestamp: new Date().toLocaleString('en-US'), sent: false },
-    { name: 'gaurav', message: 'I am good. How\'re you?', timestamp: new Date().toLocaleString('en-US'), sent: false }
-  ];
-
   currentTab: String = 'cloud-upload'; // or 'chat'
 
   async ngOnInit(): Promise<void> {
     this.gaService.pageView('/file-transfer', 'File Transfer');
     await this.setupSignaling();
+
+    //subscribe to custom events
+    this.fileTransferService.onDataChannelMessageEvent.subscribe(this.onDataChannelMessage.bind(this));
+    this.fileTransferService.onDataChannelReceiveEvent.subscribe(this.sendQueuedMessagesOnChannel.bind(this));
+
   }
 
   ngAfterViewInit() {
@@ -367,7 +367,7 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
    * event handler for tab selection
    * @param selectedTab 
    */
-  selectTab(selectedTab: String) {
+  selectTab(selectedTab: string) {
     this.currentTab = selectedTab;
   }
 
@@ -382,7 +382,6 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
 
   /**
    * back to contacts click handler
-   *
    * this button is available only on mobile screen view
    */
   backToContacts() {
@@ -430,18 +429,100 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
    * sent text message via data channel
    * 
    * @param textMessage text message to be sent
-   * @param username username of the user to whom message has to be sent
+   * @param userToChat username of the user to whom message has to be sent
    * 
    */
-  sendMessageOnChannel(textMessage: string, username: string) {
+  async sendMessageOnChannel(textMessage: string, userToChat: string): Promise<void> {
     try {
       if (textMessage !== '') {
+
+        /**
+         * initialize user's webrtc context for the user to whom you wanted to
+         * send message, if it didn't exist
+         *
+         */
+        if (!this.userContextService.hasUserWebrtcContext(userToChat)) {
+          this.userContextService.initializeUserWebrtcContext(userToChat);
+        }
+        const webrtcContext: any = this.userContextService.getUserWebrtcContext(userToChat);
+
+        //generate a new message identifier
+        const messageId: any = await this.coreAppUtilService.generateIdentifier();
+
+        //update message in chat window on UI
+        this.updateChatMessages({
+          id: messageId,
+          status: AppConstants.CHAT_MESSAGE_STATUS.SENT,
+          message: textMessage,
+          username: userToChat,
+          messageType: AppConstants.TEXT,
+          isSent: true,
+          timestamp: new Date().toLocaleDateString()
+        });
+
+        //check if there is an open data channel
+        if (this.coreAppUtilService.isDataChannelConnected(webrtcContext, AppConstants.TEXT)) {
+          // LoggerUtil.log('Found an open data channel already.');
+
+          //send message on data channel
+          webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.TEXT].dataChannel.send(JSON.stringify({
+            id: messageId,
+            message: textMessage,
+            username: this.userContextService.username,
+            type: AppConstants.TEXT,
+            from: this.userContextService.username,
+            to: userToChat
+          }));
+        } else {
+
+          LoggerUtil.logAny('text data channel is not in open state for user: ' + userToChat);
+
+          if (!webrtcContext[AppConstants.MESSAGE_QUEUE]) {
+            this.userContextService.initializeMessageQueue(userToChat);
+          }
+
+          // just queue the message and wait for data channel setup
+          webrtcContext[AppConstants.MESSAGE_QUEUE].enqueue({
+            id: messageId,
+            message: textMessage,
+            username: this.userContextService.username,
+            type: AppConstants.TEXT,
+            from: this.userContextService.username,
+            to: userToChat
+          });
+
+          // when data channel open request has already been raised, then just queue the messages
+          if (this.coreAppUtilService.isDataChannelConnecting(webrtcContext, AppConstants.TEXT)) {
+            LoggerUtil.logAny(`text data channel is in connecting state for user: ${userToChat}`);
+
+            /**
+             * do nothing here as message has been queued and will be sent when
+             * data channel comes in open state
+             *
+             * @TODO setup a timeout job here to check if datachannel is
+             * connected after some time or not else try connecting it again
+             */
+          } else {
+
+            const createDataChannelType: CreateDataChannelType = {
+              username: userToChat,
+              channel: AppConstants.TEXT
+            }
+
+            //set up new data channel
+            await this.fileTransferService.setUpDataChannel(createDataChannelType);
+          }
+        }
 
       }
     } catch (error) {
       LoggerUtil.logAny(error);
-      LoggerUtil.logAny('error occured while sending message: ' + textMessage + ' to user: ' + username);
+      LoggerUtil.logAny(`error occured while sending message: ${textMessage} to user: ${userToChat}`);
     }
+  }
+
+  onWebrtcConnectionStateChange() {
+    
   }
 
   /**
@@ -496,7 +577,7 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
       const listElement: any = this.renderer.selectRootElement(`#contact-${messageContext[AppConstants.USERNAME]}`, true);
       let isUserVisibleInViewport: any = await this.utilityService.isElementInViewport(listElement);
       if (!isUserVisibleInViewport) {
-        LoggerUtil.logAny(`user ${messageContext.username} is not visible in viewport`);
+        LoggerUtil.logString(`user ${messageContext.username} is not visible in viewport`);
         this.coreAppUtilService.updateElemntPositionInArray(this.contextService.activeUsers, messageContext[AppConstants.USERNAME], 0);
       }
 
@@ -520,6 +601,56 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
   scrollMessages(): void {
     const scrollHeight = this.renderer.selectRootElement('#message-history-div', true).scrollHeight;
     this.renderer.setProperty(this.messageHistoryDiv.nativeElement, 'scrollTop', scrollHeight);
+  }
+
+  /**
+   * this is onmessage event handler for data channel
+   *
+   * @param jsonMessage message received via webrtc datachannel
+   * 
+   */
+  async onDataChannelMessage(jsonMessage: string): Promise<void> {
+    LoggerUtil.logAny(`message received on data channel : ${jsonMessage}`);
+    const message: any = JSON.parse(jsonMessage);
+    switch (message.type) {
+
+      //handle signaling messages
+      case AppConstants.SIGNALING:
+        this.onRouterMessage(message.message);
+        break;
+
+      //handle message acknowledgement
+      case AppConstants.MESSAGE_ACKNOWLEDGEMENT:
+        this.utilityService.updateChatMessageStatus(message);
+        this.applicationRef.tick();
+        break;
+
+      //handle received text data messages
+      default:
+        message.sent = false;
+        const messageStatus: string = await this.updateChatMessages(message);
+        if (messageStatus !== AppConstants.CHAT_MESSAGE_STATUS.NOT_APPLICABLE) {
+          this.utilityService.sendMessageAcknowledgement(message, messageStatus, message.type);
+        }
+    }
+  }
+
+  /**
+   * this will send all the queued messages to a user over via an data channel
+   * for that user
+   *
+   * @param dataChannelInfo received data channel meta info
+   */
+  async sendQueuedMessagesOnChannel(dataChannelInfo: DataChannelInfo): Promise<void> {
+    const webrtcContext: any = this.userContextService.getUserWebrtcContext(dataChannelInfo.channelOpenBy);
+    const dataChannel: RTCDataChannel = webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.TEXT][AppConstants.DATACHANNEL];
+
+    /**
+     * iterate message queue and send all the messages via data channel
+     */
+    while (webrtcContext[AppConstants.MESSAGE_QUEUE] && !webrtcContext[AppConstants.MESSAGE_QUEUE].isEmpty()) {
+      dataChannel.send(JSON.stringify(webrtcContext[AppConstants.MESSAGE_QUEUE].dequeue()));
+    }
   }
 
   /**
