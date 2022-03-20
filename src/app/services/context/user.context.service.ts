@@ -75,14 +75,16 @@ export class UserContextService {
    * @param  username username of the user
    */
   initializeUserWebrtcContext(username: string) {
-    this.setUserWebrtcContext(username, {
-      mediaContext: {},
-      connection: undefined,
-      connectionState: AppConstants.CONNECTION_STATES.NOT_CONNECTED,
-      unreadCount: 0,
-      reconnect: true, // this flag is used in case of disconnect, whether to reconnect or not
-      webrtcOnConnectQueue: new QueueStorage()
-    });
+    if (!this.hasUserWebrtcContext(username)) {
+      this.setUserWebrtcContext(username, {
+        mediaContext: {},
+        connection: undefined,
+        connectionState: AppConstants.CONNECTION_STATES.NOT_CONNECTED,
+        unreadCount: 0,
+        reconnect: true, // this flag is used in case of disconnect, whether to reconnect or not
+        webrtcOnConnectQueue: new QueueStorage()
+      });
+    }
   }
 
   initializeMessageQueue(username: string) {

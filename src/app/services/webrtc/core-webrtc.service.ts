@@ -57,9 +57,9 @@ export class CoreWebrtcService {
    * @param username username of the user with whom connection has to be established
    *
    */
-  mediaContextInit(channel: string, username: string) {
+  mediaContextInit(channel: string, username: string): void {
 
-    const webrtcContext = this.userContextService.getUserWebrtcContext(username);
+    const webrtcContext: any = this.userContextService.getUserWebrtcContext(username);
 
     /**
      * initialize empty connections container if it does not exist yet
@@ -89,33 +89,23 @@ export class CoreWebrtcService {
   }
 
   /**
-   * this will handle the processing of any 'answer' type message received
-   *
+   * handle the processing of 'answer' type message received
    * @param signalingMessage received signaling message
-   *
-   *  @TODO remove the Promise afterwards
    */
-  handleAnswer(signalingMessage: any) {
-    return new Promise<void>(async (resolve) => {
-      const peerConnection = this.userContextService.getUserWebrtcContext(signalingMessage.from)[AppConstants.CONNECTION];
-      peerConnection.setRemoteDescription(new RTCSessionDescription(signalingMessage.answer));
-      resolve();
-    });
+  async handleAnswer(signalingMessage: any): Promise<void> {
+    const peerConnection: RTCPeerConnection = this.userContextService.getUserWebrtcContext(signalingMessage.from)[AppConstants.CONNECTION];
+    peerConnection.setRemoteDescription(new RTCSessionDescription(signalingMessage.answer));
+    return;
   }
 
   /**
    * this will handle the processing of any 'candidate' type message received
-   *
    * @param signalingMessage received signaling message
-   *
-   * @TODO remove the Promise afterwards
    */
-  handleCandidate(signalingMessage: any) {
-    return new Promise<void>((resolve) => {
-      const peerConnection: any = this.userContextService.getUserWebrtcContext(signalingMessage.from)[AppConstants.CONNECTION];
-      peerConnection.addIceCandidate(new RTCIceCandidate(signalingMessage.candidate));
-      resolve();
-    });
+  async handleCandidate(signalingMessage: any): Promise<void> {
+    const peerConnection: RTCPeerConnection = this.userContextService.getUserWebrtcContext(signalingMessage.from)[AppConstants.CONNECTION];
+    peerConnection.addIceCandidate(new RTCIceCandidate(signalingMessage.candidate));
+    return;
   }
 
   /**

@@ -32,15 +32,17 @@
             <!-- contacts tab -->
             <div [ngClass]="{'flex-grow-full': true,'vertical-scroll': true,'no-scroll': true}">
                 <mat-list>
-                    <mat-list-item id="contact-{{username}}" *ngFor="let username of contextService.activeUsers; last as last"
-                        class="pointer-cursor" (click)="selectUser(username)">
+                    <mat-list-item id="contact-{{username}}"
+                        *ngFor="let username of contextService.activeUsers; last as last" class="pointer-cursor"
+                        (click)="selectUser(username)">
                         <mat-icon [color]="userContextService.userToChat === username ?'primary':''" matListIcon>
                             {{contextService.getUserStatus(username) ? 'person': 'person_off'}}
                         </mat-icon>
                         <h3 matLine> {{username}} </h3>
                         <mat-chip-list aria-label="Unread Message" *ngIf="userContextService.getUserWebrtcContext(username) !== null && 
                         userContextService.getUserWebrtcContext(username).unreadCount !== 0">
-                            <mat-chip color="primary" selected>4</mat-chip>
+                            <mat-chip color="primary" selected>
+                                {{userContextService.getUserWebrtcContext(username).unreadCount}}</mat-chip>
                         </mat-chip-list>
                         <!-- <mat-divider [inset]="true" *ngIf="!last"></mat-divider> -->
                         <mat-divider [inset]="true"></mat-divider>
@@ -60,7 +62,7 @@
                 <button mat-icon-button aria-label="Example icon-button with menu icon">
                     <mat-icon>person</mat-icon>
                 </button>
-                <span class="header-font">No User</span>
+                <span class="header-font">{{userContextService.userToChat}}</span>
                 <span class="toolbar-spacer"></span>
 
                 <button mat-icon-button aria-label="back icon button" class="toolbar-icon" (click)="backToContacts()"
@@ -94,14 +96,14 @@
                 }">
 
             <div id="message-history-div" #messageHistoryDiv class="no-scroll vertical-scroll flex-grow-full">
-                <div *ngFor="let message of contextService.getMessageContext(userContextService.userToChat)" class="row-flex-display align-center" [ngStyle]="{
+                <div *ngFor="let message of contextService.getMessageContext(userContextService.userToChat)"
+                    class="row-flex-display align-center" [ngStyle]="{
                    'flex-direction': message.isSent ? 'row-reverse' : 'row'
                 }">
                     <mat-icon>person</mat-icon>
 
                     <mat-list>
                         <mat-list-item>
-                            <!-- <h3 matLine> {{message.name}} </h3> -->
 
                             <span matLine>
                                 <mat-chip-list aria-label="Text Message">
@@ -109,10 +111,19 @@
                                 </mat-chip-list>
                             </span>
 
-                            <p matLine>
+                            <div matLine [ngStyle]="{
+                                'display': message.isSent ? 'flex':'',
+                                'flex-direction': message.isSent ? 'row-reverse':''
+                            }">
                                 {{message.timestamp}}
-                            </p>
+                            </div>
 
+                            <div matLine [ngStyle]="{
+                                    'display': message.isSent ? 'flex':'none',
+                                    'flex-direction': message.isSent ? 'row-reverse':''
+                                }">
+                                {{message.status}}
+                            </div>
                         </mat-list-item>
                     </mat-list>
                 </div>
@@ -121,7 +132,7 @@
             <!-- Message Input -->
             <div class="input-message hide-vertical-overflow row-flex-display">
 
-                <!-- Input Message Test Field -->
+                <!-- Input Message Text Field -->
                 <div class="flex-grow-full column-flex-display">
                     <mat-form-field appearance="outline" style="width: 100%;" color="primary">
                         <mat-label>Enter your message</mat-label>

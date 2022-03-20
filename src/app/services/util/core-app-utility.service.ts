@@ -170,13 +170,10 @@ export class CoreAppUtilityService {
 
   /**
    * this will generate a unique identifier
-   *
    * @return a promise containing a unique numberic identifier
    */
-  generateIdentifier() {
-    return new Promise<number>((resolve) => {
-      resolve(Date.now());
-    });
+  async generateIdentifier(): Promise<number> {
+    return Date.now();
   }
 
   /**

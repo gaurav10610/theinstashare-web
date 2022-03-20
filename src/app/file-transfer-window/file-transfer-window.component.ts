@@ -19,6 +19,7 @@ import { DataChannelInfo } from '../services/contracts/datachannel/DataChannelIn
 import { DialogCloseResult } from '../services/contracts/dialog/DialogCloseResult';
 import { DialogCloseResultType } from '../services/contracts/enum/DialogCloseResultType';
 import { DialogType } from '../services/contracts/enum/DialogType';
+import { ConnectionStateChangeContext } from '../services/contracts/event/ConnectionStateChangeContext';
 import { CoreDataChannelService } from '../services/data-channel/core-data-channel.service';
 import { LoggerUtil } from '../services/logging/LoggerUtil';
 import { SignalingService } from '../services/signaling/signaling.service';
@@ -69,7 +70,7 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
     //subscribe to custom events
     this.fileTransferService.onDataChannelMessageEvent.subscribe(this.onDataChannelMessage.bind(this));
     this.fileTransferService.onDataChannelReceiveEvent.subscribe(this.sendQueuedMessagesOnChannel.bind(this));
-
+    this.fileTransferService.onWebrtcConnectionStateChangeEvent.subscribe(this.onWebrtcConnectionStateChange.bind(this));
   }
 
   ngAfterViewInit() {
@@ -206,7 +207,7 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
    */
   async onRouterMessage(signalingMessage: any) {
     try {
-      LoggerUtil.logAny('received message via ' + signalingMessage.via + ': ' + JSON.stringify(signalingMessage));
+      LoggerUtil.logAny(`received message via ${signalingMessage.via} ${JSON.stringify(signalingMessage)}`);
       switch (signalingMessage.type) {
         case AppConstants.REGISTER:
           await this.handleRegister(signalingMessage);
@@ -216,8 +217,24 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
           this.utilityService.updateUserStatus(signalingMessage.connected, signalingMessage.username);
           break;
 
+        case AppConstants.OFFER:
+          await this.consumeWebrtcOffer(signalingMessage);
+          break;
+
+        case AppConstants.ANSWER:
+          await this.coreWebrtcService.handleAnswer(signalingMessage);
+          break;
+
+        case AppConstants.CANDIDATE:
+          await this.coreWebrtcService.handleCandidate(signalingMessage);
+          break;
+
+        case AppConstants.WEBRTC_EVENT:
+          this.handleWebrtcEvent(signalingMessage);
+          break;
+
         default:
-          LoggerUtil.logAny('received unknown signaling message with type: ' + signalingMessage.type);
+          LoggerUtil.logAny(`received unknown signaling message with type: ${signalingMessage.type}`);
       }
       this.applicationRef.tick();
     } catch (err) {
@@ -369,15 +386,22 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
    */
   selectTab(selectedTab: string) {
     this.currentTab = selectedTab;
+    const userToChat: string = this.userContextService.userToChat;
+    if (selectedTab === 'chat' && this.userContextService.hasUserWebrtcContext(userToChat)) {
+      this.userContextService.getUserWebrtcContext(userToChat).unreadCount = 0;
+    }
   }
 
   /**
    * this will handle selecting user from sidepanel
-   * 
    * @param username 
    */
   selectUser(username: string) {
-    this.userContextService.userToChat = username;
+    if (username !== this.userContextService.userToChat) {
+      LoggerUtil.logAny(`user selected: ${username}`);
+      this.userContextService.userToChat = username;
+      this.selectTab('chat');
+    }
   }
 
   /**
@@ -390,8 +414,62 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
   }
 
   /**
-   * send text message from input
+   * process received messages signaling message of type 'offer'
+   * @param signalingMessage: received signaling message
    */
+  async consumeWebrtcOffer(signalingMessage: any): Promise<void> {
+    try {
+      /**
+       * 
+       * if this offer message is for renegotiating an already established connection
+       * 
+       */
+      if (signalingMessage.renegotiate) {
+
+        this.coreWebrtcService.mediaContextInit(signalingMessage.channel, signalingMessage.from);
+        const peerConnection: RTCPeerConnection = this.userContextService.getUserWebrtcContext(signalingMessage.from)[AppConstants.CONNECTION];
+
+        if (!signalingMessage.seekReturnTracks) {
+          /**
+           * handle the received webrtc offer 'sdp', set the remote description and
+           * generate the answer sebsequently for sending it to the other user
+           *
+           * 'answerContainer' will contain the generated answer sdp and few other
+           * properties which app utilizes to compose an answer signaling message
+           * to be sent to other user
+           *
+           */
+          const answerContainer: any = await this.coreWebrtcService
+            .generateAnswer(peerConnection, signalingMessage.offer, signalingMessage.channel);
+
+          /**
+           * send the composed 'answer' signaling message to the other user from whom
+           * we've received the offer message
+           *
+           */
+          this.coreDataChannelService.sendPayload({
+            type: AppConstants.ANSWER,
+            answer: answerContainer.answerPayload.answer,
+            channel: answerContainer.answerPayload.channel,
+            from: this.userContextService.username,
+            to: signalingMessage.from
+          })
+        }
+      } else {
+
+        /**
+         * 
+         * this will setup a new webrtc connection 
+         */
+        this.fileTransferService.setUpWebrtcConnection(signalingMessage.from, signalingMessage);
+      }
+      return;
+    } catch (e) {
+      LoggerUtil.logAny(`there is an error while consuming webrtc offer received from ${signalingMessage.from}`);
+      return;
+    }
+  }
+
   sendTextMessage(event?: KeyboardEvent): void {
     //get the currenty selected user
     const userToChat = this.userContextService.userToChat;
@@ -402,25 +480,14 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
     if (event) {
       //when user hits 'Enter' button to send message
       if (event.code === 'Enter') {
-        /**
-         * send typed text message over webrtc datachannel
-         */
         this.sendMessageOnChannel(this.messageInput.nativeElement.value, userToChat);
-
-        //clear the text box
         this.renderer.setProperty(this.messageInput.nativeElement, 'value', '');
-        /**
-         * @TODO see if this is a good practice
-         */
         this.messageInput.nativeElement.focus();
       }
     } else {
       // when user hits the send message button
       this.sendMessageOnChannel(this.messageInput.nativeElement.value, userToChat);
       this.renderer.setProperty(this.messageInput.nativeElement, 'value', '');
-      /**
-       * @TODO see if this is a good practice
-       */
       this.messageInput.nativeElement.focus();
     }
   }
@@ -430,7 +497,6 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
    * 
    * @param textMessage text message to be sent
    * @param userToChat username of the user to whom message has to be sent
-   * 
    */
   async sendMessageOnChannel(textMessage: string, userToChat: string): Promise<void> {
     try {
@@ -521,8 +587,52 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
     }
   }
 
-  onWebrtcConnectionStateChange() {
-    
+  async onWebrtcConnectionStateChange(stateChangeContext: ConnectionStateChangeContext) {
+    const webrtcContext: any = this.userContextService.getUserWebrtcContext(stateChangeContext.username);
+    switch (stateChangeContext.connectionState) {
+      case 'disconnected':
+        // handle the webrtc disconnection here 
+        await this.webrtcConnectionDisconnectHandler(stateChangeContext.username);
+        break;
+
+      case 'connected':
+        /**
+         * make the connection status as 'connected' in the user's webrtc context
+         */
+        webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTED;
+        break;
+    }
+  }
+
+  async webrtcConnectionDisconnectHandler(username: string): Promise<void> {
+    LoggerUtil.logAny(`handling webrtc connection disconnect for ${username}`);
+    const webrtcContext: any = this.userContextService.getUserWebrtcContext(username);
+    webrtcContext[AppConstants.CONNECTION].onconnectionstatechange = null;
+    webrtcContext[AppConstants.RECONNECT] = false;
+    const mediaContext: any = webrtcContext[AppConstants.MEDIA_CONTEXT];
+
+    /**
+     * 
+     * iterate whole media context and clean channel context for all the open channels 
+     */
+    Object.keys(mediaContext).forEach(channel => {
+
+      /**
+       * 
+       * choose appropriate clean up routine for each open channel 
+       */
+      if (this.coreAppUtilService.isDataChannel(channel)) {
+        this.fileTransferService.cleanDataChannelContext(channel, mediaContext[channel]);
+        delete webrtcContext[AppConstants.MESSAGE_QUEUE];
+        delete webrtcContext[AppConstants.FILE_QUEUE];
+      }
+    })
+
+    //make media context empty
+    webrtcContext[AppConstants.MEDIA_CONTEXT] = {};
+    this.coreWebrtcService.cleanRTCPeerConnection(webrtcContext[AppConstants.CONNECTION]);
+    webrtcContext[AppConstants.CONNECTION] = undefined;
+    webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.NOT_CONNECTED;
   }
 
   /**
@@ -531,7 +641,6 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
    * sender is the currently selected user
    *
    * @param messageContext json payload containing the message
-   *
    * @return a promise containing the message read status i.e 'seen','received' etc
    */
   async updateChatMessages(messageContext: MessageContext): Promise<string> {
@@ -547,7 +656,6 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
      * if the message is received then,
      * a. play the message received app sound
      * b. update the peviously initialized message status to 'DELIVERED'
-     *
      */
     if (!messageContext.isSent) {
       this.playIncomeingMessageTune(true);
@@ -594,10 +702,6 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
     return messageStatus;
   }
 
-  /**
-   * scroll down chat message window
-   *
-   */
   scrollMessages(): void {
     const scrollHeight = this.renderer.selectRootElement('#message-history-div', true).scrollHeight;
     this.renderer.setProperty(this.messageHistoryDiv.nativeElement, 'scrollTop', scrollHeight);
@@ -605,9 +709,7 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
 
   /**
    * this is onmessage event handler for data channel
-   *
    * @param jsonMessage message received via webrtc datachannel
-   * 
    */
   async onDataChannelMessage(jsonMessage: string): Promise<void> {
     LoggerUtil.logAny(`message received on data channel : ${jsonMessage}`);
@@ -642,7 +744,7 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
    * @param dataChannelInfo received data channel meta info
    */
   async sendQueuedMessagesOnChannel(dataChannelInfo: DataChannelInfo): Promise<void> {
-    const webrtcContext: any = this.userContextService.getUserWebrtcContext(dataChannelInfo.channelOpenBy);
+    const webrtcContext: any = this.userContextService.getUserWebrtcContext(dataChannelInfo.channelOpenedWith);
     const dataChannel: RTCDataChannel = webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.TEXT][AppConstants.DATACHANNEL];
 
     /**
@@ -669,11 +771,39 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
   }
 
   /**
-   * logout from theinstshare file transfer app
+   * this will handle webrtc events 
+   * @param signalingMessage received signaling message 
    */
+  handleWebrtcEvent(signalingMessage: any): void {
+    LoggerUtil.logAny(`handling webrtc event: ${signalingMessage.event}`);
+    const webrtcContext: any = this.userContextService.getUserWebrtcContext(signalingMessage.from);
+    switch (signalingMessage.event) {
+
+      /**
+       * 
+       * webrtc data channel open event received from remote user's end
+       */
+      case AppConstants.WEBRTC_EVENTS.CHANNEL_OPEN:
+        LoggerUtil.logAny(`${signalingMessage.channel} data channel has been opened with user: ${signalingMessage.from}`);
+        webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTED;
+
+        switch (signalingMessage.channel) {
+          case AppConstants.TEXT:
+            this.sendQueuedMessagesOnChannel({
+              channel: signalingMessage.channel,
+              channelOpenAt: new Date(),
+              channelOpenedWith: signalingMessage.from
+            });
+            break;
+          default:
+          //do nothing here
+        }
+    }
+  }
+
   logout() {
     try {
-      LoggerUtil.logAny('logging out.........');
+      LoggerUtil.logAny('logging ou from file-transfer');
       /**
        * send de-register message to server to notify that user has opted to
        * logout

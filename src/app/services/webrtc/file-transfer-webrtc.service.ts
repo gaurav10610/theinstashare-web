@@ -5,6 +5,7 @@ import { CallbackContextType } from "../contracts/CallbackContextType";
 import { ComponentServiceSpec } from "../contracts/component/ComponentServiceSpec";
 import { CreateDataChannelType } from "../contracts/CreateDataChannelType";
 import { DataChannelInfo } from "../contracts/datachannel/DataChannelInfo";
+import { ConnectionStateChangeContext } from "../contracts/event/ConnectionStateChangeContext";
 import { CoreDataChannelService } from "../data-channel/core-data-channel.service";
 import { LoggerUtil } from "../logging/LoggerUtil";
 import { FileTransferUtilityService } from "../util/file-transfer-utility.service";
@@ -17,19 +18,42 @@ export class FileTransferService implements ComponentServiceSpec {
 
     onDataChannelMessageEvent: EventEmitter<any> = new EventEmitter(true);
     onDataChannelReceiveEvent: EventEmitter<DataChannelInfo> = new EventEmitter(true);
-    onWebrtcConnectionStateChangeEvent: EventEmitter<DataChannelInfo> = new EventEmitter(true);
+    onWebrtcConnectionStateChangeEvent: EventEmitter<ConnectionStateChangeContext> = new EventEmitter(true);
 
     constructor(
         private userContextService: UserContextService,
         private coreWebrtcService: CoreWebrtcService,
         private coreDataChannelService: CoreDataChannelService,
-        private utilityService: FileTransferUtilityService,
+        private utilityService: FileTransferUtilityService
     ) { }
 
-    registerCommonWebrtcEvents(peerConnection: RTCPeerConnection, username: string): void {
+    /**
+     * register all webrtc listeners on peer connection for a user
+     * @param peerConnection 
+     * @param username 
+     * @returns 
+     */
+    async registerWebrtcEventListeners(peerConnection: RTCPeerConnection, username: string): Promise<void> {
+        this.registerCommonWebrtcEvents(peerConnection, username);
+        this.registerSignalingStateChangeTrackEvent(peerConnection, username);
+        this.registerDataChannelEvents(peerConnection, username);
+        this.registerMediaTrackEvents(peerConnection, username);
+        return;
+    }
 
-        peerConnection.onnegotiationneeded = async (event) => {
+    registerCommonWebrtcEvents(peerConnection: RTCPeerConnection, username: string): void {
+        peerConnection.onnegotiationneeded = async () => {
             LoggerUtil.logAny(`${username} webrtc connection needs renegotiation`);
+        }
+
+        peerConnection.onconnectionstatechange = async () => {
+            LoggerUtil.logAny(`${username} webrtc connection state change: ${peerConnection.connectionState}`);
+            if (peerConnection.connectionState === 'connected' || peerConnection.connectionState === 'disconnected') {
+                this.onWebrtcConnectionStateChangeEvent.emit({
+                    connectionState: peerConnection.connectionState,
+                    username
+                });
+            }
         }
 
         /**
@@ -37,9 +61,8 @@ export class FileTransferService implements ComponentServiceSpec {
          *
          * compose the 'candidate' type signaling message using the generated
          * candidate and send it to the other user
-         *
          */
-        peerConnection.onicecandidate = (event: any) => {
+        peerConnection.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
             if (event.candidate) {
                 const iceCandidatePayload = {
                     type: AppConstants.CANDIDATE,
@@ -47,7 +70,7 @@ export class FileTransferService implements ComponentServiceSpec {
                     from: this.userContextService.username,
                     to: username,
                     channel: AppConstants.CONNECTION
-                };
+                }
                 this.coreDataChannelService.sendPayload(iceCandidatePayload);
             }
         }
@@ -63,21 +86,17 @@ export class FileTransferService implements ComponentServiceSpec {
                  * 
                  * There is no ongoing exchange of offer and answer underway. This may mean that the RTCPeerConnection 
                  * object is new, in which case both the localDescription and remoteDescription are null; it may also mean 
-                 * that negotiation is complete and a connection has been established.
+                 * that negotiation is complete and a connection has been established
                  * 
                  */
                 case 'stable':
                     /**
-                     * 
                      * make the connection status as 'connected' in the user's webrtc context
-                     * 
                      */
                     webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTED;
 
                     /**
-                     * 
                      * execute all the callback functions wih provided callback context
-                     * 
                      */
                     while (!webrtcContext[AppConstants.WEBRTC_ON_CONNECT_QUEUE].isEmpty()) {
                         const callback: CallbackContextType = <CallbackContextType>webrtcContext[AppConstants.WEBRTC_ON_CONNECT_QUEUE].dequeue();
@@ -92,41 +111,11 @@ export class FileTransferService implements ComponentServiceSpec {
         }
     }
 
-    registerConnectionStateChangeEvent(peerConnection: RTCPeerConnection, username: string): void {
-        peerConnection.onconnectionstatechange = async () => {
-            LoggerUtil.logAny(`${username} webrtc connection state change: ${peerConnection.connectionState}`);
-            const webrtcContext: any = this.userContextService.getUserWebrtcContext(username);
-            switch (peerConnection.connectionState) {
-                case 'disconnected':
-
-                    // handle the webrtc disconnection here 
-                    await this.webrtcConnectionDisconnectHandler(username, [{
-                        type: AppConstants.POPUP_TYPE.DISCONNECT + AppConstants.CONNECTION,
-                        channel: AppConstants.CONNECTION,
-                        modalText: `disconnected from ${username}`
-                    }]);
-                    break;
-
-                case 'connected':
-                    /**
-                     * 
-                     * make the connection status as 'connected' in the user's webrtc context
-                     */
-                    webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTED;
-            }
-        }
-    }
-
-    registerWebrtcEventListeners(peerConnection: RTCPeerConnection, username: string): Promise<void> {
-        throw new Error("Method not implemented.");
-    }
-
     registerDataChannelEvents(peerConnection: RTCPeerConnection, username: string): void {
         peerConnection.ondatachannel = (event: RTCDataChannelEvent) => {
 
             /**
              * when a remote data channel is received then set it in user's webrtc context
-             *
              */
             const dataChannel: RTCDataChannel = event.channel;
             const channel: string = dataChannel.label;
@@ -137,7 +126,6 @@ export class FileTransferService implements ComponentServiceSpec {
 
             /**
              * register onmessage listener on received data channel
-             *
              */
             dataChannel.onmessage = (msgEvent: MessageEvent) => {
                 this.onDataChannelMessageEvent.emit(msgEvent.data);
@@ -154,7 +142,6 @@ export class FileTransferService implements ComponentServiceSpec {
                 LoggerUtil.logAny(`${channel} data channel has been opened`);
 
                 /**
-                 * 
                  * send onopen data channel event message to other peer 
                  */
                 this.coreDataChannelService.sendPayload({
@@ -169,7 +156,7 @@ export class FileTransferService implements ComponentServiceSpec {
                 if (channel === AppConstants.TEXT) {
                     this.onDataChannelReceiveEvent.emit({
                         channel,
-                        channelOpenBy: username,
+                        channelOpenedWith: username,
                         channelOpenAt: new Date()
                     });
                 }
@@ -177,42 +164,28 @@ export class FileTransferService implements ComponentServiceSpec {
         }
     }
 
-    /**
-     * @NOTE - Not to be implemented by file transfer application
-     */
     registerMediaTrackEvents(peerConnection: RTCPeerConnection, username: string): void {
+        /**
+        * @NOTE - Not to be implemented by file transfer application
+        **/
         return;
-    }
-
-    webrtcConnectionDisconnectHandler(username: string, popupContexts?: any[]): Promise<void> {
-        throw new Error("Method not implemented.");
     }
 
     /**
      * setup datachannel with a user
-     *
      * @param createDataChannelType create data channel request type
-     *
      */
     async setUpDataChannel(createDataChannelType: CreateDataChannelType): Promise<void> {
-        /**
-         * 
-         * initialize the webrtc context if not yet initialized
-         */
-        if (!this.userContextService.hasUserWebrtcContext(createDataChannelType.username)) {
-            this.userContextService.initializeUserWebrtcContext(createDataChannelType.username);
-        }
+        this.userContextService.initializeUserWebrtcContext(createDataChannelType.username);
         this.coreWebrtcService.mediaContextInit(createDataChannelType.channel, createDataChannelType.username);
         const webrtcContext: any = this.userContextService.getUserWebrtcContext(createDataChannelType.username);
 
         /**
-         * 
          * mark data channel state as connecting for provided channel in user's webrtc media context
          */
         webrtcContext[AppConstants.MEDIA_CONTEXT][createDataChannelType.channel][AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTING;
         if (webrtcContext[AppConstants.CONNECTION_STATE] === AppConstants.CONNECTION_STATES.CONNECTED) {
-
-            const peerConnection: any = webrtcContext[AppConstants.CONNECTION];
+            const peerConnection: RTCPeerConnection = webrtcContext[AppConstants.CONNECTION];
             /**
              *
              * generate the appropriate 'offer' for sending it to the other user
@@ -223,7 +196,7 @@ export class FileTransferService implements ComponentServiceSpec {
              *
              */
             const offerContainer: any = await this.coreWebrtcService.getDataChannelOffer(peerConnection, createDataChannelType.channel);
-            const dataChannel: any = offerContainer.dataChannel;
+            const dataChannel: RTCDataChannel = offerContainer.dataChannel;
             LoggerUtil.logAny(`registered message listener on ${createDataChannelType.channel} data channel`);
 
             // remote datachannel onmessage listener
@@ -250,7 +223,6 @@ export class FileTransferService implements ComponentServiceSpec {
         } else {
             LoggerUtil.logAny(`webrtc connection is not in connected state for user: ${createDataChannelType.username}`);
             /**
-             * 
              * if webrtc connection is not in connetcted state then add the setup data channel function 
              * along with the calling context in the webrtc on connect queue
              */
@@ -266,23 +238,14 @@ export class FileTransferService implements ComponentServiceSpec {
     }
 
     /**
-     * 
      * this will setup a webrtc connection with provided user
      * 
      * @param username username of the user with whom webrtc connection have to be established
      * @param offerMessage this is an optional offer signaling message
      */
     async setUpWebrtcConnection(username: string, offerMessage?: any): Promise<void> {
-
         LoggerUtil.logAny('setting up new webrtc connection');
-
-        /**
-         * 
-         * initialize webrtc context if not yet initialized
-         */
-        if (!this.userContextService.hasUserWebrtcContext(username)) {
-            this.userContextService.initializeUserWebrtcContext(username);
-        }
+        this.userContextService.initializeUserWebrtcContext(username);
         const webrtcContext: any = this.userContextService.getUserWebrtcContext(username);
 
         if (webrtcContext[AppConstants.CONNECTION_STATE] === AppConstants.CONNECTION_STATES.NOT_CONNECTED) {
@@ -298,7 +261,7 @@ export class FileTransferService implements ComponentServiceSpec {
              * update webrtc connection state to connecting so that not other flow can update it further
              */
             webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTING;
-            const peerConnection: any = webrtcContext[AppConstants.CONNECTION];
+            const peerConnection: RTCPeerConnection = webrtcContext[AppConstants.CONNECTION];
 
             /**
              * 
@@ -313,7 +276,7 @@ export class FileTransferService implements ComponentServiceSpec {
              * create the offer for the peer connection and send it to other peer
              */
             if (offerMessage === undefined) {
-                peerConnection.createOffer().then((offer: any) => {
+                peerConnection.createOffer().then((offer: RTCSessionDescriptionInit) => {
                     peerConnection.setLocalDescription(offer);
 
                     /**
@@ -333,7 +296,7 @@ export class FileTransferService implements ComponentServiceSpec {
                 });
             } else {
                 peerConnection.setRemoteDescription(new RTCSessionDescription(offerMessage.offer));
-                peerConnection.createAnswer().then((answer: any) => {
+                peerConnection.createAnswer().then((answer: RTCSessionDescriptionInit) => {
                     peerConnection.setLocalDescription(answer);
 
                     /**
@@ -358,5 +321,24 @@ export class FileTransferService implements ComponentServiceSpec {
              * already in connecting/connected state so do nothing here
              */
         }
+    }
+
+    async cleanDataChannelContext(channel: string, mediaChannelContext: any): Promise<void> {
+        try {
+            if (mediaChannelContext && mediaChannelContext[AppConstants.DATACHANNEL]) {
+                this.coreWebrtcService.cleanDataChannel(mediaChannelContext[AppConstants.DATACHANNEL]);
+                mediaChannelContext[AppConstants.DATACHANNEL] = undefined;
+                mediaChannelContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.NOT_CONNECTED;
+            }
+            return;
+        } catch (error) {
+            LoggerUtil.logAny(`error occured while cleaning data channel context for channel: ${channel}`);
+            return;
+        }
+    }
+
+    async cleanMediaStreamContext(channel: string, mediaChannelContext: any): Promise<void> {
+        // @NOTE - Not implemented for file transfer application
+        return;
     }
 }

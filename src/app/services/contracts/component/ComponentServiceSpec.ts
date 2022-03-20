@@ -15,6 +15,6 @@ export interface ComponentServiceSpec {
     registerDataChannelEvents(peerConnection: RTCPeerConnection, username: string): void;
     registerMediaTrackEvents(peerConnection: RTCPeerConnection, username: string): void;
     registerSignalingStateChangeTrackEvent(peerConnection: RTCPeerConnection, username: string): void;
-    registerConnectionStateChangeEvent(peerConnection: RTCPeerConnection, username: string): void;
-    webrtcConnectionDisconnectHandler(username: string, popupContexts?: any[]): Promise<void>;
+    cleanDataChannelContext(channel: string, mediaChannelContext: any): Promise<void>;
+    cleanMediaStreamContext(channel: string, mediaChannelContext: any): Promise<void>;
 }

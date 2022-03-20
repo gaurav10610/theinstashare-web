@@ -1,5 +1,6 @@
-import { ConnectionStateChangeContextType } from "../enum/ConnectionStateChangeContextType";
+import { ConnectionStatesType } from "../enum/ConnectionStatesType";
 
 export interface ConnectionStateChangeContext {
-    type: ConnectionStateChangeContextType
+    connectionState: string,
+    username: string,
 }

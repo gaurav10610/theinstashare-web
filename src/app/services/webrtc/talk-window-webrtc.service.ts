@@ -700,7 +700,7 @@ export class TalkWindowWebrtcService {
    * @param mediaChannelContext media channel context
    * 
    */
-  cleanDataChannelContext(channel: string, mediaChannelContext: string) {
+  cleanDataChannelContext(channel: string, mediaChannelContext: any) {
     return new Promise<void>((resolve, reject) => {
       try {
         if (mediaChannelContext && mediaChannelContext[AppConstants.DATACHANNEL]) {
