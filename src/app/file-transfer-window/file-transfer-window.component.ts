@@ -61,7 +61,7 @@ export class FileTransferWindowComponent implements OnInit, OnDestroy, AfterView
   //assets path
   assetsPath = environment.is_native_app ? 'assets/' : '../../assets/';
 
-  currentTab: String = 'cloud-upload'; // or 'chat'
+  currentTab: String = 'file-upload'; // or 'chat'
 
   async ngOnInit(): Promise<void> {
     this.gaService.pageView('/file-transfer', 'File Transfer');

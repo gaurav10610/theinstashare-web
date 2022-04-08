@@ -69,21 +69,47 @@
                     *ngIf="userContextService.isMobile">
                     <mat-icon>arrow_back</mat-icon>
                 </button>
-
-                <button mat-icon-button aria-label="chat icon button" class="toolbar-icon" (click)="selectTab('chat')">
-                    <mat-icon>chat</mat-icon>
-                </button>
-
-                <button mat-icon-button aria-label="file upload icon button" class="toolbar-icon"
-                    (click)="selectTab('file-upload')">
-                    <mat-icon>file_upload</mat-icon>
-                </button>
-
-                <button mat-icon-button aria-label="file downlod icon button" class="toolbar-icon"
-                    (click)="selectTab('file-download')">
-                    <mat-icon>file_download</mat-icon>
-                </button>
             </mat-toolbar>
+        </div>
+
+        <!-- tab control buttons -->
+        <div id="tab-controls" class="row-flex-display icons-header tab-contols-class">
+
+            <button mat-raised-button color="primary" aria-label="upload icon button" style="margin-right: 10px;"
+                (click)="selectTab('chat')" *ngIf="currentTab !== 'chat'">
+                <mat-icon style="margin-right: 5px;">chat</mat-icon>
+                <span>Chat</span>
+            </button>
+
+            <button mat-stroked-button color="primary" aria-label="upload icon button" style="margin-right: 10px;"
+                *ngIf="currentTab === 'chat'">
+                <mat-icon style="margin-right: 5px;">chat</mat-icon>
+                <span>Chat</span>
+            </button>
+
+            <button mat-raised-button color="primary" aria-label="upload icon button" style="margin-right: 10px;"
+                (click)="selectTab('file-upload')" *ngIf="currentTab !== 'file-upload'">
+                <mat-icon style="margin-right: 5px;">cloud_upload</mat-icon>
+                <span>Uploads</span>
+            </button>
+
+            <button mat-stroked-button color="primary" aria-label="upload icon button" style="margin-right: 10px;"
+                *ngIf="currentTab === 'file-upload'">
+                <mat-icon style="margin-right: 5px;">cloud_upload</mat-icon>
+                <span>Uploads</span>
+            </button>
+
+            <button mat-raised-button color="primary" aria-label="upload icon button" style="margin-right: 10px;"
+                (click)="selectTab('file-download')" *ngIf="currentTab !== 'file-download'">
+                <mat-icon style="margin-right: 5px;">cloud_download</mat-icon>
+                <span>Downloads</span>
+            </button>
+
+            <button mat-stroked-button color="primary" aria-label="upload icon button" style="margin-right: 10px;"
+                *ngIf="currentTab === 'file-download'">
+                <mat-icon style="margin-right: 5px;">cloud_download</mat-icon>
+                <span>Downloads</span>
+            </button>
         </div>
 
         <!-- chat tab -->
@@ -95,7 +121,7 @@
                     'column-flex-display': true
                 }">
 
-            <div id="message-history-div" #messageHistoryDiv class="no-scroll vertical-scroll flex-grow-full">
+            <div id="message-history-div" #messageHistoryDiv class="no-scroll vertical-scroll flex-grow-full app-background">
                 <div *ngFor="let message of contextService.getMessageContext(userContextService.userToChat)"
                     class="row-flex-display align-center" [ngStyle]="{
                    'flex-direction': message.isSent ? 'row-reverse' : 'row'
@@ -162,16 +188,6 @@
             'app-background': true
         }">
 
-            <!-- tab icons header -->
-            <div class="row-flex-display icons-header" style="justify-content: flex-end;">
-
-                <button mat-raised-button color="primary" aria-label="upload icon button"
-                    style="margin-top: 10px;margin-right: 10px;">
-                    <mat-icon style="margin-right: 5px;">cloud_upload</mat-icon>
-                    <span>New File</span>
-                </button>
-            </div>
-
             <div style="margin: 10px;">
                 <mat-card>
                     <mat-card-content>
@@ -276,6 +292,12 @@
                     </mat-card-footer>
                 </mat-card>
             </div>
+
+            <button mat-raised-button color="primary" aria-label="upload icon button" style="margin: 10px;"
+                *ngIf="currentTab === 'file-upload'">
+                <mat-icon style="margin-right: 5px;">add_circle</mat-icon>
+                <span>Upload New File</span>
+            </button>
 
         </div>
 

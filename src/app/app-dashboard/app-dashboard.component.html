@@ -12,9 +12,16 @@
         </mat-toolbar>
     </div>
 
+    <div id="username-header" class="row-flex-display header-font"
+        style="flex-direction: row-reverse; margin: 10px;" *ngIf="userContextService.username">
+        <span>{{userContextService.username}}</span>
+        <span style="font-weight: bold;">Logged in as: </span>
+    </div>
+
     <!-- container for all the applications -->
     <div id="apps-container" class="apps-container">
-        <div *ngFor="let appContext of appIconsContext" (click)="registerApplicationUser(appContext.identifier)" class="app-class pointer-cursor">
+        <div *ngFor="let appContext of appIconsContext" (click)="registerApplicationUser(appContext.identifier)"
+            class="app-class pointer-cursor">
 
             <mat-card>
                 <mat-card-content>

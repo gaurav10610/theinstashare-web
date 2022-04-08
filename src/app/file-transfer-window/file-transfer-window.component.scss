@@ -2,6 +2,7 @@
     display: grid;
     grid-template-columns: 23% 77%;
     grid-template-rows: 100%;
+    overflow: hidden;
 }
 
 @media screen and (max-width: 735px) {
@@ -20,6 +21,12 @@
     height: 50px;
     line-height: 50px;
     vertical-align: middle;
+}
+
+.tab-contols-class {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    justify-content: flex-end;
 }
 
 .border-bottom {
