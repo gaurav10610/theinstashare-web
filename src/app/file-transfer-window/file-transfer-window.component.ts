@@ -1,3 +1,5 @@
+import { TransferredFileContext } from "./../services/contracts/file/TransferredFileContext";
+import { QueueStorage } from "./../services/util/QueueStorage";
 import {
   AfterViewInit,
   ApplicationRef,
@@ -184,11 +186,11 @@ export class FileTransferWindowComponent
    *
    */
   async fetchActiveUsersList(): Promise<void> {
-    const data: any = await this.apiService
-      .get(
+    const data: any = await firstValueFrom(
+      this.apiService.get(
         `${AppConstants.API_ENDPOINTS.GET_ALL_ACTIVE_USERS}?groupName=${AppConstants.APPLICATION_NAMES.FILE_TRANSFER}`
       )
-      .toPromise();
+    );
 
     //clear userStatus object
     this.contextService.userStatus.clear();
@@ -955,12 +957,50 @@ export class FileTransferWindowComponent
   }
 
   /**
-   * start sharing file
+   * start sharing selected files
    * @event change event object
    */
   async startSharingFile(event: any) {
+    const userToChat: string = this.userContextService.userToChat;
+    this.userContextService.initializeUserWebrtcContext(userToChat);
+    const webrtcContext: any =
+      this.userContextService.getUserWebrtcContext(userToChat);
+
+    // initialize required context for file transfer
+    this.contextService.initializeFileQueue(userToChat);
+    this.contextService.initializeFileContext(userToChat);
+
+    const fileContext: TransferredFileContext[] =
+      this.contextService.getFileContext(userToChat);
+    const fileQueue: QueueStorage<File> =
+      this.contextService.getFileQueue(userToChat);
+
+    /**
+     *
+     * @TODO implement allowed file type validation here
+     *
+     */
     for (let i = 0; i < event.target.files.length; i++) {
-      LoggerUtil.logAny(`sharing file: ${event.target.files[i].name}`);
+      const file: File = event.target.files[i];
+      LoggerUtil.logAny(event.target.files[i]);
+
+      fileQueue.enqueue(file);
+
+      fileContext.push({
+        id: String(await this.coreAppUtilService.generateIdentifier()),
+        fileName: file.name,
+        isSent: true,
+        uploadProgress: 0,
+        fileExtension: file.type,
+        isFragmented: true,
+        fragmentOffset: 0,
+        totalFragments: 0, //just a default value, this will be updated later once file is being sent
+        lastPartReceivedAt: null,
+        lastAcknowledgementAt: null,
+        from: this.userContextService.username,
+        isPaused: true,
+        size: file.size,
+      });
     }
   }
 

@@ -1,8 +1,13 @@
+import { QueueStorage } from "./../../util/QueueStorage";
 import { TransferredFileContext } from "../file/TransferredFileContext";
 
 export interface FileTransferContextSpec {
-    fileContext: Map<string, TransferredFileContext[]>;
-    hasFileContext(username: string): boolean;
-    initializeFileContext(username: string): void;
-    getFileContext(username: string): TransferredFileContext[];
+  fileQueues: Map<string, QueueStorage<File>>;
+  fileContext: Map<string, TransferredFileContext[]>;
+  hasFileContext(username: string): boolean;
+  initializeFileContext(username: string): void;
+  getFileContext(username: string): TransferredFileContext[];
+  hasFileQueue(username: string): boolean;
+  initializeFileQueue(username: string): void;
+  getFileQueue(username: string): QueueStorage<File>;
 }

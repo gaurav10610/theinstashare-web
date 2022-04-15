@@ -33,7 +33,7 @@ export class CoreAppUtilityService {
 
   /**
    * remove value stored at provided key from storage
-   * 
+   *
    * @param key key corresponding to which a value is stored
    */
   removeStorageValue(key: string) {
@@ -96,7 +96,7 @@ export class CoreAppUtilityService {
    * @param webrtcContext user's webrtc context
    *
    * @return a boolean result
-   * 
+   *
    */
   isWebrtcConnectionConnected(webrtcContext: any) {
     return this.getNestedValue(webrtcContext, AppConstants.CONNECTION_STATE) === AppConstants.CONNECTION_STATES.CONNECTING;
@@ -161,7 +161,7 @@ export class CoreAppUtilityService {
 
   /**
    * delay implementatio
-   * 
+   *
    * @param timeToSleep time in ms to sleep
    */
   delay(timeToSleep: number) {
@@ -190,11 +190,11 @@ export class CoreAppUtilityService {
   }
 
   /**
-   * this will return the media type for sdp modification so that app can apply 
+   * this will return the media type for sdp modification so that app can apply
    * max bitrate limit for a webrtc connection
-   *  
-   * @param channel: media type audio/video/text 
-   * 
+   *
+   * @param channel: media type audio/video/text
+   *
    */
   getMediaTypeForSdpModification(channel: string) {
     if (channel === AppConstants.VIDEO || channel === AppConstants.SCREEN) {
@@ -209,11 +209,11 @@ export class CoreAppUtilityService {
 
   /**
    * this will return the max bitrate to configure in the SDP
-   * 
-   * @param channel: media type audio/video/text 
-   * 
+   *
+   * @param channel: media type audio/video/text
+   *
    * @TODO fix it afterwards
-   * 
+   *
    */
   getMaxBitrateForSdpModification(channel: string) {
     let bitrate = 10000;
@@ -244,9 +244,9 @@ export class CoreAppUtilityService {
   }
 
   /**
-   * 
+   *
    * check if provided channel uses data channel
-   * 
+   *
    * @param channel type of media i.e 'text', 'file' or 'remoteControl'
    */
   isDataChannel(channel: string): boolean {
@@ -254,9 +254,9 @@ export class CoreAppUtilityService {
   }
 
   /**
-   * 
+   *
    * check if provided channel uses data channel
-   * 
+   *
    * @param channel type of media i.e 'audio', 'video' etc
    */
   isMediaChannel(channel: string): boolean {
@@ -265,13 +265,40 @@ export class CoreAppUtilityService {
 
   /**
    * this will check if a certain value is in the specified array or not
-   * 
+   *
    * @param value value to check in the array
    * @param array array of values
    * @returns boolean specifying whether value exist in array or not
-   * 
+   *
    */
   checkMember(value: any, array: any[]): boolean {
     return array.indexOf(value) > -1;
+  }
+
+  /**
+   * this will resolve the media file type i.e 'audio', 'video' or 'image' with
+   * the provided file extension
+   *
+   * @param fileExtension file extension
+   *
+   * @return a promise containing the file type
+   *
+   * @TODO refactor it afterwards, this can be done in an easy way
+   */
+   resolveFileType(fileExtension: string) {
+    return new Promise((resolve) => {
+      let index = AppConstants.SUPPORTED_IMAGE_FORMATS.indexOf(fileExtension);
+      if (index > -1) {
+        resolve(AppConstants.IMAGE);
+      }
+      index = AppConstants.SUPPORTED_VIDEO_FORMATS.indexOf(fileExtension);
+      if (index > -1) {
+        resolve(AppConstants.VIDEO);
+      }
+      index = AppConstants.SUPPORTED_AUDIO_FORMATS.indexOf(fileExtension);
+      if (index > -1) {
+        resolve(AppConstants.AUDIO);
+      }
+    });
   }
 }

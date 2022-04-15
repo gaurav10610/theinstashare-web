@@ -132,7 +132,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       /**
        * this is the case when user either reloads this page or directly came on
        * this page via its url
-       * 
+       *
        */
       const eventsConfig = {
         onopen: this.onRouterConnect.bind(this),
@@ -187,9 +187,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     /**
      * window before unload hook, in order to process something before browser
      * reloads the page
-     * 
+     *
      * @TODO use renderer2 here and verify
-     * 
+     *
      */
     window.onbeforeunload = function () {
 
@@ -208,7 +208,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     }.bind(this);
 
     /**
-     * populate os type to be utilised by remote access mechanism later on 
+     * populate os type to be utilised by remote access mechanism later on
      */
     this.talkWindowContextService.remoteAccessContext['localOS'] = this.talkWindowUtilService.getOSType();
     LoggerUtil.logAny('local operating system: ' + this.talkWindowContextService.remoteAccessContext['localOS']);
@@ -256,9 +256,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       LoggerUtil.logAny('window resize event fired');
 
       /**
-       * only handle this event if user is in screen sharing seesion to re-calulate some 
+       * only handle this event if user is in screen sharing seesion to re-calulate some
        * coordinate translation ratios used by remote access mechanism
-       *  
+       *
        */
       if (this.talkWindowContextService.bindingFlags.isScreenSharing &&
         this.talkWindowContextService.bindingFlags.haveRemoteVideoStream) {
@@ -273,7 +273,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
   /**
    * open appropriate dialog
-   * 
+   *
    * @param dialogType type of dialog
    * @param data data to be passed to close handler
    */
@@ -321,7 +321,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   /**
    * this will handle dialog close
    * @param dialogCloseResult result data sent by the component contained in the dialog which got closed
-   * 
+   *
    */
   handleDialogClose(dialogCloseResult?: DialogCloseResult) {
     if (dialogCloseResult === undefined) {
@@ -498,9 +498,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
   /**
    * handle to handle received messages of type 'register'
-   * 
+   *
    * @param signalingMessage received signaling message
-   * 
+   *
    */
   handleRegister(signalingMessage: any) {
     return new Promise<void>(async (resolve) => {
@@ -528,10 +528,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         this.closeDialog();
 
         /**
-         * 
+         *
          * onopen event handler won't be needed after user is registered as even
          * in the disconnect cases we will manage reconnect handler only
-         * 
+         *
          */
         this.signalingService.signalingRouter.off('connect');
         try {
@@ -545,8 +545,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       } else {
 
         /**
-         * user registeration failed case - 
-         * 
+         * user registeration failed case -
+         *
          * close current progress dialog and open app login dialog again
          **/
         this.openDialog(DialogType.APP_LOGIN);
@@ -566,9 +566,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       try {
 
         /**
-         * 
+         *
          * if this offer message is for renegotiating an already established connection
-         * 
+         *
          */
         if (signalingMessage.renegotiate) {
 
@@ -609,9 +609,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
             const webrtcContext: any = this.userContextService.getUserWebrtcContext(signalingMessage.from);
             /**
-             * 
+             *
              * process here on the basis of captured video streams
-             * 
+             *
              * @TODO wrap this in a function call afterwards
              */
             answerContainer.mediaStreams.forEach((streamContext: any) => {
@@ -679,8 +679,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         } else {
 
           /**
-           * 
-           * this will setup a new webrtc connection 
+           *
+           * this will setup a new webrtc connection
            */
           this.webrtcService.setUpWebrtcConnection(signalingMessage.from, signalingMessage);
         }
@@ -714,7 +714,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * event handler when user click on any media start/stop icon on UI
    *
    * @param clickedIcon unique string identifier of clicked icon on screen
-   * 
+   *
    * @TODO refactor this whole approach
    */
   async handleMediaStreaming(clickedIcon: String) {
@@ -762,7 +762,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       delete webrtcContext[AppConstants.MEDIA_CONTEXT][channel];
 
       /**
-       * 
+       *
        * @TODO segregate this logic in a function afterwards
        */
       if (channel === AppConstants.SCREEN) {
@@ -776,7 +776,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
             webrtcContext[AppConstants.CONNECTION].removeTrack(webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.SOUND][AppConstants.TRACK_SENDER]);
           }
           /**
-           * 
+           *
            * @TODO verify it afterwards if notification is really necessary or not
            */
           this.webrtcService.processChannelStreamDisconnect(AppConstants.SOUND, userToChat, true, [stopAudioPopupContext]);
@@ -803,7 +803,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     } else {
       LoggerUtil.logAny('handling media stream start request for channel: ' + channel);
       /**
-       * 
+       *
        * handle media stream start request
        */
       this.setMediaStreamRequest(channel);
@@ -887,7 +887,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       }
 
       /**
-       * 
+       *
        * initialize the media context for all the required media tracks
        */
       startMediaStreamType.requiredMediaTracks.forEach((mediaChannel) => {
@@ -941,7 +941,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          *  compose 'offer' signaling message
          *
          * @property 'seekReturnTracks' will be used by receiving peer user to
-         * check what all tracks has to be send for audio and video calls we'll 
+         * check what all tracks has to be send for audio and video calls we'll
          * use different webrtc connections to send and recive media media streams.
          *
          * Currently, this property is set for audio and video calls as screen
@@ -966,7 +966,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         this.coreDataChannelService.sendPayload(offerPayload);
 
         /**
-         * 
+         *
          * process here on the basis of captured video streams
          */
         offerContainer.mediaStreams.forEach((streamContext: any) => {
@@ -1005,8 +1005,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       } else {
 
         /**
-         * 
-         * if webrtc connection is not in connetcted state then add the startMediaStream(...) function 
+         *
+         * if webrtc connection is not in connetcted state then add the startMediaStream(...) function
          * along with the calling context in the webrtc on connect queue
          */
         const webrtcCallbackContextType: CallbackContextType = {
@@ -1028,7 +1028,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * on click handler when user selects a user from active user's list
    *
    * @param selectedUser username of the selected user
-   * 
+   *
    */
   async startTextChat(selectedUser: string) {
 
@@ -1116,7 +1116,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * user
    *
    * @param textMessage text message that needed to be sent
-   * 
+   *
    * @param userToChat username of the user to whom message has to be sent
    */
   async sendMessageOnChannel(textMessage: any, userToChat: string) {
@@ -1268,7 +1268,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * start iterating selected files
        */
       for (let i = 0; i < event.target.files.length; i++) {
-        const contentType = await this.talkWindowUtilService.resolveFileType(event.target.files[i].type.split('/')[1]);
+        const contentType = await this.coreAppUtilService.resolveFileType(event.target.files[i].type.split('/')[1]);
         const contentId: any = await this.coreAppUtilService.generateIdentifier();
 
         /**
@@ -1394,11 +1394,11 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
   /**
    * this will send file data in chunks
-   * 
+   *
    * @param  fileRecord :file data record
-   * 
+   *
    * @param fileBlob    :file data blob
-   * 
+   *
    * @return promise after sending all chunks
    */
   sendFileDataInChunks(fileRecord: any, fileBlob: any) {
@@ -1424,7 +1424,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       /**
        * @TODO refactor this afterwards
        * update last data exchanged timestamp in user's webrtc context
-       * 
+       *
        */
       userContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][AppConstants.LAST_USED] = Date.now();
 
@@ -1475,7 +1475,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
   /**
    * this will handle any media stream request acceptance
-   * 
+   *
    * @param channel media type i.e 'audio', 'video' etc.
    *
    */
@@ -1600,7 +1600,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   * handler to decline/cancel media stream request
   *
   * @param action type of action i.e 'disconnect', 'close' or 'decline'
-  * 
+  *
   * @param channel media type i.e 'audio', 'video' etc.
   */
   closeCall(action: string, channel: string) {
@@ -1805,7 +1805,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     return new Promise<void>((resolve) => {
 
       /**
-       * 
+       *
        * @TODO try to remove it afterwards
        */
       if (!this.talkWindowContextService.bindingFlags.isDndOn
@@ -1824,7 +1824,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * sent & user still hasn't cancelled it's media stream request then,
        * start the media streaming by calling start media streaming method with
        * appropriate mediaType param
-       * 
+       *
        */
       if (signalingMessage.request === AppConstants.ACCEPT &&
         this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME]) {
@@ -2091,8 +2091,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
       /**
        * clear the media stream request context
-       * 
-       * @TODO refactor it afterwards 
+       *
+       * @TODO refactor it afterwards
        */
       this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME] = undefined;
       this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL] = undefined;
@@ -2113,14 +2113,14 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    * @param setFlag boolean flag to distingush whether to set the handler or to
    * remove it
-   * 
+   *
    */
   setCentralIconsPopup(setFlag: boolean) {
     if (setFlag) {
 
       /**
        * @TODO refactor it afterwards, see if this can be done in an easy way
-       * 
+       *
        */
       const setCentralIconFunction = (event: any) => {
         if (event.target.id) {
@@ -2198,7 +2198,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       if (this.userContextService.userToChat === messagePayload[AppConstants.USERNAME]) {
 
         /**
-         * if user is currently chatting with the user with whom this message 
+         * if user is currently chatting with the user with whom this message
          * has been exchanged then update previously initialized message status as seen
          *
          */
@@ -2301,7 +2301,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * this will set the volume of remote audio tag
    *
    * @param volume volume level needed to be set
-   * 
+   *
    */
   setRemoteAudioVolume(volume: Number) {
     this.renderer.setProperty(this.remoteAudio.nativeElement, 'volume', volume);
@@ -2309,11 +2309,11 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
   /**
    * this will download any received file
-   * 
+   *
    * @param event html event object
-   * 
+   *
    * @param contentId content id of received blob in sharedContent
-   * 
+   *
    * @param fileName name of the received file
    */
   downloadFile(contentId: string, fileName: string, event: any) {
@@ -2326,9 +2326,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
   /**
    * this will download the all the chat transcripts in text format
-   * 
+   *
    * @TODO refactor it afterwards to support multiple file formats
-   * 
+   *
    */
   downloadChatTranscripts() {
     var text = 'Some data I want to export\nMy name is gaurav';
@@ -2342,10 +2342,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
   /**
    * this will handle remote access start/stop requests for a screen sharing session
-   * 
+   *
    * @param action string param to distinguish whether to start/stop the remote access
    * possible values => 'start', 'stop'
-   * 
+   *
    */
   handleRemoteAccess(action: String) {
 
@@ -2364,14 +2364,14 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         /**
          * set remote access request context
          *
-         * remote access request context will be used once app receive response for 
-         * sent remote access request from other user 
+         * remote access request context will be used once app receive response for
+         * sent remote access request from other user
          *
          */
         this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME] = this.userContextService.userToChat;
 
         /**
-         * set informational modal popup message on UI 
+         * set informational modal popup message on UI
          */
         popupContext = this.messageService
           .buildPopupContext(AppConstants.POPUP_TYPE.CONNECT, AppConstants.REMOTE_CONTROL, this.userContextService.userToChat);
@@ -2380,7 +2380,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
         /**
          * send remote access request to the selected user
-         * 
+         *
          */
         this.coreDataChannelService.sendPayload({
           from: this.userContextService.getUserName(),
@@ -2395,7 +2395,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * stop remote access
        */
       case 'stop':
-        // display disconnecting modal popup message on UI 
+        // display disconnecting modal popup message on UI
         popupContext = this.messageService
           .buildPopupContext(AppConstants.POPUP_TYPE.DISCONNECTING, AppConstants.REMOTE_CONTROL);
 
@@ -2410,16 +2410,16 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         break;
 
       default:
-      //do nothing here 
+      //do nothing here
     }
   }
 
   /**
    * this will handle processing for 'remoteAccess' type received messages.
    * Usually all the messages related to remote access requests
-   * 
+   *
    * @param signalingMessage received signaling message
-   * 
+   *
    */
   handleRemoteAccessRequest(signalingMessage: any) {
     switch (signalingMessage.request) {
@@ -2427,14 +2427,14 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       /**
        * @value 'invite' means that user has received a remote access request so
        * appropriate response has to be send to sender
-       * 
+       *
        */
       case AppConstants.INVITE:
         LoggerUtil.logAny('received remote access request from: ' + signalingMessage.from);
 
         /**
          * process this message only if user is in screen sharing seesion
-         * 
+         *
          */
         if (this.talkWindowContextService.bindingFlags.isScreenSharing) {
           /**
@@ -2463,7 +2463,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         break;
 
       /**
-       * 
+       *
        * @value 'accept' means that remote access request has been accepted by
        * other user then do appropriate processing
        *
@@ -2477,7 +2477,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
         if (this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME]) {
           /**
-           * 
+           *
            * get the username of the user to whom remote access request has been made
            *
            */
@@ -2501,9 +2501,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           this.talkWindowContextService.remoteAccessContext['remoteOS'] = signalingMessage.os;
 
           /**
-           * remote machine's devicePixelRatio more than 1 means that remote machine is having 
+           * remote machine's devicePixelRatio more than 1 means that remote machine is having
            * zoom more than 100%, so calculate actual remote screen resolution
-           * 
+           *
            */
           if (signalingMessage.devicePixelRatio > 1) {
             this.talkWindowContextService.remoteAccessContext['remoteHeight'] =
@@ -2547,15 +2547,15 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         break;
 
       default:
-      //don't do anything here 
+      //don't do anything here
     }
   }
 
   /**
    * close currently open dialog with appropriate data
-   * 
+   *
    * @param data data to be passed to close handler
-   * 
+   *
    */
   closeDialog(data = {}) {
     if (this.dialogRef) {
@@ -2564,10 +2564,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * 
-   * this will handle webrtc events 
-   * 
-   * @param signalingMessage received signaling message 
+   *
+   * this will handle webrtc events
+   *
+   * @param signalingMessage received signaling message
    */
   handleWebrtcEvent(signalingMessage: any) {
     LoggerUtil.logAny('handling webrtc event: ' + signalingMessage.event);
@@ -2575,7 +2575,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     switch (signalingMessage.event) {
 
       /**
-       * 
+       *
        * webrtc data channel open event received from remote user's end
        */
       case AppConstants.WEBRTC_EVENTS.CHANNEL_OPEN:
@@ -2602,10 +2602,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
             /**
              * Remote machine can be accessed only in full screen mode as of now,
              * this will probably be changed afterwards
-             * 
+             *
              * @TODO see if this can be changed by calculating the relative coordinates
              * on canvas
-             * 
+             *
              */
             this.handleVideoFullScreen(true);
 
@@ -2632,7 +2632,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         /**
          * 'screen' & 'sound' media streaming is one-way so remove the timeout cleanup job once media stream
          *  track is received on the other end
-         * 
+         *
          */
         if (signalingMessage.channel === AppConstants.SCREEN || signalingMessage.channel === AppConstants.SOUND) {
           if (webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.TIMEOUT_JOB]) {

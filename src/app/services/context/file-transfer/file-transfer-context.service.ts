@@ -4,6 +4,7 @@ import { MessageContext } from "../../contracts/context/MessageContext";
 import { UserContextService } from "../user.context.service";
 import { FileTransferContextSpec } from "../../contracts/context/FileTransferContextSpec";
 import { TransferredFileContext } from "../../contracts/file/TransferredFileContext";
+import { QueueStorage } from "../../util/QueueStorage";
 
 @Injectable({
   providedIn: "root",
@@ -30,6 +31,13 @@ export class FileTransferContextService
   fileContext: Map<string, TransferredFileContext[]>;
 
   /**
+   * stores file queues(for uploaded files) in following manner
+   *
+   * 'username' -> [{ ..sent file context props }, { ..sent file context props }]
+   */
+  fileQueues: Map<string, QueueStorage<File>>;
+
+  /**
    * this contains list of all online users and their status mappings
    *
    * 'username1' -> true //online
@@ -46,6 +54,7 @@ export class FileTransferContextService
   constructor(private userContextService: UserContextService) {
     this.messageContext = new Map();
     this.fileContext = new Map();
+    this.fileQueues = new Map();
     this.userStatus = new Map();
     this.activeUsers = [];
 
@@ -55,16 +64,32 @@ export class FileTransferContextService
     this.bindingFlags.set("showMessagePanel", true);
   }
 
+  hasFileQueue(username: string): boolean {
+    return this.fileQueues.has(username);
+  }
+
+  initializeFileQueue(username: string): void {
+    if (!this.hasFileQueue(username)) {
+      this.fileQueues.set(username, new QueueStorage<File>());
+    }
+  }
+
+  getFileQueue(username: string): QueueStorage<File> {
+    return this.fileQueues.get(username);
+  }
+
   hasFileContext(username: string): boolean {
-    throw new Error("Method not implemented.");
+    return this.fileContext.has(username);
   }
 
   initializeFileContext(username: string): void {
-    throw new Error("Method not implemented.");
+    if (!this.hasFileContext(username)) {
+      this.fileContext.set(username, []);
+    }
   }
 
   getFileContext(username: string): TransferredFileContext[] {
-    throw new Error("Method not implemented.");
+    return this.fileContext.get(username);
   }
 
   hasMessageContext(username: string): boolean {

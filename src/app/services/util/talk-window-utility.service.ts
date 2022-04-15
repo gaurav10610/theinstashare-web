@@ -39,7 +39,7 @@ export class TalkWindowUtilityService {
    * load chat history for curretly selected user from user's message context
    *
    * @param username username of the user who's chat history has to be loaded
-   * 
+   *
    */
   loadChatHistory(username: string) {
     return new Promise<void>((resolve) => {
@@ -108,33 +108,6 @@ export class TalkWindowUtilityService {
         this.talkWindowContextService.errors.splice(index, 1);
       }
     }, AppConstants.ERROR_FLAG_TIMEOUT);
-  }
-
-  /**
-   * this will resolve the media file type i.e 'audio', 'video' or 'image' with
-   * the provided file extension
-   *
-   * @param fileExtension file extension
-   *
-   * @return a promise containing the file type
-   *
-   * @TODO refactor it afterwards, this can be done in an easy way
-   */
-  resolveFileType(fileExtension: string) {
-    return new Promise((resolve) => {
-      let index = AppConstants.SUPPORTED_IMAGE_FORMATS.indexOf(fileExtension);
-      if (index > -1) {
-        resolve(AppConstants.IMAGE);
-      }
-      index = AppConstants.SUPPORTED_VIDEO_FORMATS.indexOf(fileExtension);
-      if (index > -1) {
-        resolve(AppConstants.VIDEO);
-      }
-      index = AppConstants.SUPPORTED_AUDIO_FORMATS.indexOf(fileExtension);
-      if (index > -1) {
-        resolve(AppConstants.AUDIO);
-      }
-    });
   }
 
   /**
@@ -307,9 +280,9 @@ export class TalkWindowUtilityService {
 
   /**
    * this will return the a custom common os type of the host machine
-   *  
+   *
    * @param os platform name provided by the deviceInfo from device detector service
-   *  
+   *
    */
   getOSType() {
     if (['Windows', 'Win16', 'Win32'].indexOf(this.deviceDetectorService.os) > -1) {
@@ -323,17 +296,17 @@ export class TalkWindowUtilityService {
 
   /**
    * this will remove all the event listeners registered on blank canvas for remote access
-   *  
+   *
    * @param unlistenFunctionsList list containing Renderer2 unlisten functions
-   * 
+   *
    * @TODO move it to remote access utils
-   *  
+   *
    */
   removeRemoteAccessEventListeners(unlistenFunctionsList: any[]) {
     unlistenFunctionsList.forEach((unlistenFunction) => {
 
       /**
-       * remove registered event listener from canvas by calling the Renderer2 function returned 
+       * remove registered event listener from canvas by calling the Renderer2 function returned
        * while registering the listeners in the first place
        */
       unlistenFunction();

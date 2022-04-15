@@ -1,21 +1,18 @@
-import { Injectable } from '@angular/core';
-import { AppConstants } from '../AppConstants';
-import { QueueStorage } from '../util/QueueStorage';
-import { environment } from '../../../environments/environment';
-import { DeviceDetectorService } from 'ngx-device-detector';
-import { LoggerUtil } from '../logging/LoggerUtil';
+import { Injectable } from "@angular/core";
+import { AppConstants } from "../AppConstants";
+import { QueueStorage } from "../util/QueueStorage";
+import { environment } from "../../../environments/environment";
+import { DeviceDetectorService } from "ngx-device-detector";
+import { LoggerUtil } from "../logging/LoggerUtil";
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root",
 })
 export class UserContextService {
-
-  constructor(
-    private deviceService: DeviceDetectorService
-  ) {
+  constructor(private deviceService: DeviceDetectorService) {
     this.isMobile = this.deviceService.isMobile();
     if (this.isMobile) {
-      LoggerUtil.logAny('this is a mobile device');
+      LoggerUtil.logAny("this is a mobile device");
     }
   }
 
@@ -23,7 +20,7 @@ export class UserContextService {
 
   /**
    * specify if viewing device is a mobile device
-   * 
+   *
    */
   isMobile: boolean;
 
@@ -41,7 +38,7 @@ export class UserContextService {
    */
   webrtcContext: Object = {};
 
-  defaultCamera: string = 'user' // 'user' for front camera or 'environment' for back, applicable only for mobile
+  defaultCamera: string = "user"; // 'user' for front camera or 'environment' for back, applicable only for mobile
 
   /**
    * this will hold screen media stream reference
@@ -54,11 +51,13 @@ export class UserContextService {
 
   /**
    * this will return the userContext
-   * 
+   *
    * @param username: username of the user
    */
   getUserWebrtcContext(username: string) {
-    return this.webrtcContext.hasOwnProperty(username) ? this.webrtcContext[username] : null;
+    return this.webrtcContext.hasOwnProperty(username)
+      ? this.webrtcContext[username]
+      : null;
   }
 
   /**
@@ -82,17 +81,19 @@ export class UserContextService {
         connectionState: AppConstants.CONNECTION_STATES.NOT_CONNECTED,
         unreadCount: 0,
         reconnect: true, // this flag is used in case of disconnect, whether to reconnect or not
-        webrtcOnConnectQueue: new QueueStorage()
+        webrtcOnConnectQueue: new QueueStorage<any>(),
       });
     }
   }
 
   initializeMessageQueue(username: string) {
-    this.getUserWebrtcContext(username)[AppConstants.MESSAGE_QUEUE] = new QueueStorage();
+    this.getUserWebrtcContext(username)[AppConstants.MESSAGE_QUEUE] =
+      new QueueStorage<any>();
   }
 
   initializeFileQueue(username: string) {
-    this.getUserWebrtcContext(username)[AppConstants.FILE_QUEUE] = new QueueStorage();
+    this.getUserWebrtcContext(username)[AppConstants.FILE_QUEUE] =
+      new QueueStorage<any>();
   }
 
   hasUserWebrtcContext(username: string) {
@@ -101,11 +102,13 @@ export class UserContextService {
 
   /**
    * this will return the registered username
-   * 
+   *
    * @return username of the user
    */
   getUserName() {
-    return this.username ? this.username : sessionStorage.getItem(AppConstants.STORAGE_USER);
+    return this.username
+      ? this.username
+      : sessionStorage.getItem(AppConstants.STORAGE_USER);
   }
 
   /**
@@ -126,6 +129,6 @@ export class UserContextService {
     this.userToChat = undefined;
     this.webrtcContext = {};
     this.screenStream = undefined;
-    this.defaultCamera = 'user';
+    this.defaultCamera = "user";
   }
 }
