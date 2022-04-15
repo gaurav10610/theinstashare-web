@@ -1,495 +1,601 @@
 <div id="frame" class="full-height-width top-container">
-
-    <div id="side-panel-div" class="column-flex-display border-class hide-vertical-overflow"
-        [ngStyle]="{'display': (userContextService.userToChat !== undefined && userContextService.isMobile)? 'none' : 'flex'}">
-
-        <!-- header -->
-        <div id="side-panel-div-header" class="dashboard-header text-center">
-            <mat-toolbar color="primary">
-                <img src="{{assetsPath + 'images/icons/title-40X40.png'}}" alt="" style="margin-right: 5px;" />
-                <span class="header-font">TheInstaShare</span>
-                <span class="toolbar-spacer"></span>
-                <button mat-icon-button aria-label="logout icon button" (click)="logout()">
-                    <mat-icon>logout</mat-icon>
-                </button>
-            </mat-toolbar>
-        </div>
-
-        <!-- tab icons header -->
-        <div class="row-flex-display icons-header border-bottom">
-
-            <div class="flex-grow-full text-center">
-                <span class="header-font">Contacts</span>
-            </div>
-
-            <div style="margin: 10px;" [ngClass]="{'pointer-cursor':true}">
-                <mat-icon matListIcon>person_add</mat-icon>
-            </div>
-        </div>
-
-        <div class="flex-grow-full hide-vertical-overflow column-flex-display">
-
-            <!-- contacts tab -->
-            <div [ngClass]="{'flex-grow-full': true,'vertical-scroll': true,'no-scroll': true}">
-                <mat-list>
-                    <mat-list-item id="contact-{{username}}"
-                        *ngFor="let username of contextService.activeUsers; last as last" class="pointer-cursor"
-                        (click)="selectUser(username)">
-                        <mat-icon [color]="userContextService.userToChat === username ?'primary':''" matListIcon>
-                            {{contextService.getUserStatus(username) ? 'person': 'person_off'}}
-                        </mat-icon>
-                        <h3 matLine> {{username}} </h3>
-                        <mat-chip-list aria-label="Unread Message" *ngIf="userContextService.getUserWebrtcContext(username) !== null && 
-                        userContextService.getUserWebrtcContext(username).unreadCount !== 0">
-                            <mat-chip color="primary" selected>
-                                {{userContextService.getUserWebrtcContext(username).unreadCount}}</mat-chip>
-                        </mat-chip-list>
-                        <!-- <mat-divider [inset]="true" *ngIf="!last"></mat-divider> -->
-                        <mat-divider [inset]="true"></mat-divider>
-                    </mat-list-item>
-                </mat-list>
-            </div>
-
-        </div>
+  <div
+    id="side-panel-div"
+    class="column-flex-display border-class hide-vertical-overflow"
+    [ngStyle]="{
+      display:
+        userContextService.userToChat !== undefined &&
+        userContextService.isMobile
+          ? 'none'
+          : 'flex'
+    }"
+  >
+    <!-- header -->
+    <div id="side-panel-div-header" class="dashboard-header text-center">
+      <mat-toolbar color="primary">
+        <img
+          src="{{ assetsPath + 'images/icons/title-40X40.png' }}"
+          alt=""
+          style="margin-right: 5px"
+        />
+        <span class="header-font">TheInstaShare</span>
+        <span class="toolbar-spacer"></span>
+        <button
+          mat-icon-button
+          aria-label="logout icon button"
+          (click)="logout()"
+        >
+          <mat-icon>logout</mat-icon>
+        </button>
+      </mat-toolbar>
     </div>
 
-    <div id="file-transfer-div" class="border-class column-flex-display"
-        [ngStyle]="{'display': userContextService.userToChat !== undefined ? 'flex' : 'none'}">
-
-        <!-- header -->
-        <div id="file-transfer-div-header" class="dashboard-header text-center">
-            <mat-toolbar color="primary">
-                <button mat-icon-button aria-label="Example icon-button with menu icon">
-                    <mat-icon>person</mat-icon>
-                </button>
-                <span class="header-font">{{userContextService.userToChat}}</span>
-                <span class="toolbar-spacer"></span>
-
-                <button mat-icon-button aria-label="back icon button" class="toolbar-icon" (click)="backToContacts()"
-                    *ngIf="userContextService.isMobile">
-                    <mat-icon>arrow_back</mat-icon>
-                </button>
-            </mat-toolbar>
-        </div>
-
-        <!-- tab control buttons -->
-        <div id="tab-controls" class="row-flex-display icons-header tab-contols-class">
-
-            <button mat-raised-button color="primary" aria-label="upload icon button" style="margin-right: 10px;"
-                (click)="selectTab('chat')" *ngIf="currentTab !== 'chat'">
-                <mat-icon style="margin-right: 5px;">chat</mat-icon>
-                <span>Chat</span>
-            </button>
-
-            <button mat-stroked-button color="primary" aria-label="upload icon button" style="margin-right: 10px;"
-                *ngIf="currentTab === 'chat'">
-                <mat-icon style="margin-right: 5px;">chat</mat-icon>
-                <span>Chat</span>
-            </button>
-
-            <button mat-raised-button color="primary" aria-label="upload icon button" style="margin-right: 10px;"
-                (click)="selectTab('file-upload')" *ngIf="currentTab !== 'file-upload'">
-                <mat-icon style="margin-right: 5px;">cloud_upload</mat-icon>
-                <span>Uploads</span>
-            </button>
-
-            <button mat-stroked-button color="primary" aria-label="upload icon button" style="margin-right: 10px;"
-                *ngIf="currentTab === 'file-upload'">
-                <mat-icon style="margin-right: 5px;">cloud_upload</mat-icon>
-                <span>Uploads</span>
-            </button>
-
-            <button mat-raised-button color="primary" aria-label="upload icon button" style="margin-right: 10px;"
-                (click)="selectTab('file-download')" *ngIf="currentTab !== 'file-download'">
-                <mat-icon style="margin-right: 5px;">cloud_download</mat-icon>
-                <span>Downloads</span>
-            </button>
-
-            <button mat-stroked-button color="primary" aria-label="upload icon button" style="margin-right: 10px;"
-                *ngIf="currentTab === 'file-download'">
-                <mat-icon style="margin-right: 5px;">cloud_download</mat-icon>
-                <span>Downloads</span>
-            </button>
-        </div>
-
-        <!-- chat tab -->
-        <div id="chat-tab" [ngClass]="{
-                    'flex-grow-full': true, 
-                    'no-scroll': true, 
-                    'hidden-class': currentTab !== 'chat',
-                    'hide-vertical-overflow': true,
-                    'column-flex-display': true
-                }">
-
-            <div id="message-history-div" #messageHistoryDiv class="no-scroll vertical-scroll flex-grow-full app-background">
-                <div *ngFor="let message of contextService.getMessageContext(userContextService.userToChat)"
-                    class="row-flex-display align-center" [ngStyle]="{
-                   'flex-direction': message.isSent ? 'row-reverse' : 'row'
-                }">
-                    <mat-icon>person</mat-icon>
-
-                    <mat-list>
-                        <mat-list-item>
-
-                            <span matLine>
-                                <mat-chip-list aria-label="Text Message">
-                                    <mat-chip selected>{{message.message}}</mat-chip>
-                                </mat-chip-list>
-                            </span>
-
-                            <div matLine [ngStyle]="{
-                                'display': message.isSent ? 'flex':'',
-                                'flex-direction': message.isSent ? 'row-reverse':''
-                            }">
-                                {{message.timestamp}}
-                            </div>
-
-                            <div matLine [ngStyle]="{
-                                    'display': message.isSent ? 'flex':'none',
-                                    'flex-direction': message.isSent ? 'row-reverse':''
-                                }">
-                                {{message.status}}
-                            </div>
-                        </mat-list-item>
-                    </mat-list>
-                </div>
-            </div>
-
-            <!-- Message Input -->
-            <div class="input-message hide-vertical-overflow row-flex-display">
-
-                <!-- Input Message Text Field -->
-                <div class="flex-grow-full column-flex-display">
-                    <mat-form-field appearance="outline" style="width: 100%;" color="primary">
-                        <mat-label>Enter your message</mat-label>
-                        <input matInput #textMessage maxlength="256" placeholder="Enter your message"
-                            (keyup)="sendTextMessage($event)">
-                    </mat-form-field>
-                </div>
-
-                <!-- Send Message Button -->
-                <div class="column-flex-display center-content">
-                    <button mat-icon-button color="primary" aria-label="send message icon button"
-                        (click)="sendTextMessage()">
-                        <mat-icon>send</mat-icon>
-                    </button>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- file upload tab -->
-        <div id="file-upload-tab" [ngClass]="{
-            'flex-grow-full': true, 
-            'no-scroll': true, 
-            'hidden-class': currentTab !== 'file-upload',
-            'hide-vertical-overflow': true,
-            'column-flex-display': true,
-            'app-background': true
-        }">
-
-            <div style="margin: 10px;">
-                <mat-card>
-                    <mat-card-content>
-                        <div class="row-flex-display">
-                            <div class="row-flex-display flex-grow-full align-center">
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>movie</mat-icon>
-                                </button>
-
-                                <span>Sample File</span>
-                            </div>
-                            <div class="row-flex-display align-center">
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>play_arrow</mat-icon>
-                                </button>
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>pause</mat-icon>
-                                </button>
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>save_alt</mat-icon>
-                                </button>
-
-                            </div>
-                        </div>
-                    </mat-card-content>
-                    <mat-card-footer>
-                        <mat-progress-bar mode="determinate" value="50"></mat-progress-bar>
-                    </mat-card-footer>
-                </mat-card>
-            </div>
-
-            <div style="margin: 10px;">
-                <mat-card>
-                    <mat-card-content>
-                        <div class="row-flex-display">
-                            <div class="row-flex-display flex-grow-full align-center">
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>movie</mat-icon>
-                                </button>
-
-                                <span>Sample File</span>
-                            </div>
-                            <div class="row-flex-display align-center">
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>play_arrow</mat-icon>
-                                </button>
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>pause</mat-icon>
-                                </button>
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>save_alt</mat-icon>
-                                </button>
-
-                            </div>
-                        </div>
-                    </mat-card-content>
-                    <mat-card-footer>
-                        <mat-progress-bar mode="determinate" value="50"></mat-progress-bar>
-                    </mat-card-footer>
-                </mat-card>
-            </div>
-
-            <div style="margin: 10px;">
-                <mat-card>
-                    <mat-card-content>
-                        <div class="row-flex-display">
-                            <div class="row-flex-display flex-grow-full align-center">
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>movie</mat-icon>
-                                </button>
-
-                                <span>Sample File</span>
-                            </div>
-                            <div class="row-flex-display align-center">
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>play_arrow</mat-icon>
-                                </button>
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>pause</mat-icon>
-                                </button>
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>save_alt</mat-icon>
-                                </button>
-
-                            </div>
-                        </div>
-                    </mat-card-content>
-                    <mat-card-footer>
-                        <mat-progress-bar mode="determinate" value="50"></mat-progress-bar>
-                    </mat-card-footer>
-                </mat-card>
-            </div>
-
-            <button mat-raised-button color="primary" aria-label="upload icon button" style="margin: 10px;"
-                *ngIf="currentTab === 'file-upload'">
-                <mat-icon style="margin-right: 5px;">add_circle</mat-icon>
-                <span>Upload New File</span>
-            </button>
-
-        </div>
-
-        <!-- file download tab -->
-        <div id="file-download-tab" [ngClass]="{
-                        'flex-grow-full': true, 
-                        'no-scroll': true, 
-                        'hidden-class': currentTab !== 'file-download',
-                        'hide-vertical-overflow': true,
-                        'column-flex-display': true,
-                        'app-background': true
-                    }">
-
-            <div style="margin: 10px;">
-                <mat-card>
-                    <mat-card-content>
-                        <div class="row-flex-display">
-                            <div class="row-flex-display flex-grow-full align-center">
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>picture_as_pdf</mat-icon>
-                                </button>
-
-                                <span>Sample File</span>
-                            </div>
-                            <div class="row-flex-display align-center">
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>play_arrow</mat-icon>
-                                </button>
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>pause</mat-icon>
-                                </button>
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>save_alt</mat-icon>
-                                </button>
-
-                            </div>
-                        </div>
-                    </mat-card-content>
-                    <mat-card-footer>
-                        <mat-progress-bar mode="determinate" value="50"></mat-progress-bar>
-                    </mat-card-footer>
-                </mat-card>
-            </div>
-
-            <div style="margin: 10px;">
-                <mat-card>
-                    <mat-card-content>
-                        <div class="row-flex-display">
-                            <div class="row-flex-display flex-grow-full align-center">
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>movie</mat-icon>
-                                </button>
-
-                                <span>Sample File</span>
-                            </div>
-                            <div class="row-flex-display align-center">
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>play_arrow</mat-icon>
-                                </button>
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>pause</mat-icon>
-                                </button>
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>save_alt</mat-icon>
-                                </button>
-
-                            </div>
-                        </div>
-                    </mat-card-content>
-                    <mat-card-footer>
-                        <mat-progress-bar mode="determinate" value="50"></mat-progress-bar>
-                    </mat-card-footer>
-                </mat-card>
-            </div>
-
-            <div style="margin: 10px;">
-                <mat-card>
-                    <mat-card-content>
-                        <div class="row-flex-display">
-                            <div class="row-flex-display flex-grow-full align-center">
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>image</mat-icon>
-                                </button>
-
-                                <span>Sample File</span>
-                            </div>
-                            <div class="row-flex-display align-center">
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>play_arrow</mat-icon>
-                                </button>
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>pause</mat-icon>
-                                </button>
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>save_alt</mat-icon>
-                                </button>
-
-                            </div>
-                        </div>
-                    </mat-card-content>
-                    <mat-card-footer>
-                        <mat-progress-bar mode="determinate" value="50"></mat-progress-bar>
-                    </mat-card-footer>
-                </mat-card>
-            </div>
-
-            <div style="margin: 10px;">
-                <mat-card>
-                    <mat-card-content>
-                        <div class="row-flex-display">
-                            <div class="row-flex-display flex-grow-full align-center">
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>description</mat-icon>
-                                </button>
-
-                                <span>Sample File</span>
-                            </div>
-                            <div class="row-flex-display align-center">
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>play_arrow</mat-icon>
-                                </button>
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>pause</mat-icon>
-                                </button>
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>save_alt</mat-icon>
-                                </button>
-
-                            </div>
-                        </div>
-                    </mat-card-content>
-                    <mat-card-footer>
-                        <mat-progress-bar mode="determinate" value="50"></mat-progress-bar>
-                    </mat-card-footer>
-                </mat-card>
-            </div>
-
-            <div style="margin: 10px;">
-                <mat-card>
-                    <mat-card-content>
-                        <div class="row-flex-display">
-                            <div class="row-flex-display flex-grow-full align-center">
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>folder_zip</mat-icon>
-                                </button>
-
-                                <span>Sample File</span>
-                            </div>
-                            <div class="row-flex-display align-center">
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>play_arrow</mat-icon>
-                                </button>
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>pause</mat-icon>
-                                </button>
-
-                                <button mat-icon-button class="toolbar-icon">
-                                    <mat-icon>save_alt</mat-icon>
-                                </button>
-
-                            </div>
-                        </div>
-                    </mat-card-content>
-                    <mat-card-footer>
-                        <mat-progress-bar mode="determinate" value="50"></mat-progress-bar>
-                    </mat-card-footer>
-                </mat-card>
-            </div>
-
-        </div>
-
+    <!-- tab icons header -->
+    <div class="row-flex-display icons-header border-bottom">
+      <div class="flex-grow-full text-center">
+        <span class="header-font">Contacts</span>
+      </div>
+
+      <div style="margin: 10px" [ngClass]="{ 'pointer-cursor': true }">
+        <mat-icon matListIcon>person_add</mat-icon>
+      </div>
     </div>
 
-    <audio id="messageTune" style="display:none" muted src="{{assetsPath + 'media/message.mp3'}}"></audio>
+    <div class="flex-grow-full hide-vertical-overflow column-flex-display">
+      <!-- contacts tab -->
+      <div
+        [ngClass]="{
+          'flex-grow-full': true,
+          'vertical-scroll': true,
+          'no-scroll': true
+        }"
+      >
+        <mat-list>
+          <mat-list-item
+            id="contact-{{ username }}"
+            *ngFor="let username of contextService.activeUsers; last as last"
+            class="pointer-cursor"
+            (click)="selectUser(username)"
+          >
+            <mat-icon
+              [color]="
+                userContextService.userToChat === username ? 'primary' : ''
+              "
+              matListIcon
+            >
+              {{
+                contextService.getUserStatus(username) ? "person" : "person_off"
+              }}
+            </mat-icon>
+            <h3 matLine>{{ username }}</h3>
+            <mat-chip-list
+              aria-label="Unread Message"
+              *ngIf="
+                userContextService.getUserWebrtcContext(username) !== null &&
+                userContextService.getUserWebrtcContext(username)
+                  .unreadCount !== 0
+              "
+            >
+              <mat-chip color="primary" selected>
+                {{
+                  userContextService.getUserWebrtcContext(username).unreadCount
+                }}</mat-chip
+              >
+            </mat-chip-list>
+            <!-- <mat-divider [inset]="true" *ngIf="!last"></mat-divider> -->
+            <mat-divider [inset]="true"></mat-divider>
+          </mat-list-item>
+        </mat-list>
+      </div>
+    </div>
+  </div>
 
+  <div
+    id="file-transfer-div"
+    class="border-class column-flex-display"
+    [ngStyle]="{
+      display: userContextService.userToChat !== undefined ? 'flex' : 'none'
+    }"
+  >
+    <!-- header -->
+    <div id="file-transfer-div-header" class="dashboard-header text-center">
+      <mat-toolbar color="primary">
+        <button mat-icon-button aria-label="Example icon-button with menu icon">
+          <mat-icon>person</mat-icon>
+        </button>
+        <span class="header-font">{{ userContextService.userToChat }}</span>
+        <span class="toolbar-spacer"></span>
+
+        <button
+          mat-icon-button
+          aria-label="back icon button"
+          class="toolbar-icon"
+          (click)="backToContacts()"
+          *ngIf="userContextService.isMobile"
+        >
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+      </mat-toolbar>
+    </div>
+
+    <!-- tab control buttons -->
+    <div
+      id="tab-controls"
+      class="row-flex-display icons-header tab-contols-class"
+    >
+      <button
+        mat-raised-button
+        color="primary"
+        aria-label="upload icon button"
+        style="margin-right: 10px"
+        (click)="selectTab('chat')"
+        *ngIf="currentTab !== 'chat'"
+      >
+        <mat-icon style="margin-right: 5px">chat</mat-icon>
+        <span>Chat</span>
+      </button>
+
+      <button
+        mat-stroked-button
+        color="primary"
+        aria-label="upload icon button"
+        style="margin-right: 10px"
+        *ngIf="currentTab === 'chat'"
+      >
+        <mat-icon style="margin-right: 5px">chat</mat-icon>
+        <span>Chat</span>
+      </button>
+
+      <button
+        mat-raised-button
+        color="primary"
+        aria-label="upload icon button"
+        style="margin-right: 10px"
+        (click)="selectTab('file-upload')"
+        *ngIf="currentTab !== 'file-upload'"
+      >
+        <mat-icon style="margin-right: 5px">cloud_upload</mat-icon>
+        <span>Uploads</span>
+      </button>
+
+      <button
+        mat-stroked-button
+        color="primary"
+        aria-label="upload icon button"
+        style="margin-right: 10px"
+        *ngIf="currentTab === 'file-upload'"
+      >
+        <mat-icon style="margin-right: 5px">cloud_upload</mat-icon>
+        <span>Uploads</span>
+      </button>
+
+      <button
+        mat-raised-button
+        color="primary"
+        aria-label="upload icon button"
+        style="margin-right: 10px"
+        (click)="selectTab('file-download')"
+        *ngIf="currentTab !== 'file-download'"
+      >
+        <mat-icon style="margin-right: 5px">cloud_download</mat-icon>
+        <span>Downloads</span>
+      </button>
+
+      <button
+        mat-stroked-button
+        color="primary"
+        aria-label="upload icon button"
+        style="margin-right: 10px"
+        *ngIf="currentTab === 'file-download'"
+      >
+        <mat-icon style="margin-right: 5px">cloud_download</mat-icon>
+        <span>Downloads</span>
+      </button>
+    </div>
+
+    <!-- chat tab -->
+    <div
+      id="chat-tab"
+      [ngClass]="{
+        'flex-grow-full': true,
+        'no-scroll': true,
+        'hidden-class': currentTab !== 'chat',
+        'hide-vertical-overflow': true,
+        'column-flex-display': true
+      }"
+    >
+      <div
+        id="message-history-div"
+        #messageHistoryDiv
+        class="no-scroll vertical-scroll app-background"
+        style="height: 100%"
+      >
+        <div
+          *ngFor="
+            let message of contextService.getMessageContext(
+              userContextService.userToChat
+            )
+          "
+          class="row-flex-display align-center"
+          [ngStyle]="{
+            'flex-direction': message.isSent ? 'row-reverse' : 'row'
+          }"
+        >
+          <mat-icon>person</mat-icon>
+
+          <mat-list>
+            <mat-list-item>
+              <span matLine>
+                <mat-chip-list aria-label="Text Message">
+                  <mat-chip selected>{{ message.message }}</mat-chip>
+                </mat-chip-list>
+              </span>
+
+              <div
+                matLine
+                [ngStyle]="{
+                  display: message.isSent ? 'flex' : '',
+                  'flex-direction': message.isSent ? 'row-reverse' : ''
+                }"
+              >
+                {{ message.timestamp }}
+              </div>
+
+              <div
+                matLine
+                [ngStyle]="{
+                  display: message.isSent ? 'flex' : 'none',
+                  'flex-direction': message.isSent ? 'row-reverse' : ''
+                }"
+              >
+                {{ message.status }}
+              </div>
+            </mat-list-item>
+          </mat-list>
+        </div>
+      </div>
+
+      <!-- Message Input -->
+      <div class="input-message hide-vertical-overflow row-flex-display">
+        <!-- Input Message Text Field -->
+        <div class="flex-grow-full column-flex-display">
+          <mat-form-field
+            appearance="outline"
+            style="width: 100%"
+            color="primary"
+          >
+            <mat-label>Enter your message</mat-label>
+            <input
+              matInput
+              #textMessage
+              maxlength="256"
+              placeholder="Enter your message"
+              (keyup)="sendTextMessage($event)"
+            />
+          </mat-form-field>
+        </div>
+
+        <!-- Send Message Button -->
+        <div class="column-flex-display center-content">
+          <button
+            mat-icon-button
+            color="primary"
+            aria-label="send message icon button"
+            (click)="sendTextMessage()"
+          >
+            <mat-icon>send</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- file upload tab -->
+    <div
+      id="file-upload-tab"
+      [ngClass]="{
+        'flex-grow-full': true,
+        'no-scroll': true,
+        'hidden-class': currentTab !== 'file-upload',
+        'hide-vertical-overflow': true,
+        'column-flex-display': true,
+        'app-background': true
+      }"
+    >
+      <input
+        id="file-input"
+        type="file"
+        style="display: none"
+        (change)="startSharingFile($event)"
+        multiple
+      />
+
+      <div style="margin: 10px">
+        <mat-card>
+          <mat-card-content>
+            <div class="row-flex-display">
+              <div class="row-flex-display flex-grow-full align-center">
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>movie</mat-icon>
+                </button>
+
+                <span>Sample File</span>
+              </div>
+              <div class="row-flex-display align-center">
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>play_arrow</mat-icon>
+                </button>
+
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>pause</mat-icon>
+                </button>
+
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>save_alt</mat-icon>
+                </button>
+              </div>
+            </div>
+          </mat-card-content>
+          <mat-card-footer>
+            <mat-progress-bar mode="determinate" value="50"></mat-progress-bar>
+          </mat-card-footer>
+        </mat-card>
+      </div>
+
+      <div style="margin: 10px">
+        <mat-card>
+          <mat-card-content>
+            <div class="row-flex-display">
+              <div class="row-flex-display flex-grow-full align-center">
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>movie</mat-icon>
+                </button>
+
+                <span>Sample File</span>
+              </div>
+              <div class="row-flex-display align-center">
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>play_arrow</mat-icon>
+                </button>
+
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>pause</mat-icon>
+                </button>
+
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>save_alt</mat-icon>
+                </button>
+              </div>
+            </div>
+          </mat-card-content>
+          <mat-card-footer>
+            <mat-progress-bar mode="determinate" value="50"></mat-progress-bar>
+          </mat-card-footer>
+        </mat-card>
+      </div>
+
+      <div style="margin: 10px">
+        <mat-card>
+          <mat-card-content>
+            <div class="row-flex-display">
+              <div class="row-flex-display flex-grow-full align-center">
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>movie</mat-icon>
+                </button>
+
+                <span>Sample File</span>
+              </div>
+              <div class="row-flex-display align-center">
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>play_arrow</mat-icon>
+                </button>
+
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>pause</mat-icon>
+                </button>
+
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>save_alt</mat-icon>
+                </button>
+              </div>
+            </div>
+          </mat-card-content>
+          <mat-card-footer>
+            <mat-progress-bar mode="determinate" value="50"></mat-progress-bar>
+          </mat-card-footer>
+        </mat-card>
+      </div>
+
+      <button
+        mat-raised-button
+        color="primary"
+        aria-label="upload icon button"
+        style="margin: 10px"
+        *ngIf="currentTab === 'file-upload'"
+        (click)="openFileDialog()"
+      >
+        <mat-icon style="margin-right: 5px">add_circle</mat-icon>
+        <span>Upload New File</span>
+      </button>
+    </div>
+
+    <!-- file download tab -->
+    <div
+      id="file-download-tab"
+      [ngClass]="{
+        'flex-grow-full': true,
+        'no-scroll': true,
+        'hidden-class': currentTab !== 'file-download',
+        'hide-vertical-overflow': true,
+        'column-flex-display': true,
+        'app-background': true
+      }"
+    >
+      <div style="margin: 10px">
+        <mat-card>
+          <mat-card-content>
+            <div class="row-flex-display">
+              <div class="row-flex-display flex-grow-full align-center">
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>picture_as_pdf</mat-icon>
+                </button>
+
+                <span>Sample File</span>
+              </div>
+              <div class="row-flex-display align-center">
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>play_arrow</mat-icon>
+                </button>
+
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>pause</mat-icon>
+                </button>
+
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>save_alt</mat-icon>
+                </button>
+              </div>
+            </div>
+          </mat-card-content>
+          <mat-card-footer>
+            <mat-progress-bar mode="determinate" value="50"></mat-progress-bar>
+          </mat-card-footer>
+        </mat-card>
+      </div>
+
+      <div style="margin: 10px">
+        <mat-card>
+          <mat-card-content>
+            <div class="row-flex-display">
+              <div class="row-flex-display flex-grow-full align-center">
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>movie</mat-icon>
+                </button>
+
+                <span>Sample File</span>
+              </div>
+              <div class="row-flex-display align-center">
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>play_arrow</mat-icon>
+                </button>
+
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>pause</mat-icon>
+                </button>
+
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>save_alt</mat-icon>
+                </button>
+              </div>
+            </div>
+          </mat-card-content>
+          <mat-card-footer>
+            <mat-progress-bar mode="determinate" value="50"></mat-progress-bar>
+          </mat-card-footer>
+        </mat-card>
+      </div>
+
+      <div style="margin: 10px">
+        <mat-card>
+          <mat-card-content>
+            <div class="row-flex-display">
+              <div class="row-flex-display flex-grow-full align-center">
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>image</mat-icon>
+                </button>
+
+                <span>Sample File</span>
+              </div>
+              <div class="row-flex-display align-center">
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>play_arrow</mat-icon>
+                </button>
+
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>pause</mat-icon>
+                </button>
+
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>save_alt</mat-icon>
+                </button>
+              </div>
+            </div>
+          </mat-card-content>
+          <mat-card-footer>
+            <mat-progress-bar mode="determinate" value="50"></mat-progress-bar>
+          </mat-card-footer>
+        </mat-card>
+      </div>
+
+      <div style="margin: 10px">
+        <mat-card>
+          <mat-card-content>
+            <div class="row-flex-display">
+              <div class="row-flex-display flex-grow-full align-center">
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>description</mat-icon>
+                </button>
+
+                <span>Sample File</span>
+              </div>
+              <div class="row-flex-display align-center">
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>play_arrow</mat-icon>
+                </button>
+
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>pause</mat-icon>
+                </button>
+
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>save_alt</mat-icon>
+                </button>
+              </div>
+            </div>
+          </mat-card-content>
+          <mat-card-footer>
+            <mat-progress-bar mode="determinate" value="50"></mat-progress-bar>
+          </mat-card-footer>
+        </mat-card>
+      </div>
+
+      <div style="margin: 10px">
+        <mat-card>
+          <mat-card-content>
+            <div class="row-flex-display">
+              <div class="row-flex-display flex-grow-full align-center">
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>folder_zip</mat-icon>
+                </button>
+
+                <span>Sample File</span>
+              </div>
+              <div class="row-flex-display align-center">
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>play_arrow</mat-icon>
+                </button>
+
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>pause</mat-icon>
+                </button>
+
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon>save_alt</mat-icon>
+                </button>
+              </div>
+            </div>
+          </mat-card-content>
+          <mat-card-footer>
+            <mat-progress-bar mode="determinate" value="50"></mat-progress-bar>
+          </mat-card-footer>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+
+  <audio
+    id="messageTune"
+    style="display: none"
+    muted
+    src="{{ assetsPath + 'media/message.mp3' }}"
+  ></audio>
 </div>
