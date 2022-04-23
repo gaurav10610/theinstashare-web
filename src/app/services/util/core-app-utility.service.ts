@@ -1,13 +1,12 @@
-import { Injectable } from '@angular/core';
-import { AppConstants } from '../AppConstants';
-import { UserContextService } from '../context/user.context.service';
+import { Injectable } from "@angular/core";
+import { AppConstants } from "../AppConstants";
+import { UserContextService } from "../context/user.context.service";
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root",
 })
 export class CoreAppUtilityService {
-
-  constructor(private userContextService: UserContextService) { }
+  constructor(private userContextService: UserContextService) {}
 
   /**
    * get stored value from browser storage
@@ -54,8 +53,11 @@ export class CoreAppUtilityService {
    *
    */
   getConnectionIdentifier(channel: string, needSendPeer: boolean) {
-    return (channel === AppConstants.TEXT || channel === AppConstants.FILE || needSendPeer)
-      ? AppConstants.SENDER : AppConstants.RECEIVER;
+    return channel === AppConstants.TEXT ||
+      channel === AppConstants.FILE ||
+      needSendPeer
+      ? AppConstants.SENDER
+      : AppConstants.RECEIVER;
   }
 
   /**
@@ -70,7 +72,14 @@ export class CoreAppUtilityService {
    *
    */
   isDataChannelConnected(webrtcContext: any, channel: string) {
-    return this.getNestedValue(webrtcContext, AppConstants.MEDIA_CONTEXT, channel, AppConstants.CONNECTION_STATE) === AppConstants.CONNECTION_STATES.CONNECTED;
+    return (
+      this.getNestedValue(
+        webrtcContext,
+        AppConstants.MEDIA_CONTEXT,
+        channel,
+        AppConstants.CONNECTION_STATE
+      ) === AppConstants.CONNECTION_STATES.CONNECTED
+    );
   }
 
   /**
@@ -85,7 +94,14 @@ export class CoreAppUtilityService {
    *
    */
   isDataChannelConnecting(webrtcContext: any, channel: string) {
-    return this.getNestedValue(webrtcContext, AppConstants.MEDIA_CONTEXT, channel, AppConstants.CONNECTION_STATE) === AppConstants.CONNECTION_STATES.CONNECTING;
+    return (
+      this.getNestedValue(
+        webrtcContext,
+        AppConstants.MEDIA_CONTEXT,
+        channel,
+        AppConstants.CONNECTION_STATE
+      ) === AppConstants.CONNECTION_STATES.CONNECTING
+    );
   }
 
   /**
@@ -99,7 +115,10 @@ export class CoreAppUtilityService {
    *
    */
   isWebrtcConnectionConnected(webrtcContext: any) {
-    return this.getNestedValue(webrtcContext, AppConstants.CONNECTION_STATE) === AppConstants.CONNECTION_STATES.CONNECTING;
+    return (
+      this.getNestedValue(webrtcContext, AppConstants.CONNECTION_STATE) ===
+      AppConstants.CONNECTION_STATES.CONNECTING
+    );
   }
 
   /**
@@ -110,7 +129,10 @@ export class CoreAppUtilityService {
    *
    */
   isWebrtcConnectionConnecting(webrtcContext: any) {
-    return this.getNestedValue(webrtcContext, AppConstants.CONNECTION_STATE) === AppConstants.CONNECTION_STATES.CONNECTING;
+    return (
+      this.getNestedValue(webrtcContext, AppConstants.CONNECTION_STATE) ===
+      AppConstants.CONNECTION_STATES.CONNECTING
+    );
   }
 
   /**
@@ -122,12 +144,24 @@ export class CoreAppUtilityService {
    *
    * @param needSender boolean flag to distinguish b/w send and receiver
    */
-  getAppropriatePeerConnection(username: string, channel: string, needSender: boolean) {
+  getAppropriatePeerConnection(
+    username: string,
+    channel: string,
+    needSender: boolean
+  ) {
     return new Promise<any>((resolve) => {
-      const webrtcContext = this.userContextService.getUserWebrtcContext(username);
-      if (this.getNestedValue(webrtcContext, AppConstants.MEDIA_CONTEXT, channel)) {
-        const connectionType: string = this.getConnectionIdentifier(channel, needSender);
-        resolve(webrtcContext[AppConstants.MEDIA_CONTEXT][channel][connectionType]);
+      const webrtcContext =
+        this.userContextService.getUserWebrtcContext(username);
+      if (
+        this.getNestedValue(webrtcContext, AppConstants.MEDIA_CONTEXT, channel)
+      ) {
+        const connectionType: string = this.getConnectionIdentifier(
+          channel,
+          needSender
+        );
+        resolve(
+          webrtcContext[AppConstants.MEDIA_CONTEXT][channel][connectionType]
+        );
       } else {
         resolve(undefined);
       }
@@ -165,7 +199,7 @@ export class CoreAppUtilityService {
    * @param timeToSleep time in ms to sleep
    */
   delay(timeToSleep: number) {
-    return new Promise(resolve => setTimeout(resolve, timeToSleep));
+    return new Promise((resolve) => setTimeout(resolve, timeToSleep));
   }
 
   /**
@@ -186,7 +220,10 @@ export class CoreAppUtilityService {
    * @return value of deep nested property else undefined
    */
   getNestedValue(object: any, ...levels: any) {
-    return levels.reduce((object: any, level: any) => object && object[level], object);
+    return levels.reduce(
+      (object: any, level: any) => object && object[level],
+      object
+    );
   }
 
   /**
@@ -199,10 +236,16 @@ export class CoreAppUtilityService {
   getMediaTypeForSdpModification(channel: string) {
     if (channel === AppConstants.VIDEO || channel === AppConstants.SCREEN) {
       return AppConstants.VIDEO;
-    } else if (channel === AppConstants.FILE || channel === AppConstants.TEXT
-      || channel === AppConstants.REMOTE_CONTROL) {
+    } else if (
+      channel === AppConstants.FILE ||
+      channel === AppConstants.TEXT ||
+      channel === AppConstants.REMOTE_CONTROL
+    ) {
       return AppConstants.APPLICATION;
-    } else if (channel === AppConstants.AUDIO || channel === AppConstants.SOUND) {
+    } else if (
+      channel === AppConstants.AUDIO ||
+      channel === AppConstants.SOUND
+    ) {
       return AppConstants.AUDIO;
     }
   }
@@ -250,7 +293,11 @@ export class CoreAppUtilityService {
    * @param channel type of media i.e 'text', 'file' or 'remoteControl'
    */
   isDataChannel(channel: string): boolean {
-    return this.checkMember(channel, [AppConstants.TEXT, AppConstants.FILE, AppConstants.REMOTE_CONTROL]);
+    return this.checkMember(channel, [
+      AppConstants.TEXT,
+      AppConstants.FILE,
+      AppConstants.REMOTE_CONTROL,
+    ]);
   }
 
   /**
@@ -260,7 +307,12 @@ export class CoreAppUtilityService {
    * @param channel type of media i.e 'audio', 'video' etc
    */
   isMediaChannel(channel: string): boolean {
-    return this.checkMember(channel, [AppConstants.VIDEO, AppConstants.AUDIO, AppConstants.SCREEN, AppConstants.SOUND]);
+    return this.checkMember(channel, [
+      AppConstants.VIDEO,
+      AppConstants.AUDIO,
+      AppConstants.SCREEN,
+      AppConstants.SOUND,
+    ]);
   }
 
   /**
@@ -285,20 +337,18 @@ export class CoreAppUtilityService {
    *
    * @TODO refactor it afterwards, this can be done in an easy way
    */
-   resolveFileType(fileExtension: string) {
-    return new Promise((resolve) => {
-      let index = AppConstants.SUPPORTED_IMAGE_FORMATS.indexOf(fileExtension);
-      if (index > -1) {
-        resolve(AppConstants.IMAGE);
-      }
-      index = AppConstants.SUPPORTED_VIDEO_FORMATS.indexOf(fileExtension);
-      if (index > -1) {
-        resolve(AppConstants.VIDEO);
-      }
-      index = AppConstants.SUPPORTED_AUDIO_FORMATS.indexOf(fileExtension);
-      if (index > -1) {
-        resolve(AppConstants.AUDIO);
-      }
-    });
+  resolveFileType(fileExtension: string): string {
+    let index = AppConstants.SUPPORTED_IMAGE_FORMATS.indexOf(fileExtension);
+    if (index > -1) {
+      return AppConstants.IMAGE;
+    }
+    index = AppConstants.SUPPORTED_VIDEO_FORMATS.indexOf(fileExtension);
+    if (index > -1) {
+      return AppConstants.VIDEO;
+    }
+    index = AppConstants.SUPPORTED_AUDIO_FORMATS.indexOf(fileExtension);
+    if (index > -1) {
+      return AppConstants.AUDIO;
+    }
   }
 }

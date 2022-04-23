@@ -88,7 +88,15 @@ export class FileTransferContextService
     }
   }
 
-  getFileContext(username: string): TransferredFileContext[] {
+  getFileContext(
+    username: string,
+    needSentFiles?: boolean
+  ): TransferredFileContext[] {
+    if (needSentFiles !== undefined && this.fileContext.get(username)) {
+      return this.fileContext
+        .get(username)
+        .filter((fileContext) => fileContext.isSent === needSentFiles);
+    }
     return this.fileContext.get(username);
   }
 

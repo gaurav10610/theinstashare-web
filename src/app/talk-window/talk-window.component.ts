@@ -1,43 +1,49 @@
-import { Component, OnInit, ElementRef, ViewChild, Renderer2, AfterViewInit } from '@angular/core';
-import { SignalingService } from '../services/signaling/signaling.service';
-import { LoggerUtil } from '../services/logging/LoggerUtil';
-import { ApiService } from '../services/api/api.service';
-import { TalkWindowWebrtcService } from '../services/webrtc/talk-window-webrtc.service';
-import { AppConstants } from '../services/AppConstants';
-import { Router } from '@angular/router';
-import { TalkWindowUtilityService } from '../services/util/talk-window-utility.service';
-import { UserContextService } from '../services/context/user.context.service';
-import { environment } from '../../environments/environment';
-import { WebRemoteAccessService } from '../services/remote-access/web-remote-access.service';
-import { CoreWebrtcService } from '../services/webrtc/core-webrtc.service';
-import { CoreAppUtilityService } from '../services/util/core-app-utility.service';
-import { TalkWindowContextService } from '../services/context/talk-window-context.service';
-import { MessageService } from '../services/message/message.service';
-import { CreateDataChannelType } from '../services/contracts/CreateDataChannelType';
-import { StartMediaStreamType } from '../services/contracts/StartMediaStreamType';
-import { CallbackContextType } from '../services/contracts/CallbackContextType';
-import { CoreDataChannelService } from '../services/data-channel/core-data-channel.service';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { DialogCloseResult } from '../services/contracts/dialog/DialogCloseResult';
-import { DialogType } from '../services/contracts/enum/DialogType';
-import { ProgressDialogComponent } from '../progress-dialog/progress-dialog.component';
-import { GroupLoginDialogComponent } from '../group-login-dialog/group-login-dialog.component';
-import { AppLoginDialogComponent } from '../app-login-dialog/app-login-dialog.component';
-import { MediaViewerDialogComponent } from '../media-viewer-dialog/media-viewer-dialog.component';
-import { IconsDialogComponent } from '../icons-dialog/icons-dialog.component';
-import { DialogCloseResultType } from '../services/contracts/enum/DialogCloseResultType';
-import { RequestProcessingDialogComponent } from '../request-processing-dialog/request-processing-dialog.component';
-import { CoreFileStreamer } from '../services/file-sharing/CoreFileStreamer';
-import { GoogleAnalyticsService } from 'ngx-google-analytics';
+import {
+  Component,
+  OnInit,
+  ElementRef,
+  ViewChild,
+  Renderer2,
+  AfterViewInit,
+} from "@angular/core";
+import { SignalingService } from "../services/signaling/signaling.service";
+import { LoggerUtil } from "../services/logging/LoggerUtil";
+import { ApiService } from "../services/api/api.service";
+import { TalkWindowWebrtcService } from "../services/webrtc/talk-window-webrtc.service";
+import { AppConstants } from "../services/AppConstants";
+import { Router } from "@angular/router";
+import { TalkWindowUtilityService } from "../services/util/talk-window-utility.service";
+import { UserContextService } from "../services/context/user.context.service";
+import { environment } from "../../environments/environment";
+import { WebRemoteAccessService } from "../services/remote-access/web-remote-access.service";
+import { CoreWebrtcService } from "../services/webrtc/core-webrtc.service";
+import { CoreAppUtilityService } from "../services/util/core-app-utility.service";
+import { TalkWindowContextService } from "../services/context/talk-window-context.service";
+import { MessageService } from "../services/message/message.service";
+import { CreateDataChannelType } from "../services/contracts/CreateDataChannelType";
+import { StartMediaStreamType } from "../services/contracts/StartMediaStreamType";
+import { CallbackContextType } from "../services/contracts/CallbackContextType";
+import { CoreDataChannelService } from "../services/data-channel/core-data-channel.service";
+import { MatDialog, MatDialogRef } from "@angular/material/dialog";
+import { MatSnackBar } from "@angular/material/snack-bar";
+import { DialogCloseResult } from "../services/contracts/dialog/DialogCloseResult";
+import { DialogType } from "../services/contracts/enum/DialogType";
+import { ProgressDialogComponent } from "../progress-dialog/progress-dialog.component";
+import { GroupLoginDialogComponent } from "../group-login-dialog/group-login-dialog.component";
+import { AppLoginDialogComponent } from "../app-login-dialog/app-login-dialog.component";
+import { MediaViewerDialogComponent } from "../media-viewer-dialog/media-viewer-dialog.component";
+import { IconsDialogComponent } from "../icons-dialog/icons-dialog.component";
+import { DialogCloseResultType } from "../services/contracts/enum/DialogCloseResultType";
+import { RequestProcessingDialogComponent } from "../request-processing-dialog/request-processing-dialog.component";
+import { CoreFileStreamer } from "../services/file-sharing/CoreFileStreamer";
+import { GoogleAnalyticsService } from "ngx-google-analytics";
 
 @Component({
-  selector: 'app-talk-window',
-  templateUrl: './talk-window.component.html',
-  styleUrls: ['./talk-window.component.scss']
+  selector: "app-talk-window",
+  templateUrl: "./talk-window.component.html",
+  styleUrls: ["./talk-window.component.scss"],
 })
 export class TalkWindowComponent implements OnInit, AfterViewInit {
-
   constructor(
     public signalingService: SignalingService,
     private apiService: ApiService,
@@ -55,7 +61,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private gaService: GoogleAnalyticsService
-  ) { }
+  ) {}
 
   isGrouped: boolean = false;
 
@@ -64,18 +70,20 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   fileReader: any;
 
   //assets path
-  assetsPath = environment.is_native_app ? 'assets/' : '../../assets/';
+  assetsPath = environment.is_native_app ? "assets/" : "../../assets/";
 
-  @ViewChild('messageHistory', { static: false }) messageHistory: ElementRef;
-  @ViewChild('messageHistoryDiv', { static: false }) messageHistoryDiv: ElementRef;
-  @ViewChild('text_msg', { static: false }) messageInput: ElementRef;
-  @ViewChild('remote_video_div', { static: false }) remoteVideoDiv: ElementRef;
-  @ViewChild('remoteVideo', { static: false }) remoteVideo: ElementRef;
-  @ViewChild('remoteAudio', { static: false }) remoteAudio: ElementRef;
-  @ViewChild('localVideo', { static: false }) localVideo: ElementRef;
-  @ViewChild('remoteSound', { static: false }) remoteSound: ElementRef;
-  @ViewChild('remote_video_canvas', { static: false }) remoteVideoCanvas: ElementRef;
-  @ViewChild('chat_div', { static: false }) chatDiv: ElementRef;
+  @ViewChild("messageHistory", { static: false }) messageHistory: ElementRef;
+  @ViewChild("messageHistoryDiv", { static: false })
+  messageHistoryDiv: ElementRef;
+  @ViewChild("text_msg", { static: false }) messageInput: ElementRef;
+  @ViewChild("remote_video_div", { static: false }) remoteVideoDiv: ElementRef;
+  @ViewChild("remoteVideo", { static: false }) remoteVideo: ElementRef;
+  @ViewChild("remoteAudio", { static: false }) remoteAudio: ElementRef;
+  @ViewChild("localVideo", { static: false }) localVideo: ElementRef;
+  @ViewChild("remoteSound", { static: false }) remoteSound: ElementRef;
+  @ViewChild("remote_video_canvas", { static: false })
+  remoteVideoCanvas: ElementRef;
+  @ViewChild("chat_div", { static: false }) chatDiv: ElementRef;
 
   /**
    * Renderer2 unlisten functions
@@ -92,13 +100,11 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * angular OnInit hook
    */
   async ngOnInit() {
-
-    this.gaService.pageView('/talk', 'One to One Chat', undefined, {
-      user: this.userContextService.getUserName()
+    this.gaService.pageView("/talk", "One to One Chat", undefined, {
+      user: this.userContextService.getUserName(),
     });
 
     if (this.signalingService.isRegistered) {
-
       /**
        * this is the case when user has already been registered with server,
        * usually the scenario when user is routed to this component after logging
@@ -113,22 +119,23 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         onreconnect: this.onRouterConnect.bind(this),
         onmessage: this.onRouterMessage.bind(this),
         onclose: () => {
-          this.snackBar.open('disconnected from server....');
-        }
+          this.snackBar.open("disconnected from server....");
+        },
       };
 
       this.signalingService.registerEventListeners(eventsConfig);
       if (this.userContextService.selectedApp === undefined) {
         try {
-          await this.registerApplicationUser(AppConstants.APPLICATION_NAMES.P2P);
+          await this.registerApplicationUser(
+            AppConstants.APPLICATION_NAMES.P2P
+          );
         } catch (error) {
           LoggerUtil.logAny(error);
-          this.router.navigateByUrl('app');
+          this.router.navigateByUrl("app");
         }
       }
       await this.fetchActiveUsersList();
     } else {
-
       /**
        * this is the case when user either reloads this page or directly came on
        * this page via its url
@@ -139,8 +146,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         onreconnect: this.onRouterConnect.bind(this),
         onmessage: this.onRouterMessage.bind(this),
         onclose: () => {
-          this.snackBar.open('disconnected from server....');
-        }
+          this.snackBar.open("disconnected from server....");
+        },
       };
       this.signalingService.registerEventListeners(eventsConfig);
     }
@@ -153,7 +160,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      * usually the case when user reloads the page as app always store message
      * history in a storage variable before unloading the app window
      */
-    const messageContext = this.coreAppUtilService.getStorageValue(AppConstants.CHAT_MESSAGES);
+    const messageContext = this.coreAppUtilService.getStorageValue(
+      AppConstants.CHAT_MESSAGES
+    );
     if (messageContext) {
       this.talkWindowContextService.messageContext = JSON.parse(messageContext);
       this.coreAppUtilService.removeStorageValue(AppConstants.CHAT_MESSAGES);
@@ -164,15 +173,24 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      * within webrtc service
      *
      */
-    this.webrtcService.talkWindowOnRouterMessageFn = this.onRouterMessage.bind(this);
-    this.webrtcService.talkWindowUpdateChatMessagesFn = this.updateChatMessages.bind(this);
-    this.webrtcService.talkWindowOnMediaStreamReceivedFn = this.onMediaStreamReceived.bind(this);
-    this.webrtcService.talkWindowSetRemoteVolumeFn = this.setRemoteAudioVolume.bind(this);
-    this.webrtcService.talkWindowPlayOrStopTuneFn = this.playOrStopTune.bind(this);
-    this.webrtcService.talkWindowSetCentralIconsPopupFn = this.setCentralIconsPopup.bind(this);
-    this.webrtcService.talkWindowAddPopupContextFn = this.addPopupContext.bind(this);
-    this.webrtcService.talkWindowFlagPopupMessageFn = this.flagPopupMessage.bind(this);
-    this.webrtcService.talkWindowRemovePopupContextFn = this.removePopupContext.bind(this);
+    this.webrtcService.talkWindowOnRouterMessageFn =
+      this.onRouterMessage.bind(this);
+    this.webrtcService.talkWindowUpdateChatMessagesFn =
+      this.updateChatMessages.bind(this);
+    this.webrtcService.talkWindowOnMediaStreamReceivedFn =
+      this.onMediaStreamReceived.bind(this);
+    this.webrtcService.talkWindowSetRemoteVolumeFn =
+      this.setRemoteAudioVolume.bind(this);
+    this.webrtcService.talkWindowPlayOrStopTuneFn =
+      this.playOrStopTune.bind(this);
+    this.webrtcService.talkWindowSetCentralIconsPopupFn =
+      this.setCentralIconsPopup.bind(this);
+    this.webrtcService.talkWindowAddPopupContextFn =
+      this.addPopupContext.bind(this);
+    this.webrtcService.talkWindowFlagPopupMessageFn =
+      this.flagPopupMessage.bind(this);
+    this.webrtcService.talkWindowRemovePopupContextFn =
+      this.removePopupContext.bind(this);
 
     /**
      * subscribe to event emitter in order to do some cascading processing when
@@ -181,8 +199,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      *
      * @TODO try to find a better way to achieve this
      */
-    this.talkWindowContextService.mediaContextUpdateEventEmitter
-      .subscribe(this.webrtcService.mediaCallContextUpdateHandler.bind(this.webrtcService));
+    this.talkWindowContextService.mediaContextUpdateEventEmitter.subscribe(
+      this.webrtcService.mediaCallContextUpdateHandler.bind(this.webrtcService)
+    );
 
     /**
      * window before unload hook, in order to process something before browser
@@ -192,9 +211,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      *
      */
     window.onbeforeunload = function () {
-
       if (environment.production) {
-
         /**
          * store the message history in a storage variable before app gets
          * reloaded in browser
@@ -202,22 +219,27 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          * this will be used to initialize message context in the onit section
          * to if app has been reloaded in the browser
          */
-        this.appUtilService.setStorageValue(AppConstants.CHAT_MESSAGES,
-          JSON.stringify(this.userContextService.messageContext));
+        this.appUtilService.setStorageValue(
+          AppConstants.CHAT_MESSAGES,
+          JSON.stringify(this.userContextService.messageContext)
+        );
       }
     }.bind(this);
 
     /**
      * populate os type to be utilised by remote access mechanism later on
      */
-    this.talkWindowContextService.remoteAccessContext['localOS'] = this.talkWindowUtilService.getOSType();
-    LoggerUtil.logAny('local operating system: ' + this.talkWindowContextService.remoteAccessContext['localOS']);
+    this.talkWindowContextService.remoteAccessContext["localOS"] =
+      this.talkWindowUtilService.getOSType();
+    LoggerUtil.logAny(
+      "local operating system: " +
+        this.talkWindowContextService.remoteAccessContext["localOS"]
+    );
 
     this.fileReader = new FileReader();
   }
 
   ngAfterViewInit(): void {
-
     /**
      * if page is rendered on a mobile device screen then enable opening feature
      * options popup on screen tap of chat window
@@ -231,42 +253,57 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     this.setRemoteAudioVolume(0.0);
 
     //get remote video height and width
-    this.renderer.listen(this.remoteVideo.nativeElement, 'loadedmetadata', (event: any) => {
-      if (this.talkWindowContextService.bindingFlags.isScreenSharing) {
-        LoggerUtil.logAny('remote screen video stream has been loaded');
-        // this.renderer.addClass(this.remoteVideoDiv.nativeElement, 'align-center');
-        this.renderer.addClass(this.remoteVideoDiv.nativeElement, 'center-content');
-        this.webRemoteAccessService.calculateRemoteAccessParameters(
-          this.remoteVideo.nativeElement.videoWidth,
-          this.remoteVideo.nativeElement.videoHeight,
-          this.remoteVideoDiv.nativeElement.clientWidth,
-          this.remoteVideoDiv.nativeElement.clientHeight,
-          this.remoteVideo,
-          this.remoteVideoCanvas
-        );
-      } else {
-        LoggerUtil.logAny('remote video stream has been loaded');
-        this.renderer.removeClass(this.remoteVideoDiv.nativeElement, 'center-content');
+    this.renderer.listen(
+      this.remoteVideo.nativeElement,
+      "loadedmetadata",
+      (event: any) => {
+        if (this.talkWindowContextService.bindingFlags.isScreenSharing) {
+          LoggerUtil.logAny("remote screen video stream has been loaded");
+          // this.renderer.addClass(this.remoteVideoDiv.nativeElement, 'align-center');
+          this.renderer.addClass(
+            this.remoteVideoDiv.nativeElement,
+            "center-content"
+          );
+          this.webRemoteAccessService.calculateRemoteAccessParameters(
+            this.remoteVideo.nativeElement.videoWidth,
+            this.remoteVideo.nativeElement.videoHeight,
+            this.remoteVideoDiv.nativeElement.clientWidth,
+            this.remoteVideoDiv.nativeElement.clientHeight,
+            this.remoteVideo,
+            this.remoteVideoCanvas
+          );
+        } else {
+          LoggerUtil.logAny("remote video stream has been loaded");
+          this.renderer.removeClass(
+            this.remoteVideoDiv.nativeElement,
+            "center-content"
+          );
+        }
+        this.talkWindowUtilService.appRef.tick();
       }
-      this.talkWindowUtilService.appRef.tick();
-    });
+    );
 
     //window resize event
-    this.renderer.listen(window, 'resize', (event: any) => {
-      LoggerUtil.logAny('window resize event fired');
+    this.renderer.listen(window, "resize", (event: any) => {
+      LoggerUtil.logAny("window resize event fired");
 
       /**
        * only handle this event if user is in screen sharing seesion to re-calulate some
        * coordinate translation ratios used by remote access mechanism
        *
        */
-      if (this.talkWindowContextService.bindingFlags.isScreenSharing &&
-        this.talkWindowContextService.bindingFlags.haveRemoteVideoStream) {
-        this.webRemoteAccessService.calculateRemoteAccessParameters(this.talkWindowContextService.remoteAccessContext['remoteWidth'],
-          this.talkWindowContextService.remoteAccessContext['remoteHeight'],
+      if (
+        this.talkWindowContextService.bindingFlags.isScreenSharing &&
+        this.talkWindowContextService.bindingFlags.haveRemoteVideoStream
+      ) {
+        this.webRemoteAccessService.calculateRemoteAccessParameters(
+          this.talkWindowContextService.remoteAccessContext["remoteWidth"],
+          this.talkWindowContextService.remoteAccessContext["remoteHeight"],
           this.remoteVideoDiv.nativeElement.clientWidth,
           this.remoteVideoDiv.nativeElement.clientHeight,
-          this.remoteVideo, this.remoteVideoCanvas);
+          this.remoteVideo,
+          this.remoteVideoCanvas
+        );
       }
     });
   }
@@ -283,16 +320,16 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       case DialogType.APP_LOGIN:
         this.dialogRef = this.dialog.open(AppLoginDialogComponent, {
           disableClose: true,
-          panelClass: 'dialog-class',
+          panelClass: "dialog-class",
           data,
-          width: this.userContextService.isMobile ? '300px' : undefined
+          width: this.userContextService.isMobile ? "300px" : undefined,
         });
         break;
 
       case DialogType.PROGRESS:
         this.dialogRef = this.dialog.open(ProgressDialogComponent, {
           disableClose: true,
-          data
+          data,
         });
         break;
 
@@ -301,14 +338,14 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
       case DialogType.MEDIA_VIEWER:
         this.dialogRef = this.dialog.open(MediaViewerDialogComponent, {
-          data
+          data,
         });
         break;
 
       case DialogType.ICONS_POPUP:
         this.dialogRef = this.dialog.open(IconsDialogComponent, {
           data,
-          width: this.userContextService.isMobile ? '300px' : undefined
+          width: this.userContextService.isMobile ? "300px" : undefined,
         });
         break;
 
@@ -327,17 +364,24 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     if (dialogCloseResult === undefined) {
       return;
     }
-    LoggerUtil.logAny(`dialog got closed with result: ${JSON.stringify(dialogCloseResult)}`);
+    LoggerUtil.logAny(
+      `dialog got closed with result: ${JSON.stringify(dialogCloseResult)}`
+    );
     switch (dialogCloseResult.type) {
       case DialogCloseResultType.APP_LOGIN:
         this.openDialog(DialogType.PROGRESS, {
-          message: 'login in progress'
+          message: "login in progress",
         });
-        this.signalingService.registerOnSignalingServer(dialogCloseResult.data.username, true);
+        this.signalingService.registerOnSignalingServer(
+          dialogCloseResult.data.username,
+          true
+        );
         break;
 
       case DialogCloseResultType.MEDIA_VIEWER:
-        LoggerUtil.logAny(`media viewer dialog closed for content type: ${dialogCloseResult.data.contentType}`);
+        LoggerUtil.logAny(
+          `media viewer dialog closed for content type: ${dialogCloseResult.data.contentType}`
+        );
         break;
 
       case DialogCloseResultType.RESIZE_REMOTE_VIDEO:
@@ -373,7 +417,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         break;
 
       case DialogCloseResultType.CLOSE_CALL:
-        this.closeCall(dialogCloseResult.data.action, dialogCloseResult.data.channel)
+        this.closeCall(
+          dialogCloseResult.data.action,
+          dialogCloseResult.data.channel
+        );
         break;
 
       default:
@@ -390,7 +437,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       : undefined;
     if (username) {
       this.openDialog(DialogType.PROGRESS, {
-        message: 'login in progress'
+        message: "login in progress",
       });
       this.signalingService.registerOnSignalingServer(username, true);
     } else {
@@ -414,7 +461,12 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   async onRouterMessage(signalingMessage: any) {
     try {
-      LoggerUtil.logAny('received message via ' + signalingMessage.via + ': ' + JSON.stringify(signalingMessage));
+      LoggerUtil.logAny(
+        "received message via " +
+          signalingMessage.via +
+          ": " +
+          JSON.stringify(signalingMessage)
+      );
       switch (signalingMessage.type) {
         case AppConstants.REGISTER:
           await this.handleRegister(signalingMessage);
@@ -449,7 +501,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           break;
 
         case AppConstants.USER_ACTIVE_STATUS:
-          this.talkWindowUtilService.updateUserStatus(signalingMessage.connected, signalingMessage.username);
+          this.talkWindowUtilService.updateUserStatus(
+            signalingMessage.connected,
+            signalingMessage.username
+          );
           break;
 
         case AppConstants.WEBRTC_EVENT:
@@ -457,11 +512,16 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           break;
 
         default:
-          LoggerUtil.logAny('received unknown signaling message with type: ' + signalingMessage.type);
+          LoggerUtil.logAny(
+            "received unknown signaling message with type: " +
+              signalingMessage.type
+          );
       }
       this.talkWindowUtilService.appRef.tick();
     } catch (err) {
-      LoggerUtil.logAny('error occured while handling received signaling message');
+      LoggerUtil.logAny(
+        "error occured while handling received signaling message"
+      );
       LoggerUtil.logAny(JSON.stringify(signalingMessage));
       LoggerUtil.logAny(err);
     }
@@ -474,24 +534,31 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   async registerApplicationUser(applicationName: String) {
     return new Promise(async (resolve, reject) => {
       try {
-        const data: any = await this.apiService.post(AppConstants.API_ENDPOINTS.REGISTER_APP_USER, {
-          username: this.userContextService.username,
-          groupName: applicationName
-        }).toPromise();
+        const data: any = await this.apiService
+          .post(AppConstants.API_ENDPOINTS.REGISTER_APP_USER, {
+            username: this.userContextService.username,
+            groupName: applicationName,
+          })
+          .toPromise();
 
         if (data && data.registered) {
-          LoggerUtil.logAny(`user was succussfully registered for app: ${applicationName}`);
+          LoggerUtil.logAny(
+            `user was succussfully registered for app: ${applicationName}`
+          );
           this.userContextService.selectedApp = applicationName;
-          this.coreAppUtilService.setStorageValue(AppConstants.STORAGE_APPLICATION, applicationName.toString());
-          resolve('user application registration was successful');
+          this.coreAppUtilService.setStorageValue(
+            AppConstants.STORAGE_APPLICATION,
+            applicationName.toString()
+          );
+          resolve("user application registration was successful");
         } else {
           this.userContextService.selectedApp = undefined;
-          reject('user application registration was unsuccessful');
+          reject("user application registration was unsuccessful");
         }
       } catch (e) {
         LoggerUtil.logAny(e);
         this.userContextService.selectedApp = undefined;
-        reject('user applcation registration was unsuccessful');
+        reject("user applcation registration was unsuccessful");
       }
     });
   }
@@ -505,7 +572,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   handleRegister(signalingMessage: any) {
     return new Promise<void>(async (resolve) => {
       if (signalingMessage.success) {
-
         /**
          * this is the case when user was successfully able to register with
          * the server
@@ -524,7 +590,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          */
         this.signalingService.isRegistered = signalingMessage.success;
         this.userContextService.username = signalingMessage.username;
-        this.coreAppUtilService.setStorageValue(AppConstants.STORAGE_USER, signalingMessage.username);
+        this.coreAppUtilService.setStorageValue(
+          AppConstants.STORAGE_USER,
+          signalingMessage.username
+        );
         this.closeDialog();
 
         /**
@@ -533,17 +602,17 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          * in the disconnect cases we will manage reconnect handler only
          *
          */
-        this.signalingService.signalingRouter.off('connect');
+        this.signalingService.signalingRouter.off("connect");
         try {
-          await this.registerApplicationUser(AppConstants.APPLICATION_NAMES.P2P);
+          await this.registerApplicationUser(
+            AppConstants.APPLICATION_NAMES.P2P
+          );
           await this.fetchActiveUsersList();
         } catch (error) {
           LoggerUtil.logAny(error);
-          this.router.navigateByUrl('app');
+          this.router.navigateByUrl("app");
         }
-
       } else {
-
         /**
          * user registeration failed case -
          *
@@ -564,22 +633,30 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   async consumeWebrtcOffer(signalingMessage: any): Promise<void> {
     return new Promise<void>(async (resolve, reject) => {
       try {
-
         /**
          *
          * if this offer message is for renegotiating an already established connection
          *
          */
         if (signalingMessage.renegotiate) {
-
-          this.coreWebrtcService.mediaContextInit(signalingMessage.channel, signalingMessage.from);
-          const peerConnection: any = this.userContextService.getUserWebrtcContext(signalingMessage.from)[AppConstants.CONNECTION];
+          this.coreWebrtcService.mediaContextInit(
+            signalingMessage.channel,
+            signalingMessage.from
+          );
+          const peerConnection: any =
+            this.userContextService.getUserWebrtcContext(signalingMessage.from)[
+              AppConstants.CONNECTION
+            ];
 
           if (signalingMessage.seekReturnTracks) {
-
-            signalingMessage.seekReturnTracks.forEach((mediaChannel: string) => {
-              this.coreWebrtcService.mediaContextInit(mediaChannel, signalingMessage.from);
-            });
+            signalingMessage.seekReturnTracks.forEach(
+              (mediaChannel: string) => {
+                this.coreWebrtcService.mediaContextInit(
+                  mediaChannel,
+                  signalingMessage.from
+                );
+              }
+            );
 
             /**
              * handle the received webrtc offer 'sdp', set the remote description and
@@ -590,9 +667,13 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
              * to be sent to other user
              *
              */
-            const answerContainer: any = await this.coreWebrtcService
-              .generateAnswerWithTracks(peerConnection, signalingMessage.offer, signalingMessage.channel, signalingMessage.seekReturnTracks);
-
+            const answerContainer: any =
+              await this.coreWebrtcService.generateAnswerWithTracks(
+                peerConnection,
+                signalingMessage.offer,
+                signalingMessage.channel,
+                signalingMessage.seekReturnTracks
+              );
 
             /**
              * send the composed 'answer' signaling message to the other user from whom
@@ -604,10 +685,13 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
               answer: answerContainer.answerPayload.answer,
               channel: answerContainer.answerPayload.channel,
               from: this.userContextService.username,
-              to: signalingMessage.from
+              to: signalingMessage.from,
             });
 
-            const webrtcContext: any = this.userContextService.getUserWebrtcContext(signalingMessage.from);
+            const webrtcContext: any =
+              this.userContextService.getUserWebrtcContext(
+                signalingMessage.from
+              );
             /**
              *
              * process here on the basis of captured video streams
@@ -618,8 +702,12 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
               /**
                * set local media stream in user's context
                */
-              webrtcContext[AppConstants.MEDIA_CONTEXT][streamContext.channel][AppConstants.TRACK] = streamContext[AppConstants.TRACK];
-              webrtcContext[AppConstants.MEDIA_CONTEXT][streamContext.channel][AppConstants.TRACK_SENDER] = streamContext[AppConstants.TRACK_SENDER];
+              webrtcContext[AppConstants.MEDIA_CONTEXT][streamContext.channel][
+                AppConstants.TRACK
+              ] = streamContext[AppConstants.TRACK];
+              webrtcContext[AppConstants.MEDIA_CONTEXT][streamContext.channel][
+                AppConstants.TRACK_SENDER
+              ] = streamContext[AppConstants.TRACK_SENDER];
 
               /**
                * set some values values in the media call context which will be used to
@@ -637,17 +725,29 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
                */
               switch (streamContext.channel) {
                 case AppConstants.AUDIO:
-                  this.talkWindowContextService.updateBindingFlag('haveLocalAudioStream', true, streamContext.channel);
+                  this.talkWindowContextService.updateBindingFlag(
+                    "haveLocalAudioStream",
+                    true,
+                    streamContext.channel
+                  );
                   break;
 
                 case AppConstants.VIDEO:
-                  this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', true, streamContext.channel);
+                  this.talkWindowContextService.updateBindingFlag(
+                    "haveLocalVideoStream",
+                    true,
+                    streamContext.channel
+                  );
 
                   /**
                    * set local media stream in appropriate media tag on UI
                    *
                    */
-                  this.onMediaStreamReceived(streamContext[AppConstants.STREAM], AppConstants.VIDEO, true);
+                  this.onMediaStreamReceived(
+                    streamContext[AppConstants.STREAM],
+                    AppConstants.VIDEO,
+                    true
+                  );
               }
             });
           } else {
@@ -660,8 +760,12 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
              * to be sent to other user
              *
              */
-            const answerContainer: any = await this.coreWebrtcService
-              .generateAnswer(peerConnection, signalingMessage.offer, signalingMessage.channel);
+            const answerContainer: any =
+              await this.coreWebrtcService.generateAnswer(
+                peerConnection,
+                signalingMessage.offer,
+                signalingMessage.channel
+              );
 
             /**
              * send the composed 'answer' signaling message to the other user from whom
@@ -673,20 +777,25 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
               answer: answerContainer.answerPayload.answer,
               channel: answerContainer.answerPayload.channel,
               from: this.userContextService.username,
-              to: signalingMessage.from
+              to: signalingMessage.from,
             });
           }
         } else {
-
           /**
            *
            * this will setup a new webrtc connection
            */
-          this.webrtcService.setUpWebrtcConnection(signalingMessage.from, signalingMessage);
+          this.webrtcService.setUpWebrtcConnection(
+            signalingMessage.from,
+            signalingMessage
+          );
         }
         resolve();
       } catch (e) {
-        LoggerUtil.logAny('there is an error while consuming webrtc offer received from ' + signalingMessage.from);
+        LoggerUtil.logAny(
+          "there is an error while consuming webrtc offer received from " +
+            signalingMessage.from
+        );
         reject(e);
       }
     });
@@ -699,7 +808,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   async fetchActiveUsersList() {
     const data: any = await this.apiService
-      .get(`${AppConstants.API_ENDPOINTS.GET_ALL_ACTIVE_USERS}?groupName=${AppConstants.APPLICATION_NAMES.P2P}`).toPromise();
+      .get(
+        `${AppConstants.API_ENDPOINTS.GET_ALL_ACTIVE_USERS}?groupName=${AppConstants.APPLICATION_NAMES.P2P}`
+      )
+      .toPromise();
 
     //clear userStatus object
     this.talkWindowContextService.userStatus.clear();
@@ -718,7 +830,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * @TODO refactor this whole approach
    */
   async handleMediaStreaming(clickedIcon: String) {
-
     /**
      * if app is rendered on a mobile screen then feature menu shows up on
      * screen tap, so once user has clicked on an icon then we should hide the
@@ -734,31 +845,55 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
     // get the username of the currently selected user
     const userToChat = this.userContextService.userToChat;
-    const webrtcContext: any = this.userContextService.getUserWebrtcContext(userToChat);
+    const webrtcContext: any =
+      this.userContextService.getUserWebrtcContext(userToChat);
 
-    const tokens: string[] = clickedIcon.split('-');
+    const tokens: string[] = clickedIcon.split("-");
     const channel: string = tokens[tokens.length - 1];
     let isStopRequest: boolean = tokens.length > 1;
 
-    if (isStopRequest && channel === AppConstants.AUDIO &&
-      this.talkWindowContextService.bindingFlags.isVideoCalling) {
-      this.handleMediaStreaming('stop-video');
+    if (
+      isStopRequest &&
+      channel === AppConstants.AUDIO &&
+      this.talkWindowContextService.bindingFlags.isVideoCalling
+    ) {
+      this.handleMediaStreaming("stop-video");
     }
 
     if (isStopRequest) {
-      LoggerUtil.logAny('handling media stream stop request for channel: ' + channel);
+      LoggerUtil.logAny(
+        "handling media stream stop request for channel: " + channel
+      );
 
       /**
        * set the informational disconnect modal popup for user
        */
-      const stopAudioPopupContext: any = this.messageService
-        .buildPopupContext(AppConstants.POPUP_TYPE.DISCONNECTING, channel);
+      const stopAudioPopupContext: any = this.messageService.buildPopupContext(
+        AppConstants.POPUP_TYPE.DISCONNECTING,
+        channel
+      );
       // remove the track from peer connection
-      if (webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TRACK_SENDER]) {
-        webrtcContext[AppConstants.CONNECTION].removeTrack(webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TRACK_SENDER]);
+      if (
+        webrtcContext[AppConstants.MEDIA_CONTEXT][channel][
+          AppConstants.TRACK_SENDER
+        ]
+      ) {
+        webrtcContext[AppConstants.CONNECTION].removeTrack(
+          webrtcContext[AppConstants.MEDIA_CONTEXT][channel][
+            AppConstants.TRACK_SENDER
+          ]
+        );
       }
-      this.webrtcService.processChannelStreamDisconnect(channel, userToChat, true, [stopAudioPopupContext]);
-      await this.webrtcService.cleanMediaStreamContext(channel, webrtcContext[AppConstants.MEDIA_CONTEXT][channel]);
+      this.webrtcService.processChannelStreamDisconnect(
+        channel,
+        userToChat,
+        true,
+        [stopAudioPopupContext]
+      );
+      await this.webrtcService.cleanMediaStreamContext(
+        channel,
+        webrtcContext[AppConstants.MEDIA_CONTEXT][channel]
+      );
       delete webrtcContext[AppConstants.MEDIA_CONTEXT][channel];
 
       /**
@@ -772,36 +907,70 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          *
          */
         if (this.talkWindowContextService.bindingFlags.isSoundSharing) {
-          if (webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.SOUND][AppConstants.TRACK_SENDER]) {
-            webrtcContext[AppConstants.CONNECTION].removeTrack(webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.SOUND][AppConstants.TRACK_SENDER]);
+          if (
+            webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.SOUND][
+              AppConstants.TRACK_SENDER
+            ]
+          ) {
+            webrtcContext[AppConstants.CONNECTION].removeTrack(
+              webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.SOUND][
+                AppConstants.TRACK_SENDER
+              ]
+            );
           }
           /**
            *
            * @TODO verify it afterwards if notification is really necessary or not
            */
-          this.webrtcService.processChannelStreamDisconnect(AppConstants.SOUND, userToChat, true, [stopAudioPopupContext]);
-          await this.webrtcService.cleanMediaStreamContext(AppConstants.SOUND, webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.SOUND]);
+          this.webrtcService.processChannelStreamDisconnect(
+            AppConstants.SOUND,
+            userToChat,
+            true,
+            [stopAudioPopupContext]
+          );
+          await this.webrtcService.cleanMediaStreamContext(
+            AppConstants.SOUND,
+            webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.SOUND]
+          );
           delete webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.SOUND];
         }
 
         /**
          * if remote access with screen sharing
          */
-        if (this.talkWindowContextService.bindingFlags.isAccessingRemote ||
-          this.talkWindowContextService.bindingFlags.haveSharedRemoteAccess) {
+        if (
+          this.talkWindowContextService.bindingFlags.isAccessingRemote ||
+          this.talkWindowContextService.bindingFlags.haveSharedRemoteAccess
+        ) {
           /**
            * display appropriate modal popup message on UI
            */
-          const remoteAccessPopupContext = this.messageService
-            .buildPopupContext(AppConstants.POPUP_TYPE.DISCONNECTING, AppConstants.REMOTE_CONTROL);
-          this.webrtcService.processChannelStreamDisconnect(channel, userToChat, true, [remoteAccessPopupContext]);
-          await this.webrtcService.cleanDataChannelContext(AppConstants.REMOTE_CONTROL, webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.REMOTE_CONTROL]);
-          delete webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.REMOTE_CONTROL];
+          const remoteAccessPopupContext =
+            this.messageService.buildPopupContext(
+              AppConstants.POPUP_TYPE.DISCONNECTING,
+              AppConstants.REMOTE_CONTROL
+            );
+          this.webrtcService.processChannelStreamDisconnect(
+            channel,
+            userToChat,
+            true,
+            [remoteAccessPopupContext]
+          );
+          await this.webrtcService.cleanDataChannelContext(
+            AppConstants.REMOTE_CONTROL,
+            webrtcContext[AppConstants.MEDIA_CONTEXT][
+              AppConstants.REMOTE_CONTROL
+            ]
+          );
+          delete webrtcContext[AppConstants.MEDIA_CONTEXT][
+            AppConstants.REMOTE_CONTROL
+          ];
         }
       }
-
     } else {
-      LoggerUtil.logAny('handling media stream start request for channel: ' + channel);
+      LoggerUtil.logAny(
+        "handling media stream start request for channel: " + channel
+      );
       /**
        *
        * handle media stream start request
@@ -821,12 +990,14 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * screen and sound
    */
   async setMediaStreamRequest(channel: string) {
-
     /**
      * exception flow for sharing system sound on web app
      *
      */
-    if (channel === AppConstants.SOUND && !this.userContextService.isNativeApp) {
+    if (
+      channel === AppConstants.SOUND &&
+      !this.userContextService.isNativeApp
+    ) {
       let isSoundAvailable = await this.isScreenSoundAvailable();
       if (!isSoundAvailable) {
         return;
@@ -840,17 +1011,21 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      * response from the other user
      *
      */
-    this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME] = this.userContextService.userToChat;
-    this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL] = channel;
+    this.talkWindowContextService.mediaStreamRequestContext[
+      AppConstants.USERNAME
+    ] = this.userContextService.userToChat;
+    this.talkWindowContextService.mediaStreamRequestContext[
+      AppConstants.CHANNEL
+    ] = channel;
 
     /**
      * set the informational calling modal popup for user
      */
     this.addPopupContext({
       type: AppConstants.POPUP_TYPE.CONNECT + channel,
-      modalText: 'calling ' + this.userContextService.userToChat + '...',
+      modalText: "calling " + this.userContextService.userToChat + "...",
       disconnect: true,
-      channel: channel
+      channel: channel,
     });
 
     /**
@@ -863,7 +1038,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       from: this.userContextService.username,
       to: this.userContextService.userToChat,
       request: AppConstants.INVITE,
-      isNativeApp: environment.is_native_app
+      isNativeApp: environment.is_native_app,
     });
   }
 
@@ -874,8 +1049,13 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   async startMediaStream(startMediaStreamType: StartMediaStreamType) {
     try {
-      LoggerUtil.logAny('handling media stream start request for accepted call ' + startMediaStreamType.requiredMediaTracks.toString());
-      const username = startMediaStreamType.username ? startMediaStreamType.username : this.userContextService.userToChat;
+      LoggerUtil.logAny(
+        "handling media stream start request for accepted call " +
+          startMediaStreamType.requiredMediaTracks.toString()
+      );
+      const username = startMediaStreamType.username
+        ? startMediaStreamType.username
+        : this.userContextService.userToChat;
 
       /**
        * initialize user's webrtc context for the user with whom you wanted to
@@ -894,10 +1074,14 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         this.coreWebrtcService.mediaContextInit(mediaChannel, username);
       });
 
-      const webrtcContext: any = this.userContextService.getUserWebrtcContext(username);
+      const webrtcContext: any =
+        this.userContextService.getUserWebrtcContext(username);
       webrtcContext[AppConstants.RECONNECT] = true;
 
-      if (webrtcContext[AppConstants.CONNECTION_STATE] === AppConstants.CONNECTION_STATES.CONNECTED) {
+      if (
+        webrtcContext[AppConstants.CONNECTION_STATE] ===
+        AppConstants.CONNECTION_STATES.CONNECTED
+      ) {
         const peerConnection: any = webrtcContext[AppConstants.CONNECTION];
 
         let offerContainer: any;
@@ -911,28 +1095,53 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
            * to be sent to other user
            *
            */
-          offerContainer = await this.coreWebrtcService
-            .generateOfferWithMediaTracks(peerConnection, startMediaStreamType.channel, startMediaStreamType.requiredMediaTracks);
+          offerContainer =
+            await this.coreWebrtcService.generateOfferWithMediaTracks(
+              peerConnection,
+              startMediaStreamType.channel,
+              startMediaStreamType.requiredMediaTracks
+            );
         } catch (error) {
-          LoggerUtil.logAny('unable to capture video stream from choosen camera');
-          this.talkWindowUtilService.flagError('unable to capture video stream from camera, please check permissions');
-          this.webrtcService.cleanMediaStreamContext(startMediaStreamType.channel,
-            webrtcContext[AppConstants.MEDIA_CONTEXT][startMediaStreamType.channel]);
+          LoggerUtil.logAny(
+            "unable to capture video stream from choosen camera"
+          );
+          this.talkWindowUtilService.flagError(
+            "unable to capture video stream from camera, please check permissions"
+          );
+          this.webrtcService.cleanMediaStreamContext(
+            startMediaStreamType.channel,
+            webrtcContext[AppConstants.MEDIA_CONTEXT][
+              startMediaStreamType.channel
+            ]
+          );
           return;
         }
 
         /**
          * clean the media context and close stream capturing if connection timeout has occured
          */
-        if (this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL] === undefined) {
-          const popupMessage: any = this.messageService.buildPopupContext(AppConstants.POPUP_TYPE.CONNECTION_TIMEOUT, 'all');
+        if (
+          this.talkWindowContextService.mediaStreamRequestContext[
+            AppConstants.CHANNEL
+          ] === undefined
+        ) {
+          const popupMessage: any = this.messageService.buildPopupContext(
+            AppConstants.POPUP_TYPE.CONNECTION_TIMEOUT,
+            "all"
+          );
           this.flagPopupMessage(popupMessage);
 
           offerContainer.mediaStreams.forEach((streamContext: any) => {
             streamContext[AppConstants.TRACK].stop();
-            webrtcContext[AppConstants.CONNECTION].removeTrack(streamContext[AppConstants.TRACK_SENDER]);
-            this.webrtcService.cleanMediaStreamContext(streamContext[AppConstants.CHANNEL],
-              webrtcContext[AppConstants.MEDIA_CONTEXT][streamContext[AppConstants.CHANNEL]]);
+            webrtcContext[AppConstants.CONNECTION].removeTrack(
+              streamContext[AppConstants.TRACK_SENDER]
+            );
+            this.webrtcService.cleanMediaStreamContext(
+              streamContext[AppConstants.CHANNEL],
+              webrtcContext[AppConstants.MEDIA_CONTEXT][
+                streamContext[AppConstants.CHANNEL]
+              ]
+            );
           });
           return;
         }
@@ -954,14 +1163,17 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           from: this.userContextService.username,
           to: username,
           renegotiate: true,
-          seekReturnTracks: startMediaStreamType.requiredMediaTracks
+          seekReturnTracks: startMediaStreamType.requiredMediaTracks,
         };
 
         /**
          * screen and sound streaming is one way only, so don't seek any tracks in return
          */
-        if (startMediaStreamType.channel === AppConstants.SCREEN || startMediaStreamType.channel === AppConstants.SOUND) {
-          delete offerPayload['seekReturnTracks'];
+        if (
+          startMediaStreamType.channel === AppConstants.SCREEN ||
+          startMediaStreamType.channel === AppConstants.SOUND
+        ) {
+          delete offerPayload["seekReturnTracks"];
         }
         this.coreDataChannelService.sendPayload(offerPayload);
 
@@ -973,8 +1185,12 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           /**
            * set local media stream in user's context
            */
-          webrtcContext[AppConstants.MEDIA_CONTEXT][streamContext.channel][AppConstants.TRACK] = streamContext[AppConstants.TRACK];
-          webrtcContext[AppConstants.MEDIA_CONTEXT][streamContext.channel][AppConstants.TRACK_SENDER] = streamContext[AppConstants.TRACK_SENDER];
+          webrtcContext[AppConstants.MEDIA_CONTEXT][streamContext.channel][
+            AppConstants.TRACK
+          ] = streamContext[AppConstants.TRACK];
+          webrtcContext[AppConstants.MEDIA_CONTEXT][streamContext.channel][
+            AppConstants.TRACK_SENDER
+          ] = streamContext[AppConstants.TRACK_SENDER];
 
           /**
            * set some values values in the media call context which will be used to
@@ -990,20 +1206,37 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
            *
            *
            */
-          if (streamContext.channel === AppConstants.SCREEN || streamContext.channel === AppConstants.VIDEO) {
-            this.talkWindowContextService.updateBindingFlag('haveLocalVideoStream', true, streamContext.channel);
-          } else if (streamContext.channel === AppConstants.SOUND || streamContext.channel === AppConstants.AUDIO) {
-            this.talkWindowContextService.updateBindingFlag('haveLocalAudioStream', true, streamContext.channel);
+          if (
+            streamContext.channel === AppConstants.SCREEN ||
+            streamContext.channel === AppConstants.VIDEO
+          ) {
+            this.talkWindowContextService.updateBindingFlag(
+              "haveLocalVideoStream",
+              true,
+              streamContext.channel
+            );
+          } else if (
+            streamContext.channel === AppConstants.SOUND ||
+            streamContext.channel === AppConstants.AUDIO
+          ) {
+            this.talkWindowContextService.updateBindingFlag(
+              "haveLocalAudioStream",
+              true,
+              streamContext.channel
+            );
           }
           /**
            * set local media stream in appropriate media tag on UI
            */
           if (streamContext.channel === AppConstants.VIDEO) {
-            this.onMediaStreamReceived(streamContext[AppConstants.STREAM], AppConstants.VIDEO, true);
+            this.onMediaStreamReceived(
+              streamContext[AppConstants.STREAM],
+              AppConstants.VIDEO,
+              true
+            );
           }
         });
       } else {
-
         /**
          *
          * if webrtc connection is not in connetcted state then add the startMediaStream(...) function
@@ -1011,15 +1244,24 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          */
         const webrtcCallbackContextType: CallbackContextType = {
           callbackFunction: this.startMediaStream.bind(this),
-          callbackContext: startMediaStreamType
+          callbackContext: startMediaStreamType,
         };
-        webrtcContext[AppConstants.WEBRTC_ON_CONNECT_QUEUE].enqueue(webrtcCallbackContextType);
-        if (webrtcContext[AppConstants.CONNECTION_STATE] === AppConstants.CONNECTION_STATES.NOT_CONNECTED) {
+        webrtcContext[AppConstants.WEBRTC_ON_CONNECT_QUEUE].enqueue(
+          webrtcCallbackContextType
+        );
+        if (
+          webrtcContext[AppConstants.CONNECTION_STATE] ===
+          AppConstants.CONNECTION_STATES.NOT_CONNECTED
+        ) {
           this.webrtcService.setUpWebrtcConnection(username);
         }
       }
     } catch (e) {
-      LoggerUtil.logAny('there is an error encountered while starting ' + startMediaStreamType.channel + ' media stream');
+      LoggerUtil.logAny(
+        "there is an error encountered while starting " +
+          startMediaStreamType.channel +
+          " media stream"
+      );
       LoggerUtil.logAny(e);
     }
   }
@@ -1031,28 +1273,27 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    */
   async startTextChat(selectedUser: string) {
-
     /**
      * if user is currenty in a video streaming session then do nothing. User
      * has to stop video sharing to chat with other user
      *
      */
     if (!this.talkWindowContextService.bindingFlags.isVideoSharing) {
-
       /**
        * set the chat window for user
        */
       this.setChatWindow(false);
 
-      LoggerUtil.logAny('selected user: ' + selectedUser);
-      LoggerUtil.logAny('previous selected user: ' + this.userContextService.userToChat);
+      LoggerUtil.logAny("selected user: " + selectedUser);
+      LoggerUtil.logAny(
+        "previous selected user: " + this.userContextService.userToChat
+      );
 
       /**
        * when user want to chat with a person other than the currently selected
        * user
        */
       if (selectedUser !== this.userContextService.userToChat) {
-
         /**
          * set the currenty selected user in context, this will be used
          * everywhere
@@ -1062,15 +1303,16 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
         //if user's webrtc context exist then make the unread count 0
         if (this.userContextService.getUserWebrtcContext(selectedUser)) {
-          this.userContextService.getUserWebrtcContext(selectedUser).unreadCount = 0;
+          this.userContextService.getUserWebrtcContext(
+            selectedUser
+          ).unreadCount = 0;
         }
         this.talkWindowUtilService.appRef.tick();
         this.scrollMessages();
       } else {
-        LoggerUtil.logAny('already connected with user: ' + selectedUser);
+        LoggerUtil.logAny("already connected with user: " + selectedUser);
       }
     } else {
-
       /**
        * @TODO show appropriate message popup message here
        */
@@ -1092,9 +1334,12 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         /**
          * send typed text message over webrtc datachannel
          */
-        this.sendMessageOnChannel(this.messageInput.nativeElement.value, userToChat);
+        this.sendMessageOnChannel(
+          this.messageInput.nativeElement.value,
+          userToChat
+        );
         //clear the text box
-        this.renderer.setProperty(this.messageInput.nativeElement, 'value', '');
+        this.renderer.setProperty(this.messageInput.nativeElement, "value", "");
         /**
          * @TODO see if this is a good practice
          */
@@ -1102,8 +1347,11 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       }
     } else {
       // when user hits the submit button
-      this.sendMessageOnChannel(this.messageInput.nativeElement.value, userToChat);
-      this.renderer.setProperty(this.messageInput.nativeElement, 'value', '');
+      this.sendMessageOnChannel(
+        this.messageInput.nativeElement.value,
+        userToChat
+      );
+      this.renderer.setProperty(this.messageInput.nativeElement, "value", "");
       /**
        * @TODO see if this is a good practice
        */
@@ -1121,8 +1369,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   async sendMessageOnChannel(textMessage: any, userToChat: string) {
     try {
-      if (textMessage !== '') {
-
+      if (textMessage !== "") {
         /**
          * initialize user's webrtc context for the user to whom you wanted to
          * send message, if it didn't exist
@@ -1131,10 +1378,12 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         if (!this.userContextService.hasUserWebrtcContext(userToChat)) {
           this.userContextService.initializeUserWebrtcContext(userToChat);
         }
-        const webrtcContext = this.userContextService.getUserWebrtcContext(userToChat);
+        const webrtcContext =
+          this.userContextService.getUserWebrtcContext(userToChat);
 
         //generate a new message identifier
-        const messageId: any = await this.coreAppUtilService.generateIdentifier();
+        const messageId: any =
+          await this.coreAppUtilService.generateIdentifier();
 
         //update message in chat window on UI
         this.updateChatMessages({
@@ -1143,25 +1392,35 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           message: textMessage,
           username: userToChat,
           type: AppConstants.TEXT,
-          sent: true
+          sent: true,
         });
 
         //check if there is an open data channel
-        if (this.coreAppUtilService.isDataChannelConnected(webrtcContext, AppConstants.TEXT)) {
+        if (
+          this.coreAppUtilService.isDataChannelConnected(
+            webrtcContext,
+            AppConstants.TEXT
+          )
+        ) {
           // LoggerUtil.log('Found an open data channel already.');
 
           //send message on data channel
-          webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.TEXT].dataChannel.send(JSON.stringify({
-            id: messageId,
-            message: textMessage,
-            username: this.userContextService.username,
-            type: AppConstants.TEXT,
-            from: this.userContextService.username,
-            to: userToChat
-          }));
+          webrtcContext[AppConstants.MEDIA_CONTEXT][
+            AppConstants.TEXT
+          ].dataChannel.send(
+            JSON.stringify({
+              id: messageId,
+              message: textMessage,
+              username: this.userContextService.username,
+              type: AppConstants.TEXT,
+              from: this.userContextService.username,
+              to: userToChat,
+            })
+          );
         } else {
-
-          LoggerUtil.logAny('text data channel is not in open state for user: ' + userToChat);
+          LoggerUtil.logAny(
+            "text data channel is not in open state for user: " + userToChat
+          );
 
           if (webrtcContext[AppConstants.MESSAGE_QUEUE] === undefined) {
             this.userContextService.initializeMessageQueue(userToChat);
@@ -1174,12 +1433,19 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
             username: this.userContextService.username,
             type: AppConstants.TEXT,
             from: this.userContextService.username,
-            to: userToChat
+            to: userToChat,
           });
 
           // when data channel open request has already been raised, then just queue the messages
-          if (this.coreAppUtilService.isDataChannelConnecting(webrtcContext, AppConstants.TEXT)) {
-            LoggerUtil.logAny('text data channel is in connecting state for user: ' + userToChat);
+          if (
+            this.coreAppUtilService.isDataChannelConnecting(
+              webrtcContext,
+              AppConstants.TEXT
+            )
+          ) {
+            LoggerUtil.logAny(
+              "text data channel is in connecting state for user: " + userToChat
+            );
 
             /**
              * do nothing here as message has been queued and will be sent when
@@ -1189,11 +1455,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
              * connected after some time or not else try connecting it again
              */
           } else {
-
             const createDataChannelType: CreateDataChannelType = {
               username: userToChat,
-              channel: AppConstants.TEXT
-            }
+              channel: AppConstants.TEXT,
+            };
 
             //set up new data channel
             await this.webrtcService.setUpDataChannel(createDataChannelType);
@@ -1209,7 +1474,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * this will open the file explorer to choose file to be sent
    */
   openFileDialog() {
-    this.renderer.selectRootElement('#file_input', true).click();
+    this.renderer.selectRootElement("#file_input", true).click();
   }
 
   async testFileStreamer(event: any) {
@@ -1220,27 +1485,32 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       // const contentType = await this.talkWindowUtilService.resolveFileType(event.target.files[i].type.split('/')[1]);
       // LoggerUtil.log("reading file of type: " + contentType);
 
-      const fileStreamer: CoreFileStreamer = new CoreFileStreamer(event.target.files[i]);
+      const fileStreamer: CoreFileStreamer = new CoreFileStreamer(
+        event.target.files[i]
+      );
       const dataArray: any[] = [];
       while (!fileStreamer.isEndOfFile()) {
-
         // const data: any = await fileStreamer.readBlockAsDataUrl();
         // LoggerUtil.log(data.replace('data:application/octet-stream;base64,', ''));
 
         const data: any = await fileStreamer.readBlockAsArrayBuffer();
         const dataChunk: any = {
-          buffer: data
-        }
+          buffer: data,
+        };
         LoggerUtil.logAny(JSON.stringify(dataChunk));
         dataArray.push(dataChunk);
       }
       LoggerUtil.logAny("Successfully read: " + event.target.files[i].name);
-      const newDataArray = dataArray.map(chunk => chunk.buffer);
+      const newDataArray = dataArray.map((chunk) => chunk.buffer);
       const fileData = new Blob(newDataArray);
       const url = window.URL.createObjectURL(fileData);
-      const downloadAnchor = this.renderer.createElement('a');
-      this.renderer.setProperty(downloadAnchor, 'href', url);
-      this.renderer.setProperty(downloadAnchor, 'download', event.target.files[i].name);
+      const downloadAnchor = this.renderer.createElement("a");
+      this.renderer.setProperty(downloadAnchor, "href", url);
+      this.renderer.setProperty(
+        downloadAnchor,
+        "download",
+        event.target.files[i].name
+      );
       downloadAnchor.click();
     }
   }
@@ -1252,13 +1522,15 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   async startSharingFile(event: any) {
     // LoggerUtil.log(event.target.files);
-    const areFilesAllowedToShare: boolean = await this.talkWindowUtilService.areAllowedFileTypes(event.target.files);
+    const areFilesAllowedToShare: boolean =
+      await this.talkWindowUtilService.areAllowedFileTypes(event.target.files);
     if (areFilesAllowedToShare) {
       const userToChat = this.userContextService.userToChat;
       if (!this.userContextService.hasUserWebrtcContext(userToChat)) {
         this.userContextService.initializeUserWebrtcContext(userToChat);
       }
-      const webrtcContext = this.userContextService.getUserWebrtcContext(userToChat);
+      const webrtcContext =
+        this.userContextService.getUserWebrtcContext(userToChat);
       let dataChannel: any;
       if (!webrtcContext[AppConstants.FILE_QUEUE]) {
         this.userContextService.initializeFileQueue(userToChat);
@@ -1268,8 +1540,11 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * start iterating selected files
        */
       for (let i = 0; i < event.target.files.length; i++) {
-        const contentType = await this.coreAppUtilService.resolveFileType(event.target.files[i].type.split('/')[1]);
-        const contentId: any = await this.coreAppUtilService.generateIdentifier();
+        const contentType = this.coreAppUtilService.resolveFileType(
+          event.target.files[i].type.split("/")[1]
+        );
+        const contentId: any =
+          await this.coreAppUtilService.generateIdentifier();
 
         /**
          * enqueue the file for reading and sending to other peer
@@ -1282,7 +1557,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           sent: true,
           contentType: contentType,
           contentId: contentId,
-          fileName: event.target.files[i].name
+          fileName: event.target.files[i].name,
         });
 
         /**
@@ -1296,21 +1571,33 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           sent: true,
           contentType: contentType,
           contentId: contentId,
-          fileName: event.target.files[i].name
+          fileName: event.target.files[i].name,
         });
-        this.talkWindowContextService.sharedContent[contentId] = '';
+        this.talkWindowContextService.sharedContent[contentId] = "";
       }
 
-      if (this.coreAppUtilService.isDataChannelConnected(webrtcContext, AppConstants.FILE)) {
-
-        LoggerUtil.logAny('file data channel found open');
-        this.talkWindowUtilService.readFile(this.fileReader, webrtcContext[AppConstants.FILE_QUEUE].front());
+      if (
+        this.coreAppUtilService.isDataChannelConnected(
+          webrtcContext,
+          AppConstants.FILE
+        )
+      ) {
+        LoggerUtil.logAny("file data channel found open");
+        this.talkWindowUtilService.readFile(
+          this.fileReader,
+          webrtcContext[AppConstants.FILE_QUEUE].front()
+        );
       } else {
+        LoggerUtil.logAny(
+          "file data channel is not in open state for user: " + userToChat
+        );
 
-        LoggerUtil.logAny('file data channel is not in open state for user: ' + userToChat);
-
-        if (this.coreAppUtilService.isDataChannelConnecting(webrtcContext, AppConstants.FILE)) {
-
+        if (
+          this.coreAppUtilService.isDataChannelConnecting(
+            webrtcContext,
+            AppConstants.FILE
+          )
+        ) {
           /**
            * do nothing here as files has been queued and will be sent when
            * data channel comes in open state
@@ -1319,11 +1606,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
            * connected after some time or not else try connecting it again
            */
         } else {
-
           const createDataChannelType: CreateDataChannelType = {
             username: userToChat,
-            channel: AppConstants.FILE
-          }
+            channel: AppConstants.FILE,
+          };
 
           //open data channel here
           this.webrtcService.setUpDataChannel(createDataChannelType);
@@ -1331,36 +1617,49 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       }
 
       this.fileReader.onload = async (event: any) => {
-        const fileRecord: any = webrtcContext[AppConstants.FILE_QUEUE].dequeue();
-        this.talkWindowContextService.sharedContent[fileRecord[AppConstants.CONTENT_ID]] = event.target.result;
+        const fileRecord: any =
+          webrtcContext[AppConstants.FILE_QUEUE].dequeue();
+        this.talkWindowContextService.sharedContent[
+          fileRecord[AppConstants.CONTENT_ID]
+        ] = event.target.result;
         // LoggerUtil.log(fileRecord);
         // LoggerUtil.log("Blob size: " + event.target.result.length);
 
         if (event.target.result.length < AppConstants.CHUNK_SIZE) {
-
           //sending file start meta data
-          this.talkWindowUtilService.sendMessageOnDataChannel(fileRecord[AppConstants.USERNAME],
+          this.talkWindowUtilService.sendMessageOnDataChannel(
+            fileRecord[AppConstants.USERNAME],
             {
               id: fileRecord[AppConstants.CONTENT_ID],
-              message: 'start',
+              message: "start",
               username: this.userContextService.username,
               type: AppConstants.FILE,
               contentType: fileRecord[AppConstants.CONTENT_TYPE],
               chunkType: AppConstants.CHUNK_TYPE.START,
               contentId: fileRecord[AppConstants.CONTENT_ID],
-              fileName: fileRecord[AppConstants.FILE_NAME]
-            }, AppConstants.FILE);
+              fileName: fileRecord[AppConstants.FILE_NAME],
+            },
+            AppConstants.FILE
+          );
 
           //update last data exchanged timestamp in user's webrtc context
-          webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][AppConstants.LAST_USED] = Date.now();
+          webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][
+            AppConstants.LAST_USED
+          ] = Date.now();
 
           //stop sending file data if data channel buffer is already crossed threshold
-          while (dataChannel.bufferedAmount > AppConstants.DATACHANNEL_BUFFER_THRESHOLD) {
-            await this.coreAppUtilService.delay(AppConstants.DATACHANNEL_FILE_SEND_TIMEOUT);
+          while (
+            dataChannel.bufferedAmount >
+            AppConstants.DATACHANNEL_BUFFER_THRESHOLD
+          ) {
+            await this.coreAppUtilService.delay(
+              AppConstants.DATACHANNEL_FILE_SEND_TIMEOUT
+            );
           }
 
           //send file data
-          this.talkWindowUtilService.sendMessageOnDataChannel(fileRecord[AppConstants.USERNAME],
+          this.talkWindowUtilService.sendMessageOnDataChannel(
+            fileRecord[AppConstants.USERNAME],
             {
               id: fileRecord[AppConstants.CONTENT_ID],
               message: event.target.result,
@@ -1369,27 +1668,39 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
               contentType: fileRecord[AppConstants.CONTENT_TYPE],
               chunkType: AppConstants.CHUNK_TYPE.WHOLE,
               contentId: fileRecord[AppConstants.CONTENT_ID],
-              fileName: fileRecord[AppConstants.FILE_NAME]
-            }, AppConstants.FILE);
+              fileName: fileRecord[AppConstants.FILE_NAME],
+            },
+            AppConstants.FILE
+          );
 
           //update last data exchanged timestamp in user's webrtc context
-          webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][AppConstants.LAST_USED] = Date.now();
+          webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][
+            AppConstants.LAST_USED
+          ] = Date.now();
         } else {
           //for bigger file size, send it in chunks
           await this.sendFileDataInChunks(fileRecord, event.target.result);
         }
         //Send file data
         if (!webrtcContext[AppConstants.FILE_QUEUE].isEmpty()) {
-          this.talkWindowUtilService.readFile(this.fileReader, webrtcContext[AppConstants.FILE_QUEUE].front());
+          this.talkWindowUtilService.readFile(
+            this.fileReader,
+            webrtcContext[AppConstants.FILE_QUEUE].front()
+          );
         }
-      } //here ends onload
+      }; //here ends onload
     } else {
-      let allowedFileTypes = (AppConstants.SUPPORTED_IMAGE_FORMATS
-        .concat(AppConstants.SUPPORTED_VIDEO_FORMATS)).concat(AppConstants.SUPPORTED_AUDIO_FORMATS);
-      this.talkWindowUtilService.flagError('error: file type you selected is not allowed');
-      this.talkWindowUtilService.flagError('allowed file types: ' + allowedFileTypes.join(' | '));
+      let allowedFileTypes = AppConstants.SUPPORTED_IMAGE_FORMATS.concat(
+        AppConstants.SUPPORTED_VIDEO_FORMATS
+      ).concat(AppConstants.SUPPORTED_AUDIO_FORMATS);
+      this.talkWindowUtilService.flagError(
+        "error: file type you selected is not allowed"
+      );
+      this.talkWindowUtilService.flagError(
+        "allowed file types: " + allowedFileTypes.join(" | ")
+      );
     }
-    event.target.value = '';
+    event.target.value = "";
   }
 
   /**
@@ -1403,39 +1714,55 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   sendFileDataInChunks(fileRecord: any, fileBlob: any) {
     return new Promise<void>(async (resolve) => {
-      const userContext: any = this.userContextService.getUserWebrtcContext(fileRecord[AppConstants.USERNAME]);
-      const dataChannel: any = userContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE].dataChannel;
-      const chunks: any[] = this.talkWindowUtilService.chunkString(fileBlob, AppConstants.CHUNK_SIZE);
+      const userContext: any = this.userContextService.getUserWebrtcContext(
+        fileRecord[AppConstants.USERNAME]
+      );
+      const dataChannel: any =
+        userContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE].dataChannel;
+      const chunks: any[] = this.talkWindowUtilService.chunkString(
+        fileBlob,
+        AppConstants.CHUNK_SIZE
+      );
       const totalChunks: number = chunks.length;
 
       //sending file start meta data
-      this.talkWindowUtilService.sendMessageOnDataChannel(fileRecord[AppConstants.USERNAME],
+      this.talkWindowUtilService.sendMessageOnDataChannel(
+        fileRecord[AppConstants.USERNAME],
         {
           id: fileRecord[AppConstants.CONTENT_ID],
-          message: 'start',
+          message: "start",
           username: this.userContextService.username,
           type: AppConstants.FILE,
           contentType: fileRecord[AppConstants.CONTENT_TYPE],
           chunkType: AppConstants.CHUNK_TYPE.START,
           contentId: fileRecord[AppConstants.CONTENT_ID],
-          fileName: fileRecord[AppConstants.FILE_NAME]
-        }, AppConstants.FILE);
+          fileName: fileRecord[AppConstants.FILE_NAME],
+        },
+        AppConstants.FILE
+      );
 
       /**
        * @TODO refactor this afterwards
        * update last data exchanged timestamp in user's webrtc context
        *
        */
-      userContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][AppConstants.LAST_USED] = Date.now();
+      userContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][
+        AppConstants.LAST_USED
+      ] = Date.now();
 
       //send file data chunks one by one
       for (let i = 0; i < totalChunks; i++) {
-        while (dataChannel.bufferedAmount > AppConstants.DATACHANNEL_BUFFER_THRESHOLD) {
-          await this.coreAppUtilService.delay(AppConstants.DATACHANNEL_FILE_SEND_TIMEOUT);
+        while (
+          dataChannel.bufferedAmount > AppConstants.DATACHANNEL_BUFFER_THRESHOLD
+        ) {
+          await this.coreAppUtilService.delay(
+            AppConstants.DATACHANNEL_FILE_SEND_TIMEOUT
+          );
         }
 
         //sending file data
-        this.talkWindowUtilService.sendMessageOnDataChannel(fileRecord[AppConstants.USERNAME],
+        this.talkWindowUtilService.sendMessageOnDataChannel(
+          fileRecord[AppConstants.USERNAME],
           {
             message: chunks[i],
             username: this.userContextService.username,
@@ -1443,32 +1770,45 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
             contentType: fileRecord[AppConstants.CONTENT_TYPE],
             chunkType: AppConstants.CHUNK_TYPE.INTERMEDIATE,
             contentId: fileRecord[AppConstants.CONTENT_ID],
-            fileName: fileRecord[AppConstants.FILE_NAME]
-          }, AppConstants.FILE);
+            fileName: fileRecord[AppConstants.FILE_NAME],
+          },
+          AppConstants.FILE
+        );
       }
 
       //update last data exchanged timestamp in user's webrtc context
-      userContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][AppConstants.LAST_USED] = Date.now();
+      userContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][
+        AppConstants.LAST_USED
+      ] = Date.now();
 
-      while (dataChannel.bufferedAmount > AppConstants.DATACHANNEL_BUFFER_THRESHOLD) {
-        await this.coreAppUtilService.delay(AppConstants.DATACHANNEL_FILE_SEND_TIMEOUT);
+      while (
+        dataChannel.bufferedAmount > AppConstants.DATACHANNEL_BUFFER_THRESHOLD
+      ) {
+        await this.coreAppUtilService.delay(
+          AppConstants.DATACHANNEL_FILE_SEND_TIMEOUT
+        );
       }
 
       //sending end of file meta data
-      this.talkWindowUtilService.sendMessageOnDataChannel(fileRecord[AppConstants.USERNAME],
+      this.talkWindowUtilService.sendMessageOnDataChannel(
+        fileRecord[AppConstants.USERNAME],
         {
           id: fileRecord[AppConstants.CONTENT_ID],
-          message: 'EOF',
+          message: "EOF",
           username: this.userContextService.username,
           type: AppConstants.FILE,
           contentType: fileRecord[AppConstants.CONTENT_TYPE],
           chunkType: AppConstants.CHUNK_TYPE.END,
           contentId: fileRecord[AppConstants.CONTENT_ID],
-          fileName: fileRecord[AppConstants.FILE_NAME]
-        }, AppConstants.FILE);
+          fileName: fileRecord[AppConstants.FILE_NAME],
+        },
+        AppConstants.FILE
+      );
 
       //update last data exchanged timestamp in user's webrtc context
-      userContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][AppConstants.LAST_USED] = Date.now();
+      userContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][
+        AppConstants.LAST_USED
+      ] = Date.now();
       resolve();
     });
   }
@@ -1480,9 +1820,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    */
   async acceptCall(channel: string) {
-
     // stop the request caller tune
-    this.playOrStopTune('caller', false);
+    this.playOrStopTune("caller", false);
 
     // in case user hasn't selected anybody for chat yet then set chat window
     this.setChatWindow(false);
@@ -1490,10 +1829,16 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     let userToChat: string;
     let responseType: string;
     if (channel === AppConstants.REMOTE_CONTROL) {
-      userToChat = this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME];
+      userToChat =
+        this.talkWindowContextService.remoteAccessContext[
+          AppConstants.USERNAME
+        ];
       responseType = AppConstants.REMOTE_ACCESS_REQUEST;
     } else {
-      userToChat = this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME];
+      userToChat =
+        this.talkWindowContextService.mediaStreamRequestContext[
+          AppConstants.USERNAME
+        ];
       responseType = AppConstants.CALL_REQUEST;
     }
 
@@ -1508,47 +1853,81 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      *
      */
     if (this.userContextService.userToChat !== userToChat) {
-
       // stop any ongoing media sharing
-      const webrtcContext = this.userContextService.getUserWebrtcContext(this.userContextService.userToChat);
+      const webrtcContext = this.userContextService.getUserWebrtcContext(
+        this.userContextService.userToChat
+      );
       if (webrtcContext && webrtcContext[AppConstants.MEDIA_CONTEXT]) {
-
         /**
          * @TODO abstract away this logic and add a filter argument for
          * connection types which souldn't be terminated/closed
          *
          */
-        Object.keys(webrtcContext[AppConstants.MEDIA_CONTEXT]).forEach((connectionType) => {
-          if (connectionType !== AppConstants.TEXT) {
-            if (this.coreAppUtilService.isDataChannel(connectionType)) {
-              if (connectionType !== AppConstants.TEXT) {
-                this.webrtcService.cleanDataChannelContext(connectionType, webrtcContext[AppConstants.MEDIA_CONTEXT][connectionType]);
-                delete webrtcContext[AppConstants.FILE_QUEUE];
+        Object.keys(webrtcContext[AppConstants.MEDIA_CONTEXT]).forEach(
+          (connectionType) => {
+            if (connectionType !== AppConstants.TEXT) {
+              if (this.coreAppUtilService.isDataChannel(connectionType)) {
+                if (connectionType !== AppConstants.TEXT) {
+                  this.webrtcService.cleanDataChannelContext(
+                    connectionType,
+                    webrtcContext[AppConstants.MEDIA_CONTEXT][connectionType]
+                  );
+                  delete webrtcContext[AppConstants.FILE_QUEUE];
 
-                // process remote control disconnection here
-                if (connectionType === AppConstants.REMOTE_CONTROL) {
-                  const popupContext: any = this.messageService.buildPopupContext(AppConstants.POPUP_TYPE.DISCONNECTING, connectionType);
-                  this.webrtcService.processChannelStreamDisconnect(channel, this.userContextService.userToChat, false, [popupContext]);
-                  this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME] = undefined;
+                  // process remote control disconnection here
+                  if (connectionType === AppConstants.REMOTE_CONTROL) {
+                    const popupContext: any =
+                      this.messageService.buildPopupContext(
+                        AppConstants.POPUP_TYPE.DISCONNECTING,
+                        connectionType
+                      );
+                    this.webrtcService.processChannelStreamDisconnect(
+                      channel,
+                      this.userContextService.userToChat,
+                      false,
+                      [popupContext]
+                    );
+                    this.talkWindowContextService.remoteAccessContext[
+                      AppConstants.USERNAME
+                    ] = undefined;
+                  }
                 }
+              } else if (
+                this.coreAppUtilService.isMediaChannel(connectionType)
+              ) {
+                // remove the track from peer connection
+                if (
+                  webrtcContext[AppConstants.MEDIA_CONTEXT][connectionType][
+                    AppConstants.TRACK_SENDER
+                  ]
+                ) {
+                  webrtcContext[AppConstants.CONNECTION].removeTrack(
+                    webrtcContext[AppConstants.MEDIA_CONTEXT][connectionType][
+                      AppConstants.TRACK_SENDER
+                    ]
+                  );
+                }
+                //send disconnect notification
+                this.webrtcService.processChannelStreamDisconnect(
+                  connectionType,
+                  this.userContextService.userToChat,
+                  true
+                );
+                this.webrtcService.cleanMediaStreamContext(
+                  connectionType,
+                  webrtcContext[AppConstants.MEDIA_CONTEXT][connectionType]
+                );
               }
-            } else if (this.coreAppUtilService.isMediaChannel(connectionType)) {
-
-              // remove the track from peer connection
-              if (webrtcContext[AppConstants.MEDIA_CONTEXT][connectionType][AppConstants.TRACK_SENDER]) {
-                webrtcContext[AppConstants.CONNECTION].removeTrack(webrtcContext[AppConstants.MEDIA_CONTEXT][connectionType][AppConstants.TRACK_SENDER]);
-              }
-              //send disconnect notification
-              this.webrtcService.processChannelStreamDisconnect(connectionType, this.userContextService.userToChat, true);
-              this.webrtcService.cleanMediaStreamContext(connectionType, webrtcContext[AppConstants.MEDIA_CONTEXT][connectionType]);
             }
+            delete webrtcContext[AppConstants.MEDIA_CONTEXT][connectionType];
           }
-          delete webrtcContext[AppConstants.MEDIA_CONTEXT][connectionType];
-        });
+        );
       }
       await this.talkWindowUtilService.loadChatHistory(userToChat);
       if (this.userContextService.getUserWebrtcContext(userToChat)) {
-        this.userContextService.getUserWebrtcContext(userToChat).unreadCount = 0;
+        this.userContextService.getUserWebrtcContext(
+          userToChat
+        ).unreadCount = 0;
       }
       this.scrollMessages();
       this.userContextService.userToChat = userToChat;
@@ -1564,15 +1943,13 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       to: userToChat,
       request: AppConstants.ACCEPT,
       os: this.talkWindowUtilService.getOSType(),
-      devicePixelRatio: window.devicePixelRatio
+      devicePixelRatio: window.devicePixelRatio,
     });
 
     /**
      * remove media stream request modal popup from screen
      */
-    this.removePopupContext([
-      AppConstants.POPUP_TYPE.INVITE + channel
-    ]);
+    this.removePopupContext([AppConstants.POPUP_TYPE.INVITE + channel]);
 
     /**
      * show connecting... modal popup on screen
@@ -1580,8 +1957,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      */
     this.addPopupContext({
       type: AppConstants.POPUP_TYPE.CONNECTING + channel,
-      modalText: 'connecting....',
-      channel: channel
+      modalText: "connecting....",
+      channel: channel,
     });
 
     // configure timeout job
@@ -1590,28 +1967,39 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     } else {
       this.webrtcService.cleanMediaContextIfNotConnected(userToChat, channel);
     }
-    if (channel === AppConstants.VIDEO && !this.talkWindowContextService.bindingFlags.isAudioCalling) {
-      this.webrtcService.cleanMediaContextIfNotConnected(userToChat, AppConstants.AUDIO);
+    if (
+      channel === AppConstants.VIDEO &&
+      !this.talkWindowContextService.bindingFlags.isAudioCalling
+    ) {
+      this.webrtcService.cleanMediaContextIfNotConnected(
+        userToChat,
+        AppConstants.AUDIO
+      );
     }
     this.talkWindowUtilService.appRef.tick();
   }
 
   /**
-  * handler to decline/cancel media stream request
-  *
-  * @param action type of action i.e 'disconnect', 'close' or 'decline'
-  *
-  * @param channel media type i.e 'audio', 'video' etc.
-  */
+   * handler to decline/cancel media stream request
+   *
+   * @param action type of action i.e 'disconnect', 'close' or 'decline'
+   *
+   * @param channel media type i.e 'audio', 'video' etc.
+   */
   closeCall(action: string, channel: string) {
-
     let userToChat: string;
     let responseType: string;
     if (channel === AppConstants.REMOTE_CONTROL) {
-      userToChat = this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME];
+      userToChat =
+        this.talkWindowContextService.remoteAccessContext[
+          AppConstants.USERNAME
+        ];
       responseType = AppConstants.REMOTE_ACCESS_REQUEST;
     } else {
-      userToChat = this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME];
+      userToChat =
+        this.talkWindowContextService.mediaStreamRequestContext[
+          AppConstants.USERNAME
+        ];
       responseType = AppConstants.CALL_REQUEST;
     }
 
@@ -1629,7 +2017,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         to: userToChat,
         request: AppConstants.DECLINE,
         os: this.talkWindowUtilService.getOSType(),
-        devicePixelRatio: window.devicePixelRatio
+        devicePixelRatio: window.devicePixelRatio,
       });
     }
 
@@ -1639,11 +2027,11 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     this.removePopupContext([
       AppConstants.POPUP_TYPE.INVITE + channel,
       AppConstants.POPUP_TYPE.DECLINE + channel,
-      AppConstants.POPUP_TYPE.CONNECT + channel
+      AppConstants.POPUP_TYPE.CONNECT + channel,
     ]);
 
     //stop the caller tune
-    this.playOrStopTune('caller', false);
+    this.playOrStopTune("caller", false);
 
     /**
      * @TODO refactor it afterwards, optimize it afterwards
@@ -1652,13 +2040,18 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       /**
        * clear the remote access request context
        */
-      this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME] = undefined;
+      this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME] =
+        undefined;
     } else {
       /**
        * clear the media stream request context
        */
-      this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME] = undefined;
-      this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL] = undefined;
+      this.talkWindowContextService.mediaStreamRequestContext[
+        AppConstants.USERNAME
+      ] = undefined;
+      this.talkWindowContextService.mediaStreamRequestContext[
+        AppConstants.CHANNEL
+      ] = undefined;
     }
   }
 
@@ -1666,7 +2059,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * handle do not disturb click event
    */
   handleDnd() {
-    this.talkWindowContextService.bindingFlags.isDndOn = !this.talkWindowContextService.bindingFlags.isDndOn;
+    this.talkWindowContextService.bindingFlags.isDndOn =
+      !this.talkWindowContextService.bindingFlags.isDndOn;
     this.talkWindowUtilService.appRef.tick();
   }
 
@@ -1677,7 +2071,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   backToContacts() {
     const userToChat = this.userContextService.userToChat;
-    const userContext = this.userContextService.getUserWebrtcContext(userToChat);
+    const userContext =
+      this.userContextService.getUserWebrtcContext(userToChat);
 
     /**
      * stop any ongoing media streaming as user now wants to call/share media
@@ -1686,16 +2081,23 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      *
      */
     if (userContext !== null) {
-
       /**
        * @TODO abstract away this logic and add a filter argument for
        * connection types which souldn't be terminated/closed
        */
-      Object.keys(userContext[AppConstants.MEDIA_CONTEXT]).forEach((connectionType) => {
-        if (connectionType !== AppConstants.TEXT && connectionType !== AppConstants.FILE) {
-          this.webrtcService.cleanMediaStreamContext(connectionType, userToChat);
+      Object.keys(userContext[AppConstants.MEDIA_CONTEXT]).forEach(
+        (connectionType) => {
+          if (
+            connectionType !== AppConstants.TEXT &&
+            connectionType !== AppConstants.FILE
+          ) {
+            this.webrtcService.cleanMediaStreamContext(
+              connectionType,
+              userToChat
+            );
+          }
         }
-      });
+      );
     }
     this.setChatWindow(true);
     this.userContextService.userToChat = undefined;
@@ -1712,7 +2114,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * send de-register message to server to notify that user has opted to
        * logout
        */
-      this.signalingService.deRegisterOnSignalingServer(this.userContextService.getUserName());
+      this.signalingService.deRegisterOnSignalingServer(
+        this.userContextService.getUserName()
+      );
 
       /**
        * stop any ongoing media streaming as user now wants to call/share media
@@ -1720,18 +2124,20 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        *
        */
       const userToChat = this.userContextService.userToChat;
-      const userContext = this.userContextService.getUserWebrtcContext(userToChat);
+      const userContext =
+        this.userContextService.getUserWebrtcContext(userToChat);
       if (userContext !== null) {
-
         /**
          * @TODO abstract away this logic and add a filter argument for
          * connection types which souldn't be terminated/closed
          */
-        Object.keys(userContext[AppConstants.MEDIA_CONTEXT]).forEach((channel) => {
-          if (channel !== AppConstants.TEXT) {
-            this.webrtcService.cleanMediaStreamContext(channel, userToChat);
+        Object.keys(userContext[AppConstants.MEDIA_CONTEXT]).forEach(
+          (channel) => {
+            if (channel !== AppConstants.TEXT) {
+              this.webrtcService.cleanMediaStreamContext(channel, userToChat);
+            }
           }
-        });
+        );
         // this.appUtilService.appRef.tick();
       }
       await this.webrtcService.cleanWebrtcContext();
@@ -1741,11 +2147,13 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       this.showLoader = false;
       this.userContextService.applicationSignOut();
 
-      LoggerUtil.logAny('selected user while logging out: ' + this.userContextService.userToChat);
-      this.router.navigateByUrl('login');
+      LoggerUtil.logAny(
+        "selected user while logging out: " + this.userContextService.userToChat
+      );
+      this.router.navigateByUrl("login");
     } catch (error) {
-      LoggerUtil.logAny('error encounterd while resetting webrtc context.');
-      this.router.navigateByUrl('login');
+      LoggerUtil.logAny("error encounterd while resetting webrtc context.");
+      this.router.navigateByUrl("login");
     }
   }
 
@@ -1770,7 +2178,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * @TODO recheck it afterwards
    */
   onFrameClick(event: any) {
-    if (event.target.id === 'icons_modal') {
+    if (event.target.id === "icons_modal") {
       this.setIconsPopup(true);
     }
   }
@@ -1784,14 +2192,21 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      * audio stream
      *
      */
-    this.talkWindowContextService.bindingFlags.isOnMute = !this.talkWindowContextService.bindingFlags.isOnMute;
-    const webrtcContext: any = this.userContextService.getUserWebrtcContext(this.userContextService.userToChat);
+    this.talkWindowContextService.bindingFlags.isOnMute =
+      !this.talkWindowContextService.bindingFlags.isOnMute;
+    const webrtcContext: any = this.userContextService.getUserWebrtcContext(
+      this.userContextService.userToChat
+    );
 
     /**
      * get user's local audio track and then enable/disable the track
      */
-    const localAudioTrack: any = webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.AUDIO][AppConstants.TRACK];
-    localAudioTrack.enabled = !this.talkWindowContextService.bindingFlags.isOnMute;
+    const localAudioTrack: any =
+      webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.AUDIO][
+        AppConstants.TRACK
+      ];
+    localAudioTrack.enabled =
+      !this.talkWindowContextService.bindingFlags.isOnMute;
     this.talkWindowUtilService.appRef.tick();
   }
 
@@ -1803,13 +2218,14 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   handleMediaStreamRequests(signalingMessage: any) {
     return new Promise<void>((resolve) => {
-
       /**
        *
        * @TODO try to remove it afterwards
        */
-      if (!this.talkWindowContextService.bindingFlags.isDndOn
-        && this.talkWindowContextService.popupContext.size === 0) {
+      if (
+        !this.talkWindowContextService.bindingFlags.isDndOn &&
+        this.talkWindowContextService.popupContext.size === 0
+      ) {
         this.setIconsPopup(true);
       }
 
@@ -1826,10 +2242,16 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * appropriate mediaType param
        *
        */
-      if (signalingMessage.request === AppConstants.ACCEPT &&
-        this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME]) {
-
-        const mediaType: string = this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL];
+      if (
+        signalingMessage.request === AppConstants.ACCEPT &&
+        this.talkWindowContextService.mediaStreamRequestContext[
+          AppConstants.USERNAME
+        ]
+      ) {
+        const mediaType: string =
+          this.talkWindowContextService.mediaStreamRequestContext[
+            AppConstants.CHANNEL
+          ];
         const requiredMediaTracks: string[] = [];
         requiredMediaTracks.push(mediaType);
 
@@ -1838,11 +2260,17 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          * default we'll start streaming microphone audio as well.
          *
          */
-        if (mediaType === AppConstants.VIDEO && !this.talkWindowContextService.bindingFlags.isAudioCalling) {
+        if (
+          mediaType === AppConstants.VIDEO &&
+          !this.talkWindowContextService.bindingFlags.isAudioCalling
+        ) {
           requiredMediaTracks.push(AppConstants.AUDIO);
         }
-        requiredMediaTracks.forEach(channel => {
-          this.webrtcService.cleanMediaContextIfNotConnected(signalingMessage.from, channel);
+        requiredMediaTracks.forEach((channel) => {
+          this.webrtcService.cleanMediaContextIfNotConnected(
+            signalingMessage.from,
+            channel
+          );
         });
 
         /**
@@ -1854,7 +2282,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          */
         const startMediaStreamType: StartMediaStreamType = {
           channel: mediaType,
-          requiredMediaTracks: requiredMediaTracks
+          requiredMediaTracks: requiredMediaTracks,
         };
         this.startMediaStream(startMediaStreamType);
       }
@@ -1872,7 +2300,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * @TODO refactor it afterwards and
    */
   async handleCameraFlip() {
-    LoggerUtil.logAny('flipping the camera');
+    LoggerUtil.logAny("flipping the camera");
 
     // remove the menu icons modal popup after selecting camera flip
     this.setIconsPopup(true);
@@ -1883,8 +2311,10 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      */
     const lastSelectedCamera: string = this.userContextService.defaultCamera;
     const userToChat: string = this.userContextService.userToChat;
-    this.userContextService.defaultCamera = lastSelectedCamera === 'user' ? 'environment' : 'user';
-    const webrtcContext: any = this.userContextService.getUserWebrtcContext(userToChat);
+    this.userContextService.defaultCamera =
+      lastSelectedCamera === "user" ? "environment" : "user";
+    const webrtcContext: any =
+      this.userContextService.getUserWebrtcContext(userToChat);
 
     let offerContainer: any;
     try {
@@ -1897,11 +2327,17 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        * to be sent to other user
        *
        */
-      offerContainer = await this.coreWebrtcService
-        .generateOfferWithMediaTracks(webrtcContext[AppConstants.CONNECTION], AppConstants.VIDEO, [AppConstants.VIDEO]);
+      offerContainer =
+        await this.coreWebrtcService.generateOfferWithMediaTracks(
+          webrtcContext[AppConstants.CONNECTION],
+          AppConstants.VIDEO,
+          [AppConstants.VIDEO]
+        );
     } catch (error) {
-      LoggerUtil.logAny('unable to capture video stream from choosen camera');
-      this.talkWindowUtilService.flagError('unable to capture video stream from camera, please check permissions');
+      LoggerUtil.logAny("unable to capture video stream from choosen camera");
+      this.talkWindowUtilService.flagError(
+        "unable to capture video stream from camera, please check permissions"
+      );
       this.userContextService.defaultCamera = lastSelectedCamera;
       return;
     }
@@ -1912,8 +2348,14 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
      * existing media stream track needs to be stopped
      *
      */
-    webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][AppConstants.TRACK].stop();
-    webrtcContext[AppConstants.CONNECTION].removeTrack(webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][AppConstants.TRACK_SENDER]);
+    webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][
+      AppConstants.TRACK
+    ].stop();
+    webrtcContext[AppConstants.CONNECTION].removeTrack(
+      webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][
+        AppConstants.TRACK_SENDER
+      ]
+    );
 
     /**
      * send the composed 'offer' signaling message to the other user
@@ -1929,19 +2371,27 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       channel: offerContainer.offerPayload.channel,
       from: this.userContextService.username,
       to: this.userContextService.userToChat,
-      renegotiate: true
+      renegotiate: true,
     });
 
     /**
      * set the local media stream track in user's webrtc context
      */
-    webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][AppConstants.TRACK] = offerContainer.mediaStreams[0][AppConstants.TRACK];
-    webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][AppConstants.TRACK_SENDER] = offerContainer.mediaStreams[0][AppConstants.TRACK_SENDER];
+    webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][
+      AppConstants.TRACK
+    ] = offerContainer.mediaStreams[0][AppConstants.TRACK];
+    webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.VIDEO][
+      AppConstants.TRACK_SENDER
+    ] = offerContainer.mediaStreams[0][AppConstants.TRACK_SENDER];
 
     /**
      * render the local media stream appropriate media tag on UI
      */
-    this.onMediaStreamReceived(offerContainer.mediaStreams[0][AppConstants.STREAM], AppConstants.VIDEO, true);
+    this.onMediaStreamReceived(
+      offerContainer.mediaStreams[0][AppConstants.STREAM],
+      AppConstants.VIDEO,
+      true
+    );
   }
 
   /**
@@ -1952,7 +2402,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * @param makeFullScreenFlag flag to make remote video full screen
    */
   handleVideoFullScreen(makeFullScreenFlag: boolean) {
-    this.talkWindowContextService.bindingFlags.isFullScreenMode = makeFullScreenFlag;
+    this.talkWindowContextService.bindingFlags.isFullScreenMode =
+      makeFullScreenFlag;
     this.setCentralIconsPopup(makeFullScreenFlag);
     this.resizeRemoteVideo(false);
     this.talkWindowUtilService.appRef.tick();
@@ -1971,15 +2422,17 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    */
   openMediaViewer(contentType: string, contentId: number) {
-
     /**
      * set provided contentType and contentId in mediaViewerContext so that
      * content data can be loaded in appropriate HTML tags on UI
      *
      *
      */
-    this.talkWindowContextService.mediaViewerContext[AppConstants.CONTENT_TYPE] = contentType;
-    this.talkWindowContextService.mediaViewerContext[AppConstants.CONTENT_ID] = contentId;
+    this.talkWindowContextService.mediaViewerContext[
+      AppConstants.CONTENT_TYPE
+    ] = contentType;
+    this.talkWindowContextService.mediaViewerContext[AppConstants.CONTENT_ID] =
+      contentId;
     this.openDialog(DialogType.MEDIA_VIEWER);
   }
 
@@ -1990,12 +2443,16 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   closeMediaViewer(event: any) {
     event.stopImmediatePropagation();
-    LoggerUtil.logAny('close media viewer action triggered');
+    LoggerUtil.logAny("close media viewer action triggered");
     if (event.target.id.includes(AppConstants.VIDEO)) {
-      this.renderer.selectRootElement('#viewer_video', true).pause();
+      this.renderer.selectRootElement("#viewer_video", true).pause();
     } else {
-      this.talkWindowContextService.mediaViewerContext[AppConstants.CONTENT_TYPE] = undefined;
-      this.talkWindowContextService.mediaViewerContext[AppConstants.CONTENT_ID] = undefined;
+      this.talkWindowContextService.mediaViewerContext[
+        AppConstants.CONTENT_TYPE
+      ] = undefined;
+      this.talkWindowContextService.mediaViewerContext[
+        AppConstants.CONTENT_ID
+      ] = undefined;
     }
     this.talkWindowUtilService.appRef.tick();
   }
@@ -2010,18 +2467,18 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   resizeRemoteVideo(minimizeFlag: boolean) {
     this.talkWindowContextService.bindingFlags.minimizeVideo = minimizeFlag;
     if (minimizeFlag) {
-
       /**
        * set click listener function video div to enable maximizing remote video
        * on click
        *
        */
-      this.remoteVideoDivUnlistenFn = this.renderer.listen(this.remoteVideoDiv.nativeElement,
-        'click', () => {
+      this.remoteVideoDivUnlistenFn = this.renderer.listen(
+        this.remoteVideoDiv.nativeElement,
+        "click",
+        () => {
           this.resizeRemoteVideo(false);
-        });
-
-
+        }
+      );
     } else {
       if (this.remoteVideoDivUnlistenFn) {
         this.remoteVideoDivUnlistenFn();
@@ -2039,15 +2496,19 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * @param signalingMessage received signaling message
    */
   async handleReconnectionRequest(signalingMessage: any) {
-
     /**
      * reconnect only when reconnection is required with the currently selected
      * user else do nothing
      *
      */
     if (this.userContextService.userToChat === signalingMessage.from) {
-      LoggerUtil.logAny('attempting ' + signalingMessage.channel + ' stream sender reconnection');
-      const userWebrtcContext: any = this.userContextService.getUserWebrtcContext(this.userContextService.userToChat);
+      LoggerUtil.logAny(
+        "attempting " + signalingMessage.channel + " stream sender reconnection"
+      );
+      const userWebrtcContext: any =
+        this.userContextService.getUserWebrtcContext(
+          this.userContextService.userToChat
+        );
 
       /**
        * check value of reconnection flag available in userWebrtcContext
@@ -2073,36 +2534,70 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     const username = signalingMessage.from;
 
     // Handle video/audio stopping here
-    const webrtcContext: any = this.userContextService.getUserWebrtcContext(username);
+    const webrtcContext: any =
+      this.userContextService.getUserWebrtcContext(username);
 
     /**
      * display appropriate modal popup message on UI
      *
      */
-    const popupContext = this.messageService
-      .buildPopupContext(AppConstants.POPUP_TYPE.DISCONNECT, channel, username);
+    const popupContext = this.messageService.buildPopupContext(
+      AppConstants.POPUP_TYPE.DISCONNECT,
+      channel,
+      username
+    );
 
     if (channel === AppConstants.REMOTE_CONTROL) {
-      this.webrtcService.processChannelStreamDisconnect(channel, username, false, [popupContext]);
-      this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME] = undefined;
-      await this.webrtcService.cleanDataChannelContext(AppConstants.REMOTE_CONTROL, webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.REMOTE_CONTROL]);
-      delete webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.REMOTE_CONTROL];
+      this.webrtcService.processChannelStreamDisconnect(
+        channel,
+        username,
+        false,
+        [popupContext]
+      );
+      this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME] =
+        undefined;
+      await this.webrtcService.cleanDataChannelContext(
+        AppConstants.REMOTE_CONTROL,
+        webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.REMOTE_CONTROL]
+      );
+      delete webrtcContext[AppConstants.MEDIA_CONTEXT][
+        AppConstants.REMOTE_CONTROL
+      ];
     } else {
-
       /**
        * clear the media stream request context
        *
        * @TODO refactor it afterwards
        */
-      this.talkWindowContextService.mediaStreamRequestContext[AppConstants.USERNAME] = undefined;
-      this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL] = undefined;
+      this.talkWindowContextService.mediaStreamRequestContext[
+        AppConstants.USERNAME
+      ] = undefined;
+      this.talkWindowContextService.mediaStreamRequestContext[
+        AppConstants.CHANNEL
+      ] = undefined;
 
-      this.webrtcService.processChannelStreamDisconnect(channel, username, false, [popupContext]);
+      this.webrtcService.processChannelStreamDisconnect(
+        channel,
+        username,
+        false,
+        [popupContext]
+      );
       // remove the track from peer connection
-      if (webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TRACK_SENDER]) {
-        webrtcContext[AppConstants.CONNECTION].removeTrack(webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.TRACK_SENDER]);
+      if (
+        webrtcContext[AppConstants.MEDIA_CONTEXT][channel][
+          AppConstants.TRACK_SENDER
+        ]
+      ) {
+        webrtcContext[AppConstants.CONNECTION].removeTrack(
+          webrtcContext[AppConstants.MEDIA_CONTEXT][channel][
+            AppConstants.TRACK_SENDER
+          ]
+        );
       }
-      await this.webrtcService.cleanMediaStreamContext(channel, webrtcContext[AppConstants.MEDIA_CONTEXT][channel]);
+      await this.webrtcService.cleanMediaStreamContext(
+        channel,
+        webrtcContext[AppConstants.MEDIA_CONTEXT][channel]
+      );
       //clean the the connections from user's webrtc context
       delete webrtcContext[AppConstants.MEDIA_CONTEXT][channel];
     }
@@ -2117,16 +2612,19 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   setCentralIconsPopup(setFlag: boolean) {
     if (setFlag) {
-
       /**
        * @TODO refactor it afterwards, see if this can be done in an easy way
        *
        */
       const setCentralIconFunction = (event: any) => {
         if (event.target.id) {
-          if (!event.target.id.includes('media') && !event.target.id.includes('viewer')
-            && (!this.talkWindowContextService.bindingFlags.minimizeVideo
-              || (event.target.id !== 'remote_video_div' && event.target.id !== 'remoteVideo'))) {
+          if (
+            !event.target.id.includes("media") &&
+            !event.target.id.includes("viewer") &&
+            (!this.talkWindowContextService.bindingFlags.minimizeVideo ||
+              (event.target.id !== "remote_video_div" &&
+                event.target.id !== "remoteVideo"))
+          ) {
             this.setIconsPopup();
           }
         } else {
@@ -2134,10 +2632,17 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         }
       };
 
-      this.remoteVideoUnlistenFn = this.renderer.listen(this.remoteVideo.nativeElement, 'click', setCentralIconFunction);
-      this.messageHistoryUnlistenFn = this.renderer.listen(this.messageHistory.nativeElement, 'click', setCentralIconFunction);
+      this.remoteVideoUnlistenFn = this.renderer.listen(
+        this.remoteVideo.nativeElement,
+        "click",
+        setCentralIconFunction
+      );
+      this.messageHistoryUnlistenFn = this.renderer.listen(
+        this.messageHistory.nativeElement,
+        "click",
+        setCentralIconFunction
+      );
     } else {
-
       /**
        * remove the click event listners from message history and remote video
        */
@@ -2173,14 +2678,20 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   async updateChatMessages(messagePayload: any): Promise<string> {
     return new Promise<string>(async (resolve) => {
-
       /**
        * initialize the message status as 'NA' for a start and this will be
        * updated later on
        */
-      let messageStatus: string = AppConstants.CHAT_MESSAGE_STATUS.NOT_APPLICABLE;
-      if (!this.talkWindowContextService.hasMessageContext(messagePayload[AppConstants.USERNAME])) {
-        this.talkWindowContextService.initializeMessageContext(messagePayload[AppConstants.USERNAME]);
+      let messageStatus: string =
+        AppConstants.CHAT_MESSAGE_STATUS.NOT_APPLICABLE;
+      if (
+        !this.talkWindowContextService.hasMessageContext(
+          messagePayload[AppConstants.USERNAME]
+        )
+      ) {
+        this.talkWindowContextService.initializeMessageContext(
+          messagePayload[AppConstants.USERNAME]
+        );
       }
 
       /**
@@ -2190,13 +2701,15 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        *
        */
       if (!messagePayload.sent) {
-        this.playOrStopTune('message', true);
+        this.playOrStopTune("message", true);
         messageStatus = AppConstants.CHAT_MESSAGE_STATUS.DELIVERED;
         messagePayload.status = AppConstants.CHAT_MESSAGE_STATUS.DELIVERED;
       }
 
-      if (this.userContextService.userToChat === messagePayload[AppConstants.USERNAME]) {
-
+      if (
+        this.userContextService.userToChat ===
+        messagePayload[AppConstants.USERNAME]
+      ) {
         /**
          * if user is currently chatting with the user with whom this message
          * has been exchanged then update previously initialized message status as seen
@@ -2207,28 +2720,41 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           messagePayload.status = AppConstants.CHAT_MESSAGE_STATUS.DELIVERED;
         }
       } else {
-
         /**
          * if the user with whom this message has been exchanged is not visible
          * in viewport then update user's position to the top in the online
          * active users list
          *
          */
-        const listElement: any = this.renderer.selectRootElement(`#contact-${messagePayload[AppConstants.USERNAME]}`, true);
-        let isUserVisibleInViewport: any = await this.talkWindowUtilService.isElementInViewport(listElement);
+        const listElement: any = this.renderer.selectRootElement(
+          `#contact-${messagePayload[AppConstants.USERNAME]}`,
+          true
+        );
+        let isUserVisibleInViewport: any =
+          await this.talkWindowUtilService.isElementInViewport(listElement);
         if (!isUserVisibleInViewport) {
-          LoggerUtil.logAny(`user ${messagePayload.user} is not visible in viewport`);
-          this.coreAppUtilService.updateElemntPositionInArray(this.talkWindowContextService.activeUsers, messagePayload[AppConstants.USERNAME], 0);
+          LoggerUtil.logAny(
+            `user ${messagePayload.user} is not visible in viewport`
+          );
+          this.coreAppUtilService.updateElemntPositionInArray(
+            this.talkWindowContextService.activeUsers,
+            messagePayload[AppConstants.USERNAME],
+            0
+          );
         }
 
         //increment unread messages count
-        this.userContextService.getUserWebrtcContext(messagePayload[AppConstants.USERNAME]).unreadCount++;
+        this.userContextService.getUserWebrtcContext(
+          messagePayload[AppConstants.USERNAME]
+        ).unreadCount++;
       }
 
       /**
        * store message in user's message context
        */
-      this.talkWindowContextService.getMessageContext(messagePayload[AppConstants.USERNAME]).push(messagePayload);
+      this.talkWindowContextService
+        .getMessageContext(messagePayload[AppConstants.USERNAME])
+        .push(messagePayload);
 
       //refresh dom
       this.talkWindowUtilService.appRef.tick();
@@ -2242,8 +2768,15 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    */
   scrollMessages() {
-    const scrollHeight = this.renderer.selectRootElement('#message-history-div', true).scrollHeight;
-    this.renderer.setProperty(this.messageHistoryDiv.nativeElement, 'scrollTop', scrollHeight);
+    const scrollHeight = this.renderer.selectRootElement(
+      "#message-history-div",
+      true
+    ).scrollHeight;
+    this.renderer.setProperty(
+      this.messageHistoryDiv.nativeElement,
+      "scrollTop",
+      scrollHeight
+    );
   }
 
   /**
@@ -2257,11 +2790,18 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * media stream
    *
    */
-  onMediaStreamReceived(mediaStream: any, streamType: string, isLocalMediaStream: boolean) {
+  onMediaStreamReceived(
+    mediaStream: any,
+    streamType: string,
+    isLocalMediaStream: boolean
+  ) {
     let mediaElementRef: ElementRef;
     if (streamType === AppConstants.AUDIO) {
       mediaElementRef = this.remoteAudio;
-    } else if (streamType === AppConstants.VIDEO || streamType === AppConstants.SCREEN) {
+    } else if (
+      streamType === AppConstants.VIDEO ||
+      streamType === AppConstants.SCREEN
+    ) {
       if (isLocalMediaStream) {
         mediaElementRef = this.localVideo;
       } else {
@@ -2271,13 +2811,22 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       mediaElementRef = this.remoteSound;
     }
     try {
-      this.renderer.setProperty(mediaElementRef.nativeElement, 'srcObject', mediaStream);
+      this.renderer.setProperty(
+        mediaElementRef.nativeElement,
+        "srcObject",
+        mediaStream
+      );
     } catch (error) {
-      this.renderer.setProperty(mediaElementRef.nativeElement, 'src', URL.createObjectURL(mediaStream));
+      this.renderer.setProperty(
+        mediaElementRef.nativeElement,
+        "src",
+        URL.createObjectURL(mediaStream)
+      );
     }
-    setTimeout(() => { this.talkWindowUtilService.appRef.tick(); }, 1000);
+    setTimeout(() => {
+      this.talkWindowUtilService.appRef.tick();
+    }, 1000);
   }
-
 
   /**
    * this will play or stop tunes in app
@@ -2289,11 +2838,12 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * @TODO refactor it afterwards, see if this can be done in an easy way
    */
   playOrStopTune(tuneIdentifier: string, playFlag: boolean) {
-    const tagIdentifier: string = tuneIdentifier === 'caller' ? 'callerTune' : 'messageTune';
+    const tagIdentifier: string =
+      tuneIdentifier === "caller" ? "callerTune" : "messageTune";
     if (playFlag) {
-      this.renderer.selectRootElement('#' + tagIdentifier, true).play();
+      this.renderer.selectRootElement("#" + tagIdentifier, true).play();
     } else {
-      this.renderer.selectRootElement('#' + tagIdentifier, true).pause();
+      this.renderer.selectRootElement("#" + tagIdentifier, true).pause();
     }
   }
 
@@ -2304,7 +2854,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    */
   setRemoteAudioVolume(volume: Number) {
-    this.renderer.setProperty(this.remoteAudio.nativeElement, 'volume', volume);
+    this.renderer.setProperty(this.remoteAudio.nativeElement, "volume", volume);
   }
 
   /**
@@ -2318,9 +2868,13 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   downloadFile(contentId: string, fileName: string, event: any) {
     event.stopImmediatePropagation();
-    const downloadAnchor = this.renderer.createElement('a');
-    this.renderer.setProperty(downloadAnchor, 'href', this.talkWindowContextService.sharedContent[contentId]);
-    this.renderer.setProperty(downloadAnchor, 'download', fileName);
+    const downloadAnchor = this.renderer.createElement("a");
+    this.renderer.setProperty(
+      downloadAnchor,
+      "href",
+      this.talkWindowContextService.sharedContent[contentId]
+    );
+    this.renderer.setProperty(downloadAnchor, "download", fileName);
     downloadAnchor.click();
   }
 
@@ -2331,12 +2885,12 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    */
   downloadChatTranscripts() {
-    var text = 'Some data I want to export\nMy name is gaurav';
-    var data = new Blob([text], { type: 'text/plain' });
+    var text = "Some data I want to export\nMy name is gaurav";
+    var data = new Blob([text], { type: "text/plain" });
     var url = window.URL.createObjectURL(data);
-    const downloadAnchor = this.renderer.createElement('a');
-    this.renderer.setProperty(downloadAnchor, 'href', url);
-    this.renderer.setProperty(downloadAnchor, 'download', 'MyTextFile.Txt');
+    const downloadAnchor = this.renderer.createElement("a");
+    this.renderer.setProperty(downloadAnchor, "href", url);
+    this.renderer.setProperty(downloadAnchor, "download", "MyTextFile.Txt");
     downloadAnchor.click();
   }
 
@@ -2348,17 +2902,15 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    */
   handleRemoteAccess(action: String) {
-
     // remove the menu icons modal popup
     this.setIconsPopup(true);
 
     let popupContext: any;
     switch (action) {
-
       /**
        * start remote access
        */
-      case 'start':
+      case "start":
         LoggerUtil.logAny("request for remote access has been sent");
 
         /**
@@ -2368,14 +2920,19 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
          * sent remote access request from other user
          *
          */
-        this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME] = this.userContextService.userToChat;
+        this.talkWindowContextService.remoteAccessContext[
+          AppConstants.USERNAME
+        ] = this.userContextService.userToChat;
 
         /**
          * set informational modal popup message on UI
          */
-        popupContext = this.messageService
-          .buildPopupContext(AppConstants.POPUP_TYPE.CONNECT, AppConstants.REMOTE_CONTROL, this.userContextService.userToChat);
-        popupContext['disconnect'] = true;
+        popupContext = this.messageService.buildPopupContext(
+          AppConstants.POPUP_TYPE.CONNECT,
+          AppConstants.REMOTE_CONTROL,
+          this.userContextService.userToChat
+        );
+        popupContext["disconnect"] = true;
         this.addPopupContext(popupContext);
 
         /**
@@ -2387,25 +2944,40 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           to: this.userContextService.userToChat,
           type: AppConstants.REMOTE_ACCESS_REQUEST,
           request: AppConstants.INVITE,
-          channel: AppConstants.REMOTE_CONTROL
+          channel: AppConstants.REMOTE_CONTROL,
         });
         break;
 
       /**
        * stop remote access
        */
-      case 'stop':
+      case "stop":
         // display disconnecting modal popup message on UI
-        popupContext = this.messageService
-          .buildPopupContext(AppConstants.POPUP_TYPE.DISCONNECTING, AppConstants.REMOTE_CONTROL);
+        popupContext = this.messageService.buildPopupContext(
+          AppConstants.POPUP_TYPE.DISCONNECTING,
+          AppConstants.REMOTE_CONTROL
+        );
 
         const userToChat: string = this.userContextService.userToChat;
-        const mediaContext: any = this.userContextService.getUserWebrtcContext(userToChat)[AppConstants.MEDIA_CONTEXT];
-        this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME] = undefined;
-        this.webrtcService.processChannelStreamDisconnect(AppConstants.REMOTE_CONTROL, userToChat, true, [popupContext]);
+        const mediaContext: any =
+          this.userContextService.getUserWebrtcContext(userToChat)[
+            AppConstants.MEDIA_CONTEXT
+          ];
+        this.talkWindowContextService.remoteAccessContext[
+          AppConstants.USERNAME
+        ] = undefined;
+        this.webrtcService.processChannelStreamDisconnect(
+          AppConstants.REMOTE_CONTROL,
+          userToChat,
+          true,
+          [popupContext]
+        );
 
         // process the disconnection here
-        this.webrtcService.cleanDataChannelContext(AppConstants.REMOTE_CONTROL, mediaContext[AppConstants.REMOTE_CONTROL]);
+        this.webrtcService.cleanDataChannelContext(
+          AppConstants.REMOTE_CONTROL,
+          mediaContext[AppConstants.REMOTE_CONTROL]
+        );
         delete mediaContext[AppConstants.REMOTE_CONTROL];
         break;
 
@@ -2423,14 +2995,15 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   handleRemoteAccessRequest(signalingMessage: any) {
     switch (signalingMessage.request) {
-
       /**
        * @value 'invite' means that user has received a remote access request so
        * appropriate response has to be send to sender
        *
        */
       case AppConstants.INVITE:
-        LoggerUtil.logAny('received remote access request from: ' + signalingMessage.from);
+        LoggerUtil.logAny(
+          "received remote access request from: " + signalingMessage.from
+        );
 
         /**
          * process this message only if user is in screen sharing seesion
@@ -2445,20 +3018,22 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
            *
            */
           this.setIconsPopup(true);
-          this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME] = signalingMessage.from;
+          this.talkWindowContextService.remoteAccessContext[
+            AppConstants.USERNAME
+          ] = signalingMessage.from;
           this.addPopupContext({
             type: AppConstants.POPUP_TYPE.INVITE + signalingMessage.channel,
-            modalText: signalingMessage.from + ' has requested remote access',
+            modalText: signalingMessage.from + " has requested remote access",
             channel: signalingMessage.channel,
             accept: true,
-            decline: true
+            decline: true,
           });
 
           /**
            * play the caller tune
            *
            */
-          this.playOrStopTune('caller', true);
+          this.playOrStopTune("caller", true);
         }
         break;
 
@@ -2473,15 +3048,24 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        *
        */
       case AppConstants.ACCEPT:
-        LoggerUtil.logAny('remote access request has been accepted by ' + signalingMessage.from);
+        LoggerUtil.logAny(
+          "remote access request has been accepted by " + signalingMessage.from
+        );
 
-        if (this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME]) {
+        if (
+          this.talkWindowContextService.remoteAccessContext[
+            AppConstants.USERNAME
+          ]
+        ) {
           /**
            *
            * get the username of the user to whom remote access request has been made
            *
            */
-          const userToChat = this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME];
+          const userToChat =
+            this.talkWindowContextService.remoteAccessContext[
+              AppConstants.USERNAME
+            ];
 
           /**
            * remove the 'connect' modal popup message from UI and dispaly connecting
@@ -2489,16 +3073,17 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
            *
            */
           this.removePopupContext([
-            AppConstants.POPUP_TYPE.CONNECT + signalingMessage.channel
+            AppConstants.POPUP_TYPE.CONNECT + signalingMessage.channel,
           ]);
           this.addPopupContext({
             type: AppConstants.POPUP_TYPE.CONNECTING + signalingMessage.channel,
-            modalText: 'connecting....',
-            channel: signalingMessage.channel
+            modalText: "connecting....",
+            channel: signalingMessage.channel,
           });
 
           //populate the remote os type
-          this.talkWindowContextService.remoteAccessContext['remoteOS'] = signalingMessage.os;
+          this.talkWindowContextService.remoteAccessContext["remoteOS"] =
+            signalingMessage.os;
 
           /**
            * remote machine's devicePixelRatio more than 1 means that remote machine is having
@@ -2506,20 +3091,26 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
            *
            */
           if (signalingMessage.devicePixelRatio > 1) {
-            this.talkWindowContextService.remoteAccessContext['remoteHeight'] =
-              this.talkWindowContextService.remoteAccessContext['remoteHeight'] * signalingMessage.devicePixelRatio;
-            this.talkWindowContextService.remoteAccessContext['remoteWidth'] =
-              this.talkWindowContextService.remoteAccessContext['remoteWidth'] * signalingMessage.devicePixelRatio;
+            this.talkWindowContextService.remoteAccessContext["remoteHeight"] =
+              this.talkWindowContextService.remoteAccessContext[
+                "remoteHeight"
+              ] * signalingMessage.devicePixelRatio;
+            this.talkWindowContextService.remoteAccessContext["remoteWidth"] =
+              this.talkWindowContextService.remoteAccessContext["remoteWidth"] *
+              signalingMessage.devicePixelRatio;
           }
 
           // configure cleanup job
-          this.webrtcService.cleanChannelContextIfNotConnected(userToChat, AppConstants.REMOTE_CONTROL);
+          this.webrtcService.cleanChannelContextIfNotConnected(
+            userToChat,
+            AppConstants.REMOTE_CONTROL
+          );
 
           // create remote access data channel request
           const createDataChannelType: CreateDataChannelType = {
             username: userToChat,
-            channel: AppConstants.REMOTE_CONTROL
-          }
+            channel: AppConstants.REMOTE_CONTROL,
+          };
           this.webrtcService.setUpDataChannel(createDataChannelType);
         }
         break;
@@ -2532,16 +3123,24 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        *
        */
       case AppConstants.DECLINE:
-        LoggerUtil.logAny('remote access request has been declined by ' + signalingMessage.from);
-        if (this.talkWindowContextService.remoteAccessContext[AppConstants.USERNAME]) {
+        LoggerUtil.logAny(
+          "remote access request has been declined by " + signalingMessage.from
+        );
+        if (
+          this.talkWindowContextService.remoteAccessContext[
+            AppConstants.USERNAME
+          ]
+        ) {
           this.removePopupContext([
-            AppConstants.POPUP_TYPE.CONNECT + signalingMessage.channel
+            AppConstants.POPUP_TYPE.CONNECT + signalingMessage.channel,
           ]);
           this.addPopupContext({
             type: AppConstants.POPUP_TYPE.DECLINE + signalingMessage.channel,
-            modalText: 'remote access request has been declined by ' + signalingMessage.from,
+            modalText:
+              "remote access request has been declined by " +
+              signalingMessage.from,
             channel: signalingMessage.channel,
-            close: true
+            close: true,
           });
         }
         break;
@@ -2570,34 +3169,46 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * @param signalingMessage received signaling message
    */
   handleWebrtcEvent(signalingMessage: any) {
-    LoggerUtil.logAny('handling webrtc event: ' + signalingMessage.event);
-    const webrtcContext: any = this.userContextService.getUserWebrtcContext(signalingMessage.from);
+    LoggerUtil.logAny("handling webrtc event: " + signalingMessage.event);
+    const webrtcContext: any = this.userContextService.getUserWebrtcContext(
+      signalingMessage.from
+    );
     switch (signalingMessage.event) {
-
       /**
        *
        * webrtc data channel open event received from remote user's end
        */
       case AppConstants.WEBRTC_EVENTS.CHANNEL_OPEN:
-        LoggerUtil.logAny(signalingMessage.channel + ' data channel has been opened with user: ' + signalingMessage.from);
-        webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTED;
+        LoggerUtil.logAny(
+          signalingMessage.channel +
+            " data channel has been opened with user: " +
+            signalingMessage.from
+        );
+        webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][
+          AppConstants.CONNECTION_STATE
+        ] = AppConstants.CONNECTION_STATES.CONNECTED;
         switch (signalingMessage.channel) {
-
           case AppConstants.TEXT:
-            this.webrtcService.sendQueuedMessagesOnChannel(signalingMessage.from);
+            this.webrtcService.sendQueuedMessagesOnChannel(
+              signalingMessage.from
+            );
             break;
 
           case AppConstants.FILE:
-            this.talkWindowUtilService.readFile(this.fileReader, webrtcContext[AppConstants.FILE_QUEUE].front());
+            this.talkWindowUtilService.readFile(
+              this.fileReader,
+              webrtcContext[AppConstants.FILE_QUEUE].front()
+            );
             break;
 
           case AppConstants.REMOTE_CONTROL:
-
             // set remote access flag
             this.talkWindowContextService.bindingFlags.isAccessingRemote = true;
 
             // register event listners for remote access
-            this.webRemoteAccessService.registerRemoteAccessEventListeners(this.remoteVideoCanvas);
+            this.webRemoteAccessService.registerRemoteAccessEventListeners(
+              this.remoteVideoCanvas
+            );
 
             /**
              * Remote machine can be accessed only in full screen mode as of now,
@@ -2613,31 +3224,63 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
              * calculate the remote access params
              */
             this.webRemoteAccessService.calculateRemoteAccessParameters(
-              this.talkWindowContextService.remoteAccessContext['remoteWidth'],
-              this.talkWindowContextService.remoteAccessContext['remoteHeight'],
+              this.talkWindowContextService.remoteAccessContext["remoteWidth"],
+              this.talkWindowContextService.remoteAccessContext["remoteHeight"],
               this.remoteVideoDiv.nativeElement.clientWidth,
               this.remoteVideoDiv.nativeElement.clientHeight,
-              this.remoteVideo, this.remoteVideoCanvas);
+              this.remoteVideo,
+              this.remoteVideoCanvas
+            );
         }
-        this.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + AppConstants.REMOTE_CONTROL]);
-        if (webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.TIMEOUT_JOB]) {
-          LoggerUtil.logAny(signalingMessage.channel + ' data channel is connected so removing timeout cleaning job');
-          clearTimeout(webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.TIMEOUT_JOB]);
+        this.removePopupContext([
+          AppConstants.POPUP_TYPE.CONNECTING + AppConstants.REMOTE_CONTROL,
+        ]);
+        if (
+          webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][
+            AppConstants.TIMEOUT_JOB
+          ]
+        ) {
+          LoggerUtil.logAny(
+            signalingMessage.channel +
+              " data channel is connected so removing timeout cleaning job"
+          );
+          clearTimeout(
+            webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][
+              AppConstants.TIMEOUT_JOB
+            ]
+          );
         }
         break;
 
       case AppConstants.WEBRTC_EVENTS.REMOTE_TRACK_RECEIVED:
-        this.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + signalingMessage.channel]);
+        this.removePopupContext([
+          AppConstants.POPUP_TYPE.CONNECTING + signalingMessage.channel,
+        ]);
 
         /**
          * 'screen' & 'sound' media streaming is one-way so remove the timeout cleanup job once media stream
          *  track is received on the other end
          *
          */
-        if (signalingMessage.channel === AppConstants.SCREEN || signalingMessage.channel === AppConstants.SOUND) {
-          if (webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.TIMEOUT_JOB]) {
-            LoggerUtil.logAny('media stream connection for ' + signalingMessage.channel + ' is connected so removing timeout cleaning job');
-            clearTimeout(webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][AppConstants.TIMEOUT_JOB]);
+        if (
+          signalingMessage.channel === AppConstants.SCREEN ||
+          signalingMessage.channel === AppConstants.SOUND
+        ) {
+          if (
+            webrtcContext[AppConstants.MEDIA_CONTEXT][signalingMessage.channel][
+              AppConstants.TIMEOUT_JOB
+            ]
+          ) {
+            LoggerUtil.logAny(
+              "media stream connection for " +
+                signalingMessage.channel +
+                " is connected so removing timeout cleaning job"
+            );
+            clearTimeout(
+              webrtcContext[AppConstants.MEDIA_CONTEXT][
+                signalingMessage.channel
+              ][AppConstants.TIMEOUT_JOB]
+            );
           }
         }
         break;
@@ -2654,16 +3297,24 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   addPopupContext(popupContext: any) {
     if (!this.talkWindowContextService.popupContext.has(popupContext.type)) {
-      this.talkWindowContextService.popupContext.set(popupContext.type, popupContext);
+      this.talkWindowContextService.popupContext.set(
+        popupContext.type,
+        popupContext
+      );
 
       // open dialog  if this is the only popup context
       if (this.talkWindowContextService.popupContext.size === 1) {
         const data: any = {};
-        this.requestProcessingDialogRef = this.dialog.open(RequestProcessingDialogComponent, {
-          data,
-          disableClose: true
-        });
-        this.requestProcessingDialogRef.afterClosed().subscribe(this.handleDialogClose.bind(this));
+        this.requestProcessingDialogRef = this.dialog.open(
+          RequestProcessingDialogComponent,
+          {
+            data,
+            disableClose: true,
+          }
+        );
+        this.requestProcessingDialogRef
+          .afterClosed()
+          .subscribe(this.handleDialogClose.bind(this));
         this.talkWindowUtilService.appRef.tick();
       }
     }
@@ -2673,9 +3324,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * this will remove a popup context from the popup context array which is used
    * by a modal box to display modal popup messages on UI
    *
-    * @param popupTypes array containing the types of popup context that needed
-    * to be removed from
-    */
+   * @param popupTypes array containing the types of popup context that needed
+   * to be removed from
+   */
   removePopupContext(popupTypes: string[]) {
     popupTypes.forEach((type) => {
       this.talkWindowContextService.popupContext.delete(type);
@@ -2683,7 +3334,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     if (this.talkWindowContextService.popupContext.size === 0) {
       const result: DialogCloseResult = {
         type: DialogCloseResultType.BLANK_DIALOG_CLOSE,
-        data: {}
+        data: {},
       };
       this.requestProcessingDialogRef.close(result);
       this.talkWindowUtilService.appRef.tick();
@@ -2700,8 +3351,12 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    */
   flagPopupMessage(popupContext: any, popTimeout?: number) {
     this.addPopupContext(popupContext);
-    const timer: number = popTimeout ? popTimeout : AppConstants.ERROR_FLAG_TIMEOUT;
-    setTimeout(() => { this.removePopupContext([popupContext.type]); }, timer);
+    const timer: number = popTimeout
+      ? popTimeout
+      : AppConstants.ERROR_FLAG_TIMEOUT;
+    setTimeout(() => {
+      this.removePopupContext([popupContext.type]);
+    }, timer);
   }
 
   /**
@@ -2713,12 +3368,15 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   isScreenSoundAvailable() {
     return new Promise((resolve) => {
       let isAvailable = true;
-      if (!this.userContextService.isNativeApp &&
-        this.userContextService.screenStream.getAudioTracks().length === 0) {
+      if (
+        !this.userContextService.isNativeApp &&
+        this.userContextService.screenStream.getAudioTracks().length === 0
+      ) {
         this.flagPopupMessage({
           type: AppConstants.POPUP_TYPE.WARNING + AppConstants.SOUND,
-          modalText: 'please restart screen sharing with "share audio" checkbox to true, to share screen audio',
-          channel: AppConstants.SOUND
+          modalText:
+            'please restart screen sharing with "share audio" checkbox to true, to share screen audio',
+          channel: AppConstants.SOUND,
         });
         isAvailable = false;
       }

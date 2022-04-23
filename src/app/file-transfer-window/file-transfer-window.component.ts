@@ -18,7 +18,6 @@ import { firstValueFrom, Observable } from "rxjs";
 import { environment } from "src/environments/environment";
 import { AppLoginDialogComponent } from "../app-login-dialog/app-login-dialog.component";
 import { IconsDialogComponent } from "../icons-dialog/icons-dialog.component";
-import { MediaViewerDialogComponent } from "../media-viewer-dialog/media-viewer-dialog.component";
 import { ProgressDialogComponent } from "../progress-dialog/progress-dialog.component";
 import { ApiService } from "../services/api/api.service";
 import { AppConstants } from "../services/AppConstants";
@@ -192,7 +191,7 @@ export class FileTransferWindowComponent
       )
     );
 
-    //clear userStatus object
+    // clear userStatus object
     this.contextService.userStatus.clear();
     //clear active users list
     this.contextService.activeUsers = [];
@@ -982,16 +981,17 @@ export class FileTransferWindowComponent
      */
     for (let i = 0; i < event.target.files.length; i++) {
       const file: File = event.target.files[i];
-      LoggerUtil.logAny(event.target.files[i]);
+      // LoggerUtil.logAny(event.target.files[i]);
 
       fileQueue.enqueue(file);
+      const fileExtension:string = file.type.split("/")[1];
 
       fileContext.push({
         id: String(await this.coreAppUtilService.generateIdentifier()),
         fileName: file.name,
         isSent: true,
         uploadProgress: 0,
-        fileExtension: file.type,
+        fileExtension: fileExtension,
         isFragmented: true,
         fragmentOffset: 0,
         totalFragments: 0, //just a default value, this will be updated later once file is being sent
@@ -1000,11 +1000,13 @@ export class FileTransferWindowComponent
         from: this.userContextService.username,
         isPaused: true,
         size: file.size,
+        icon: this.fileTransferService.getMappedFileIcon(file.type),
       });
     }
+    LoggerUtil.logAny(fileContext);
   }
 
-  async logout() {
+  async logout(): Promise<void> {
     try {
       LoggerUtil.logAny("logging out from file-transfer");
       /**

@@ -6,7 +6,10 @@ export interface FileTransferContextSpec {
   fileContext: Map<string, TransferredFileContext[]>;
   hasFileContext(username: string): boolean;
   initializeFileContext(username: string): void;
-  getFileContext(username: string): TransferredFileContext[];
+  getFileContext(
+    username: string,
+    needSentFiles?: boolean
+  ): TransferredFileContext[];
   hasFileQueue(username: string): boolean;
   initializeFileQueue(username: string): void;
   getFileQueue(username: string): QueueStorage<File>;
