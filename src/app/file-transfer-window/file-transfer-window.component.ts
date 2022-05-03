@@ -1,3 +1,8 @@
+import {
+  FileData,
+  FileShareError,
+  FileShareProgress,
+} from "./../services/contracts/file/file";
 import { TransferredFileContext } from "../services/contracts/file/file";
 import { QueueStorage } from "./../services/util/QueueStorage";
 import {
@@ -37,6 +42,7 @@ import { CoreAppUtilityService } from "../services/util/core-app-utility.service
 import { FileTransferUtilityService } from "../services/util/file-transfer-utility.service";
 import { CoreWebrtcService } from "../services/webrtc/core-webrtc.service";
 import { FileTransferService } from "../services/webrtc/file-transfer-webrtc.service";
+import { CoreFileSharingService } from "../services/file-sharing/core-file-sharing.service";
 
 @Component({
   selector: "app-file-transfer-window",
@@ -55,6 +61,7 @@ export class FileTransferWindowComponent
     private signalingService: SignalingService,
     private coreDataChannelService: CoreDataChannelService,
     private coreWebrtcService: CoreWebrtcService,
+    private fileSharingService: CoreFileSharingService,
     private apiService: ApiService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
@@ -79,7 +86,7 @@ export class FileTransferWindowComponent
     this.gaService.pageView("/file-transfer", "File Transfer");
     await this.setupSignaling();
 
-    //subscribe to custom events
+    // subscribe to connection related custom events
     this.fileTransferService.onDataChannelMessageEvent.subscribe(
       this.onDataChannelMessage.bind(this)
     );
@@ -88,6 +95,14 @@ export class FileTransferWindowComponent
     );
     this.fileTransferService.onWebrtcConnectionStateChangeEvent.subscribe(
       this.onWebrtcConnectionStateChange.bind(this)
+    );
+
+    // subcribe to file sharing related events
+    this.fileSharingService.onFileProgress.subscribe(
+      this.handleFileProgress.bind(this)
+    );
+    this.fileSharingService.onFileShareError.subscribe(
+      this.handleFileShareError.bind(this)
     );
   }
 
@@ -852,6 +867,10 @@ export class FileTransferWindowComponent
         this.applicationRef.tick();
         break;
 
+      case AppConstants.FILE:
+        this.processFileMessage(<FileData>message);
+        break;
+
       //handle received text data messages
       default:
         message.sent = false;
@@ -864,6 +883,16 @@ export class FileTransferWindowComponent
           );
         }
     }
+  }
+
+  /**
+   * process datachannel messages of type 'file'
+   * @param message received datachannel message
+   */
+  processFileMessage(message: FileData) {
+    LoggerUtil.logAny(
+      `received file message of type: ${message.fileFragmentType}`
+    );
   }
 
   /**
@@ -944,12 +973,25 @@ export class FileTransferWindowComponent
 
           // handle file datachannel open processing
           case AppConstants.FILE:
+            this.fileSharingService.startSharing();
             break;
           default:
           //do nothing here
         }
     }
   }
+
+  /**
+   * handle file share progress event from file sharing service
+   * @param fileShareProgressEvent event data
+   */
+  handleFileProgress(fileShareProgressEvent: FileShareProgress) {}
+
+  /**
+   * handle file share error event from file sharing service
+   * @param fileShareErrorEvent
+   */
+  handleFileShareError(fileShareErrorEvent: FileShareError) {}
 
   /**
    * this will open the file explorer to choose files to be sent
@@ -974,8 +1016,6 @@ export class FileTransferWindowComponent
 
     const fileContext: TransferredFileContext[] =
       this.contextService.getFileContext(userToChat);
-    const fileQueue: QueueStorage<any> =
-      this.contextService.getFileQueue(userToChat);
 
     /**
      *
@@ -987,10 +1027,13 @@ export class FileTransferWindowComponent
       // LoggerUtil.logAny(event.target.files[i]);
       const uniqueFileId: string = this.coreAppUtilService.generateIdentifier();
 
-      fileQueue.enqueue({
+      this.fileSharingService.submitFileToSend({
         id: uniqueFileId,
+        channelToSendFile: AppConstants.FILE,
         file,
+        to: userToChat,
       });
+
       const fileExtension: string = file.type.split("/")[1];
 
       fileContext.push({
@@ -1020,9 +1063,9 @@ export class FileTransferWindowComponent
     ) {
       LoggerUtil.logAny("file data channel found open");
       /**
-       *
-       * @TODO start sending files here
+       *  trigger file sender job
        */
+      this.fileSharingService.startSharing();
     } else {
       LoggerUtil.logAny(
         `file data channel is not in open state for user: ${userToChat}`

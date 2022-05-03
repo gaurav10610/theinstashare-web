@@ -31,7 +31,7 @@ export class CoreDataChannelService {
      * and adding a 'via' property in top container so that data channel on the
      * other can know that this message is a signaling payload
      *
-     * 
+     *
      * @TODO see if this can be removed
      */
     if (this.coreAppUtilService.isDataChannelConnected(webrtcContext, AppConstants.TEXT)) {
@@ -56,13 +56,12 @@ export class CoreDataChannelService {
 
   /**
    * this will send a json message via data channel of specified channel
-   * 
+   *
    * @param jsonMessage message that needs to be sent via data channel
-   * 
    * @param channel webrtc connection's media type for connection means the
    * type of media data that we will relay on this connection e.g 'text','video'
    * or 'audio'
-   * 
+   *
    */
   sendMessageOnDataChannel(jsonMessage: any, channel: string) {
     try {

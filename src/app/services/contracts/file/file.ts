@@ -1,3 +1,5 @@
+import { MediaChannelType } from "../enum/MediaChannelType";
+
 export interface TransferredFileContext {
   id: string;
   fileName: string;
@@ -40,5 +42,22 @@ export interface FileShareProgress {
   uploadProgress: number;
   totalFragments: number;
   fragmentOffset: number;
-  isPaused?: boolean
+  isPaused?: boolean;
+}
+
+export interface FileData {
+  type: MediaChannelType;
+  fileFragmentType: FileFragmentType;
+  fileName: string;
+  totalFragments: number;
+  fileId: string;
+  fileSize: number;
+  from: string;
+  to: string;
+}
+
+export enum FileFragmentType {
+  START = "start",
+  DATA = "data",
+  END = "end",
 }
