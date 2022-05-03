@@ -1,4 +1,4 @@
-import { TransferredFileContext } from "./../services/contracts/file/TransferredFileContext";
+import { TransferredFileContext } from "../services/contracts/file/file";
 import { QueueStorage } from "./../services/util/QueueStorage";
 import {
   AfterViewInit,
@@ -534,7 +534,7 @@ export class FileTransferWindowComponent
 
   sendTextMessage(event?: KeyboardEvent): void {
     //get the currenty selected user
-    const userToChat = this.userContextService.userToChat;
+    const userToChat: string = this.userContextService.userToChat;
 
     /**
      * call made via keyup input message event
@@ -584,8 +584,7 @@ export class FileTransferWindowComponent
           this.userContextService.getUserWebrtcContext(userToChat);
 
         //generate a new message identifier
-        const messageId: any =
-          await this.coreAppUtilService.generateIdentifier();
+        const messageId: string = this.coreAppUtilService.generateIdentifier();
 
         //update message in chat window on UI
         this.updateChatMessages({
@@ -923,7 +922,6 @@ export class FileTransferWindowComponent
     );
     switch (signalingMessage.event) {
       /**
-       *
        * webrtc data channel open event received from remote user's end
        */
       case AppConstants.WEBRTC_EVENTS.CHANNEL_OPEN:
@@ -935,12 +933,17 @@ export class FileTransferWindowComponent
         ] = AppConstants.CONNECTION_STATES.CONNECTED;
 
         switch (signalingMessage.channel) {
+          // handle text datachannel open processing
           case AppConstants.TEXT:
             this.sendQueuedMessagesOnChannel({
               channel: signalingMessage.channel,
               channelOpenAt: new Date(),
               channelOpenedWith: signalingMessage.from,
             });
+            break;
+
+          // handle file datachannel open processing
+          case AppConstants.FILE:
             break;
           default:
           //do nothing here
@@ -971,7 +974,7 @@ export class FileTransferWindowComponent
 
     const fileContext: TransferredFileContext[] =
       this.contextService.getFileContext(userToChat);
-    const fileQueue: QueueStorage<File> =
+    const fileQueue: QueueStorage<any> =
       this.contextService.getFileQueue(userToChat);
 
     /**
@@ -982,16 +985,20 @@ export class FileTransferWindowComponent
     for (let i = 0; i < event.target.files.length; i++) {
       const file: File = event.target.files[i];
       // LoggerUtil.logAny(event.target.files[i]);
+      const uniqueFileId: string = this.coreAppUtilService.generateIdentifier();
 
-      fileQueue.enqueue(file);
-      const fileExtension:string = file.type.split("/")[1];
+      fileQueue.enqueue({
+        id: uniqueFileId,
+        file,
+      });
+      const fileExtension: string = file.type.split("/")[1];
 
       fileContext.push({
-        id: String(await this.coreAppUtilService.generateIdentifier()),
+        id: uniqueFileId,
         fileName: file.name,
         isSent: true,
         uploadProgress: 0,
-        fileExtension: fileExtension,
+        fileExtension,
         isFragmented: true,
         fragmentOffset: 0,
         totalFragments: 0, //just a default value, this will be updated later once file is being sent
@@ -1004,6 +1011,46 @@ export class FileTransferWindowComponent
       });
     }
     LoggerUtil.logAny(fileContext);
+
+    if (
+      this.coreAppUtilService.isDataChannelConnected(
+        webrtcContext,
+        AppConstants.FILE
+      )
+    ) {
+      LoggerUtil.logAny("file data channel found open");
+      /**
+       *
+       * @TODO start sending files here
+       */
+    } else {
+      LoggerUtil.logAny(
+        `file data channel is not in open state for user: ${userToChat}`
+      );
+
+      if (
+        this.coreAppUtilService.isDataChannelConnecting(
+          webrtcContext,
+          AppConstants.FILE
+        )
+      ) {
+        /**
+         * do nothing here as files has been queued and will be sent when
+         * data channel comes in open state
+         *
+         * @TODO setup a timeout job here to check if datachannel is
+         * connected after some time or not else try connecting it again
+         */
+      } else {
+        const createDataChannelType: CreateDataChannelType = {
+          username: userToChat,
+          channel: AppConstants.FILE,
+        };
+
+        //open data channel here
+        this.fileTransferService.setUpDataChannel(createDataChannelType);
+      }
+    }
   }
 
   async logout(): Promise<void> {

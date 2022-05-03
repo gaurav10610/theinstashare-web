@@ -97,6 +97,8 @@ export class AppConstants {
   // VIDEO channel constant
   public static VIDEO = "video";
 
+  public static GENERIC_FILE ="generic";
+
   // AUDIO channel constant
   public static AUDIO = "audio";
 

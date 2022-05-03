@@ -15,12 +15,9 @@ import { CoreWebrtcService } from "./core-webrtc.service";
   providedIn: "root",
 })
 export class FileTransferService implements ComponentServiceSpec {
-  onDataChannelMessageEvent: EventEmitter<any> = new EventEmitter(true);
-  onDataChannelReceiveEvent: EventEmitter<DataChannelInfo> = new EventEmitter(
-    true
-  );
-  onWebrtcConnectionStateChangeEvent: EventEmitter<ConnectionStateChangeContext> =
-    new EventEmitter(true);
+  onDataChannelMessageEvent: EventEmitter<any>;
+  onDataChannelReceiveEvent: EventEmitter<DataChannelInfo>;
+  onWebrtcConnectionStateChangeEvent: EventEmitter<ConnectionStateChangeContext>;
 
   fileIconsMapping: object = {
     generic: "folder_special",
@@ -37,7 +34,11 @@ export class FileTransferService implements ComponentServiceSpec {
     private coreWebrtcService: CoreWebrtcService,
     private coreDataChannelService: CoreDataChannelService,
     private utilityService: FileTransferUtilityService
-  ) {}
+  ) {
+    this.onDataChannelMessageEvent = new EventEmitter(true);
+    this.onDataChannelReceiveEvent = new EventEmitter(true);
+    this.onWebrtcConnectionStateChangeEvent = new EventEmitter(true);
+  }
 
   /**
    * get appropriate icon for a file type
@@ -346,7 +347,9 @@ export class FileTransferService implements ComponentServiceSpec {
     username: string,
     offerMessage?: any
   ): Promise<void> {
-    LoggerUtil.logAny("setting up new webrtc connection");
+    LoggerUtil.logAny(
+      `setting up new webrtc connection with user: ${username}`
+    );
     this.userContextService.initializeUserWebrtcContext(username);
     const webrtcContext: any =
       this.userContextService.getUserWebrtcContext(username);

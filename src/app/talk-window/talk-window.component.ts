@@ -1382,8 +1382,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
           this.userContextService.getUserWebrtcContext(userToChat);
 
         //generate a new message identifier
-        const messageId: any =
-          await this.coreAppUtilService.generateIdentifier();
+        const messageId: string = this.coreAppUtilService.generateIdentifier();
 
         //update message in chat window on UI
         this.updateChatMessages({
@@ -1543,8 +1542,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         const contentType = this.coreAppUtilService.resolveFileType(
           event.target.files[i].type.split("/")[1]
         );
-        const contentId: any =
-          await this.coreAppUtilService.generateIdentifier();
+        const contentId: string = this.coreAppUtilService.generateIdentifier();
 
         /**
          * enqueue the file for reading and sending to other peer

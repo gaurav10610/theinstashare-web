@@ -30,9 +30,9 @@ export class CoreWebrtcService {
 
         let connectionStatus = webrtcContext[AppConstants.CONNECTION_STATE];
         /**
-         * 
-         * @TODO Fix this flow afterwards  
-         * 
+         *
+         * @TODO Fix this flow afterwards
+         *
          */
         if (connectionStatus === AppConstants.CONNECTION_STATES.NOT_CONNECTED) {
           initializedConnection = true;
@@ -69,7 +69,7 @@ export class CoreWebrtcService {
       webrtcContext[AppConstants.MEDIA_CONTEXT][channel] = {};
 
       /**
-       * 
+       *
        * @TODO refactor it afterwards
        */
       if (channel === AppConstants.TEXT || channel === AppConstants.FILE || channel === AppConstants.REMOTE_CONTROL) {
@@ -82,6 +82,7 @@ export class CoreWebrtcService {
         webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.IMAGE] = [];
         webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.AUDIO] = [];
         webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.VIDEO] = [];
+        webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.GENERIC_FILE] = [];
         webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.LAST_USED] = undefined;
         webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.RECURRING_JOB_ID] = undefined;
       }
@@ -113,7 +114,7 @@ export class CoreWebrtcService {
    * the basis of supplied media type
    *
    * @param peerConnection webrtc peer connection for which offer has to be generated
-   * 
+   *
    * @param channel channel for generating webrtc offer
    *
    * @param requiredMediaTracks required media tracks which needs to captured and has to be added on the peer connection
@@ -128,14 +129,14 @@ export class CoreWebrtcService {
         for (let i = 0; i < requiredMediaTracks.length; i++) {
 
           /**
-           * 
+           *
            * @TODO check for individual stream error here and build the resolve response accordingly
            */
           const stream: any = await this.coreMediaCaptureService.getMediaStream(requiredMediaTracks[i]);
           const streamContext: any = {};
           streamContext[AppConstants.STREAM] = stream;
           /**
-           * 
+           *
            * add media stream track on the webrtc peer connecion
            */
           switch (requiredMediaTracks[i]) {
@@ -264,7 +265,7 @@ export class CoreWebrtcService {
   * @param peerConnection webrtc peer connection for which answer has to be generated
   *
   * @param mediaChannel media channel for which the webrtc answer needs to be generated
-  * 
+  *
   * @param requiredMediaTracks required media tracks which needs to be captured and added on webrtc connection
   *
   * @return a promise with generated answer
@@ -278,7 +279,7 @@ export class CoreWebrtcService {
         const streamContext: any = {};
         streamContext[AppConstants.STREAM] = stream;
         /**
-         * 
+         *
          * add media stream track on the webrtc peer connecion
          */
         switch (requiredMediaTracks[i]) {
@@ -330,7 +331,7 @@ export class CoreWebrtcService {
    * this will open a data channel on supplied webrtc peer connection
    *
    * @param peerConnection webrtc peer connection on data channel has to be opened
-   * 
+   *
    * @param channelId webrtc data channel id
    *
    * @return newly opened webrtc datachannel

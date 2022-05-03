@@ -3,7 +3,7 @@ import { MessageContextSpec } from "../../contracts/context/MessageContextSpec";
 import { MessageContext } from "../../contracts/context/MessageContext";
 import { UserContextService } from "../user.context.service";
 import { FileTransferContextSpec } from "../../contracts/context/FileTransferContextSpec";
-import { TransferredFileContext } from "../../contracts/file/TransferredFileContext";
+import { TransferredFileContext } from "../../contracts/file/file";
 import { QueueStorage } from "../../util/QueueStorage";
 
 @Injectable({
@@ -29,6 +29,11 @@ export class FileTransferContextService
    *
    */
   fileContext: Map<string, TransferredFileContext[]>;
+
+  /**
+   * this will keep track of the file which is currently being sent
+   */
+  currentSentFile: TransferredFileContext;
 
   /**
    * stores file queues(for uploaded files) in following manner

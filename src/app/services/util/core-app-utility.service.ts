@@ -206,8 +206,8 @@ export class CoreAppUtilityService {
    * this will generate a unique identifier
    * @return a promise containing a unique numberic identifier
    */
-  async generateIdentifier(): Promise<number> {
-    return Date.now();
+  generateIdentifier(): string {
+    return "_" + Math.random().toString(36).slice(2, 9);
   }
 
   /**

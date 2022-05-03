@@ -72,14 +72,14 @@ export class TalkWindowWebrtcService {
   ) { }
 
   /**
-   * this will setup a recurring job to check if a data connection is being idle for specified 
+   * this will setup a recurring job to check if a data connection is being idle for specified
    * amount of time, if it is found to be idle then close the connection else do nothing
-   * 
+   *
    * @param channel webrtc cnonection's media type for connection means the type
    * of media data that we will relay on this connection e.g 'text','video' or 'audio'
    *
    * @param username username of the user with whom connection has to be established
-   * 
+   *
    */
   setupJobToCleanIdleDataConnection(channel: string, username: string) {
     const userWebrtcContext: any = this.userContextService.getUserWebrtcContext(username);
@@ -95,15 +95,15 @@ export class TalkWindowWebrtcService {
         const idleTime: any = Date.now() - lastUsedTime;
         LoggerUtil.logAny(channel + ' connection with user ' + username + ' has been idle for: ' + idleTime + 'ms');
         /**
-         * if data channel is being idle after some time then clean up the webrtc connection 
-         * and close the data channel 
-         * 
+         * if data channel is being idle after some time then clean up the webrtc connection
+         * and close the data channel
+         *
          */
         if (idleTime > AppConstants.DATACHANNEL_IDLE_THRESHOLD) {
           LoggerUtil.logAny(channel + ' data channel with user ' + username + ' was idle so cleaning it up');
 
           /**
-           * 
+           *
            * @TODO appropriate processing
            */
           // this.cleanWebrtcDataConnection(channel, userWebrtcContext[AppConstants.MEDIA_CONTEXT][channel], username);
@@ -146,7 +146,7 @@ export class TalkWindowWebrtcService {
 
 
         /**
-         * 
+         *
          * process onnegotiationneeded event here
          */
         peerConnection.onnegotiationneeded = async (event) => {
@@ -154,9 +154,9 @@ export class TalkWindowWebrtcService {
         };
 
         /**
-         * 
+         *
          * process onsignalingstatechange event here
-         * 
+         *
          */
         peerConnection.onsignalingstatechange = () => {
           LoggerUtil.logAny(userToChat + ' webrtc connection signaling state: ' + peerConnection.signalingState);
@@ -164,24 +164,24 @@ export class TalkWindowWebrtcService {
           switch (peerConnection.signalingState) {
 
             /**
-             * 
-             * There is no ongoing exchange of offer and answer underway. This may mean that the RTCPeerConnection 
-             * object is new, in which case both the localDescription and remoteDescription are null; it may also mean 
+             *
+             * There is no ongoing exchange of offer and answer underway. This may mean that the RTCPeerConnection
+             * object is new, in which case both the localDescription and remoteDescription are null; it may also mean
              * that negotiation is complete and a connection has been established.
-             * 
+             *
              */
             case 'stable':
               /**
-               * 
+               *
                * make the connection status as 'connected' in the user's webrtc context
-               * 
+               *
                */
               webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTED;
 
               /**
-               * 
+               *
                * execute all the callback functions wih provided callback context
-               * 
+               *
                */
               while (!webrtcContext[AppConstants.WEBRTC_ON_CONNECT_QUEUE].isEmpty()) {
                 const callback: CallbackContextType = <CallbackContextType>webrtcContext[AppConstants.WEBRTC_ON_CONNECT_QUEUE].dequeue();
@@ -196,7 +196,7 @@ export class TalkWindowWebrtcService {
         };
 
         /**
-         * 
+         *
          * process connection state change event here
          */
         peerConnection.onconnectionstatechange = async () => {
@@ -207,7 +207,7 @@ export class TalkWindowWebrtcService {
           switch (peerConnection.connectionState) {
             case 'disconnected':
 
-              // handle the webrtc disconnection here 
+              // handle the webrtc disconnection here
               await this.webrtcConnectionDisconnectHandler(userToChat, [{
                 type: AppConstants.POPUP_TYPE.DISCONNECT + AppConstants.CONNECTION,
                 channel: AppConstants.CONNECTION,
@@ -217,7 +217,7 @@ export class TalkWindowWebrtcService {
 
             case 'connected':
               /**
-               * 
+               *
                * make the connection status as 'connected' in the user's webrtc context
                */
               webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTED;
@@ -275,7 +275,7 @@ export class TalkWindowWebrtcService {
       const kind: string = event.track.kind;
 
       /**
-       * 
+       *
        * derive the channel here
        */
       if (kind === AppConstants.AUDIO) {
@@ -360,8 +360,8 @@ export class TalkWindowWebrtcService {
       this.talkWindowOnMediaStreamReceivedFn(new MediaStream([event.track]), channel, false);
 
       /**
-       * 
-       * send remote track received event message to other peer 
+       *
+       * send remote track received event message to other peer
        */
       this.coreDataChannelService.sendPayload({
         type: AppConstants.WEBRTC_EVENT,
@@ -374,7 +374,7 @@ export class TalkWindowWebrtcService {
       const webrtcContext: any = this.userContextService.getUserWebrtcContext(userToChat);
       let connected: boolean = false;
       /**
-       * 
+       *
        * remove the timeout cleanup job
        */
       if (channel === AppConstants.SCREEN || AppConstants.SOUND) {
@@ -442,8 +442,8 @@ export class TalkWindowWebrtcService {
         LoggerUtil.logAny(channel + ' data channel has been opened');
 
         /**
-         * 
-         * send onopen data channel event message to other peer 
+         *
+         * send onopen data channel event message to other peer
          */
         this.coreDataChannelService.sendPayload({
           type: AppConstants.WEBRTC_EVENT,
@@ -485,7 +485,7 @@ export class TalkWindowWebrtcService {
       case AppConstants.INVITE:
 
         /**
-         * 
+         *
          * @value 'invite' means that user has received a media stream request so
          * appropriate response has to be send to sender
          *
@@ -511,7 +511,7 @@ export class TalkWindowWebrtcService {
           this.talkWindowContextService.mediaStreamRequestContext[AppConstants.CHANNEL] = signalingMessage.channel;
 
           /**
-           * populate this to know whether other peer can share remote access or not 
+           * populate this to know whether other peer can share remote access or not
            */
           this.talkWindowContextService.remoteAccessContext['canAccessRemote'] = signalingMessage.isNativeApp;
 
@@ -541,7 +541,7 @@ export class TalkWindowWebrtcService {
       case AppConstants.ACCEPT:
 
         /**
-         * 
+         *
          * @value 'accept' means that media stream request has been accepted by
          * other user then do appropriate processing
          *
@@ -652,7 +652,7 @@ export class TalkWindowWebrtcService {
    * this will stop any ongoing media streaming for provided channel and clean the corresponding channel context
    *
    * @param channel type of media i.e audio, video, screen or sound
-   * 
+   *
    * @param mediaChannelContext media channel context
    */
   cleanMediaStreamContext(channel: string, mediaChannelContext: any) {
@@ -696,9 +696,9 @@ export class TalkWindowWebrtcService {
    * this will clean the data channel for provided channel and clean the corresponding channel context
    *
    * @param channel type of media i.e audio, video, screen or sound
-   * 
+   *
    * @param mediaChannelContext media channel context
-   * 
+   *
    */
   cleanDataChannelContext(channel: string, mediaChannelContext: any) {
     return new Promise<void>((resolve, reject) => {
@@ -710,7 +710,7 @@ export class TalkWindowWebrtcService {
 
           if (channel === AppConstants.REMOTE_CONTROL) {
             /**
-             * if user is accessing remote machine then remove all the event listners 
+             * if user is accessing remote machine then remove all the event listners
              * remove all event listeners from canvas
              */
             if (this.talkWindowContextService.bindingFlags.isAccessingRemote) {
@@ -733,12 +733,12 @@ export class TalkWindowWebrtcService {
 
   /**
    * this will check whether the data channel is connected after specified amount of time,
-   * if connected well and good else this will clean up the data channel call context followed 
-   * by media context cleanup 
-   * 
+   * if connected well and good else this will clean up the data channel call context followed
+   * by media context cleanup
+   *
    * @param username username of the user with whom media streaming has to be done
    * @param channel media type of stream
-   * 
+   *
    */
   cleanChannelContextIfNotConnected(username: string, channel: string) {
     /**
@@ -770,11 +770,11 @@ export class TalkWindowWebrtcService {
 
   /**
    * this will check whether the media streaming is connected after specified amount of time,
-   * if connected well and good else this will clean up the media call context followed by media context 
-   * cleanup 
-   * 
+   * if connected well and good else this will clean up the media call context followed by media context
+   * cleanup
+   *
    * @param username username of the user with whom media streaming has to be done
-   * 
+   *
    * @param channel media type of stream
    */
   cleanMediaContextIfNotConnected(username: string, channel: string) {
@@ -819,7 +819,7 @@ export class TalkWindowWebrtcService {
       }
 
       /**
-       * 
+       *
        * if not connected after the timeout then clean the media context for the specified channel
        */
       if (!connected) {
@@ -844,16 +844,16 @@ export class TalkWindowWebrtcService {
   }
 
   /***
-   * this will send appropriate disconnect message to other peer and display 
-   * provided popup on UI 
-   * 
+   * this will send appropriate disconnect message to other peer and display
+   * provided popup on UI
+   *
    * @param channel type of media i.e audio, video, screen or sound
-   * 
+   *
    * @param username currently selected user with whom you're streaming media
-   * 
-   * @param sendDisonnectNotification flag to specify whether to send disconnect notification 
+   *
+   * @param sendDisonnectNotification flag to specify whether to send disconnect notification
    * to other user
-   * 
+   *
    * @param popupContexts list of informational modal popup context that needs to be shown
    */
   processChannelStreamDisconnect(channel: string, username: string, sendDisonnectNotification: boolean, popupContexts?: any[]) {
@@ -889,7 +889,7 @@ export class TalkWindowWebrtcService {
    *
    * @param popupContexts an optional array of popup contexts if any modal popup message
    * has to be displayed after handling the disconnection
-   * 
+   *
    * @TODO refactor it afterwards if needed
    *
    * @return a promise
@@ -928,14 +928,14 @@ export class TalkWindowWebrtcService {
       const mediaContext: any = webrtcContext[AppConstants.MEDIA_CONTEXT];
 
       /**
-       * 
-       * iterate whole media context and clean channel context for all the open channels 
+       *
+       * iterate whole media context and clean channel context for all the open channels
        */
       Object.keys(mediaContext).forEach(channel => {
 
         /**
-         * 
-         * choose appropriate clean up routine for each open channel 
+         *
+         * choose appropriate clean up routine for each open channel
          */
         if (this.coreAppUtilService.isDataChannel(channel)) {
           this.cleanDataChannelContext(channel, mediaContext[channel]);
@@ -964,7 +964,7 @@ export class TalkWindowWebrtcService {
    * this is onmessage event handler for data channel
    *
    * @param jsonMessage message received via webrtc datachannel
-   * 
+   *
    */
   async onDataChannelMessage(jsonMessage: string) {
     LoggerUtil.logAny('message received on data channel : ' + jsonMessage);
@@ -987,7 +987,7 @@ export class TalkWindowWebrtcService {
         this.appUtilService.updateChatMessageStatus(message);
         break;
 
-      //handle native keyboard and mouse events 
+      //handle native keyboard and mouse events
       case AppConstants.REMOTE_CONTROL:
         this.remoteAccessService.handleNativeEvents(message);
         break;
@@ -1016,7 +1016,7 @@ export class TalkWindowWebrtcService {
     const webrtcContext: any = this.userContextService.getUserWebrtcContext(message[AppConstants.USERNAME]);
 
     /**
-     * 
+     *
      * update last data exchanged timestamp in user's webrtc context
      */
     webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][AppConstants.LAST_USED] = Date.now();
@@ -1049,15 +1049,15 @@ export class TalkWindowWebrtcService {
         /**
          * generate new content id for this file
          */
-        const contentId: any = await this.coreAppUtilService.generateIdentifier();
+        const contentId: string = this.coreAppUtilService.generateIdentifier();
 
         /**
          * keep a mapping between contentId received in message -> new content id generated
          * until receives all the file chunks
-         *  
+         *
          * when whole file is received then only we'll load whole file contents in sharedContent
          * app repository from where it will get rendered on UI
-         * 
+         *
          */
         this.talkWindowContextService.contentIdsMap[message[AppConstants.CONTENT_ID]] = contentId;
         // LoggerUtil.log(this.talkWindowContextService.contentIdsMap);
@@ -1068,16 +1068,16 @@ export class TalkWindowWebrtcService {
         this.talkWindowUpdateChatMessagesFn(message);
 
         /**
-         * app will keep a mapping to undefined in sharedContent for newly genrated 
-         * contentId until all the file chunks are received 
+         * app will keep a mapping to undefined in sharedContent for newly genrated
+         * contentId until all the file chunks are received
          */
         this.talkWindowContextService.sharedContent[contentId] = undefined;
         break;
 
       case AppConstants.CHUNK_TYPE.INTERMEDIATE:
         /**
-         * all the intermediate file chunks will get stored in appropriate file 
-         * buffers available within user's webrtc context 
+         * all the intermediate file chunks will get stored in appropriate file
+         * buffers available within user's webrtc context
          */
         buffer = webrtcContext[AppConstants.MEDIA_CONTEXT][AppConstants.FILE][message[AppConstants.CONTENT_TYPE]];
         buffer.push(message.message);
@@ -1127,9 +1127,9 @@ export class TalkWindowWebrtcService {
   }
 
   /**
-   * this is just a logical wrapper function used for setting properties in media call 
-   * context to trigger cascading processing 
-   * 
+   * this is just a logical wrapper function used for setting properties in media call
+   * context to trigger cascading processing
+   *
    * @param  eventObject : media context update event object
    */
   mediaCallContextUpdateHandler(eventObject: MediaContextUpdateEventType) {
@@ -1184,11 +1184,11 @@ export class TalkWindowWebrtcService {
   }
 
   /**
-   * 
+   *
    * this will setup a webrtc connection with provided user
-   * 
+   *
    * @param username username of the user with whom webrtc connection have to be established
-   * 
+   *
    *  @param offerMessage this is an optional offer signaling message
    */
   setUpWebrtcConnection(username: string, offerMessage?: any) {
@@ -1198,7 +1198,7 @@ export class TalkWindowWebrtcService {
         LoggerUtil.logAny('setting up new webrtc connection');
 
         /**
-         * 
+         *
          * initialize webrtc context if not yet initialized
          */
         if (!this.userContextService.hasUserWebrtcContext(username)) {
@@ -1209,20 +1209,20 @@ export class TalkWindowWebrtcService {
         if (webrtcContext[AppConstants.CONNECTION_STATE] === AppConstants.CONNECTION_STATES.NOT_CONNECTED) {
 
           /**
-           * 
+           *
            * initialize webrtc peer connection
            */
           const initializedConnection: boolean = await this.coreWebrtcService.rtcConnectionInit(username);
 
           /**
-           * 
+           *
            * update webrtc connection state to connecting so that not other flow can update it further
            */
           webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTING;
           const peerConnection: any = webrtcContext[AppConstants.CONNECTION];
 
           /**
-           * 
+           *
            * register webrtc connection if new webrtc conection has been initialized
            */
           if (initializedConnection) {
@@ -1230,7 +1230,7 @@ export class TalkWindowWebrtcService {
           }
 
           /**
-           * 
+           *
            * create the offer for the peer connection and send it to other peer
            */
           if (offerMessage === undefined) {
@@ -1238,7 +1238,7 @@ export class TalkWindowWebrtcService {
               peerConnection.setLocalDescription(offer);
 
               /**
-               * 
+               *
                * send the offer payload
                */
               this.coreDataChannelService.sendPayload({
@@ -1258,7 +1258,7 @@ export class TalkWindowWebrtcService {
               peerConnection.setLocalDescription(answer);
 
               /**
-               * 
+               *
                * send the answer payload
                */
               this.coreDataChannelService.sendPayload({
@@ -1275,7 +1275,7 @@ export class TalkWindowWebrtcService {
           }
         } else {
           /**
-           * 
+           *
            * already in connecting/connected state so do nothing here
            */
         }
@@ -1296,7 +1296,7 @@ export class TalkWindowWebrtcService {
     return new Promise<void>(async (resolve, reject) => {
       try {
         /**
-         * 
+         *
          * initialize the webrtc context if not yet initialized
          */
         if (!this.userContextService.hasUserWebrtcContext(createDataChannelType.username)) {
@@ -1306,7 +1306,7 @@ export class TalkWindowWebrtcService {
         const webrtcContext: any = this.userContextService.getUserWebrtcContext(createDataChannelType.username);
 
         /**
-         * 
+         *
          * mark data channel state as connecting for provided channel in user's webrtc media context
          */
         webrtcContext[AppConstants.MEDIA_CONTEXT][createDataChannelType.channel][AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTING;
@@ -1350,8 +1350,8 @@ export class TalkWindowWebrtcService {
         } else {
           LoggerUtil.logAny('webrtc connection is not in connected state for user: ' + createDataChannelType.username);
           /**
-           * 
-           * if webrtc connection is not in connetcted state then add the setup data channel function 
+           *
+           * if webrtc connection is not in connetcted state then add the setup data channel function
            * along with the calling context in the webrtc on connect queue
            */
           const webrtcCallbackContextType: CallbackContextType = {
