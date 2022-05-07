@@ -890,9 +890,6 @@ export class FileTransferWindowComponent
    * @param message received datachannel message
    */
   processFileMessage(message: FileData) {
-    LoggerUtil.logAny(
-      `received file message of type: ${message.fileFragmentType}`
-    );
   }
 
   /**

@@ -351,4 +351,27 @@ export class CoreAppUtilityService {
       return AppConstants.AUDIO;
     }
   }
+
+  /**
+   * convert an array buffer to string
+   * @param arrayBuffer
+   * @returns
+   */
+  arrayBufferToString(arrayBuffer: any): string {
+    return String.fromCharCode.apply(null, new Uint16Array(arrayBuffer));
+  }
+
+  /**
+   * convert string to unit-16 array buffer
+   * @param stringData
+   * @returns
+   */
+  stringToArrayBuffer(stringData: string): any {
+    let buf = new ArrayBuffer(stringData.length * 2); // 2 bytes for each char
+    let bufView = new Uint16Array(buf);
+    for (let i = 0, strLen = stringData.length; i < strLen; i++) {
+      bufView[i] = stringData.charCodeAt(i);
+    }
+    return buf;
+  }
 }

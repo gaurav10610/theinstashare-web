@@ -54,6 +54,7 @@ export interface FileData {
   fileSize: number;
   from: string;
   to: string;
+  data?: string;
 }
 
 export enum FileFragmentType {

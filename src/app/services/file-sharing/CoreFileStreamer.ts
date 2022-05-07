@@ -65,11 +65,11 @@ export class CoreFileStreamer {
         });
       }
 
-    private testEndOfFile(): void {
-      if (this.isEndOfFile()) {
-        LoggerUtil.logAny('Done reading file');
-      }
-    }
+    // private testEndOfFile(): void {
+    //   if (this.isEndOfFile()) {
+    //     LoggerUtil.logAny('Done reading file');
+    //   }
+    // }
 
     private getFileSize(): number {
       return this.file.size;

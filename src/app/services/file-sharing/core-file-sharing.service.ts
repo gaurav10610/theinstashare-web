@@ -1,3 +1,4 @@
+import { CoreAppUtilityService } from "./../util/core-app-utility.service";
 import { MediaChannelType } from "./../contracts/enum/MediaChannelType";
 import { LoggerUtil } from "./../logging/LoggerUtil";
 import { QueueStorage } from "./../util/QueueStorage";
@@ -12,6 +13,7 @@ import {
 import { EventEmitter, Injectable } from "@angular/core";
 import { UserContextService } from "../context/user.context.service";
 import { AppConstants } from "../AppConstants";
+import { CoreFileStreamer } from "./CoreFileStreamer";
 
 @Injectable({
   providedIn: "root",
@@ -25,7 +27,10 @@ export class CoreFileSharingService {
 
   private MAX_CHUNK_SIZE = 16 * 1024;
 
-  constructor(public userContextService: UserContextService) {
+  constructor(
+    private userContextService: UserContextService,
+    private appUtilService: CoreAppUtilityService
+  ) {
     this.onFileShareError = new EventEmitter(true);
     this.onFileProgress = new EventEmitter(true);
     this.isSendingFiles = false;
@@ -87,79 +92,59 @@ export class CoreFileSharingService {
         return;
       }
 
-      if (submittedFile.file.size < this.MAX_CHUNK_SIZE) {
+      try {
         /**
-         * no need to send file in chunks as file size is small
+         * send file START fragment
          */
-        LoggerUtil.logAny(
-          `${submittedFile.file.name} is smaller than the maximum allowed chunk size, so sending file without chunks`
-        );
-        try {
-          /**
-           * send file start fragment
-           */
-          this.sendFileMetadata(
-            dataChannel,
-            submittedFile,
-            FileFragmentType.START
-          );
-
-          /**
-           * send file end fragment
-           */
-          this.sendFileMetadata(
-            dataChannel,
-            submittedFile,
-            FileFragmentType.END
-          );
-        } catch (e) {
-          /**
-           * throw error if not able to send the file
-           */
-          this.onFileShareError.emit({
-            currentFileId: submittedFile.id,
-            errorCode: FileSendErrorType.GENERIC_ERROR,
-            to: submittedFile.to,
-          });
-          return;
-        }
-      } else {
-        /**
-         * send file in chunks of size (16 * 1024)
-         */
-        LoggerUtil.logAny(
-          `${submittedFile.file.name} is bigger than the maximum allowed chunk size, so sending file in chunks`
+        this.sendFileMetadata(
+          dataChannel,
+          submittedFile,
+          FileFragmentType.START
         );
 
-        try {
-          /**
-           * send file start fragment
-           */
-          this.sendFileMetadata(
-            dataChannel,
-            submittedFile,
-            FileFragmentType.START
-          );
+        const fileStreamer: CoreFileStreamer = new CoreFileStreamer(
+          submittedFile.file
+        );
 
+        if (submittedFile.file.size < this.MAX_CHUNK_SIZE) {
           /**
-           * send file end fragment
+           * no need to send file in chunks as file size is small
            */
-          this.sendFileMetadata(
-            dataChannel,
-            submittedFile,
-            FileFragmentType.END
+          LoggerUtil.logAny(
+            `${submittedFile.file.name} is smaller than the maximum allowed chunk size, so sending file without chunks`
           );
-        } catch (e) {
+        } else {
           /**
-           * throw error if not able to send the file
+           * send file in chunks of size (16 * 1024)
            */
-          this.onFileShareError.emit({
-            currentFileId: submittedFile.id,
-            errorCode: FileSendErrorType.GENERIC_ERROR,
-            to: submittedFile.to,
-          });
-          return;
+          LoggerUtil.logAny(
+            `${submittedFile.file.name} is bigger than the maximum allowed chunk size, so sending file in chunks`
+          );
         }
+
+        /**
+         * sending file data fragments
+         */
+        while (!fileStreamer.isEndOfFile()) {
+          const data: any = await fileStreamer.readBlockAsArrayBuffer();
+          const dataString: string =
+            this.appUtilService.arrayBufferToString(data);
+        }
+
+        /**
+         * send file END fragment
+         */
+        this.sendFileMetadata(dataChannel, submittedFile, FileFragmentType.END);
+      } catch (e) {
+        /**
+         * throw error if not able to send the file
+         */
+        this.onFileShareError.emit({
+          currentFileId: submittedFile.id,
+          errorCode: FileSendErrorType.GENERIC_ERROR,
+          to: submittedFile.to,
+        });
+        return;
       }
       this.fileSendQueue.dequeue();
       LoggerUtil.logAny(`${submittedFile.file.name} is sent successfully`);
