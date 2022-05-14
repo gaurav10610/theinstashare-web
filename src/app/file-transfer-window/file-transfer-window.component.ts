@@ -1,10 +1,10 @@
 import {
   FileData,
+  FileFragmentType,
   FileShareError,
   FileShareProgress,
 } from "./../services/contracts/file/file";
 import { TransferredFileContext } from "../services/contracts/file/file";
-import { QueueStorage } from "./../services/util/QueueStorage";
 import {
   AfterViewInit,
   ApplicationRef,
@@ -871,8 +871,7 @@ export class FileTransferWindowComponent
         this.processFileMessage(<FileData>message);
         break;
 
-      //handle received text data messages
-      default:
+      case AppConstants.TEXT:
         message.sent = false;
         const messageStatus: string = await this.updateChatMessages(message);
         if (messageStatus !== AppConstants.CHAT_MESSAGE_STATUS.NOT_APPLICABLE) {
@@ -882,6 +881,14 @@ export class FileTransferWindowComponent
             message.type
           );
         }
+        break;
+
+      default:
+        LoggerUtil.logAny(
+          `unkown message type recived on dataChannel from: ${
+            message.from ? message.from : message.username
+          }`
+        );
     }
   }
 
@@ -889,7 +896,28 @@ export class FileTransferWindowComponent
    * process datachannel messages of type 'file'
    * @param message received datachannel message
    */
-  processFileMessage(message: FileData) {
+  async processFileMessage(message: FileData) {
+    switch (message.fileFragmentType) {
+      case FileFragmentType.START:
+        break;
+
+      case FileFragmentType.END:
+        break;
+
+      case FileFragmentType.DATA:
+        if (!this.contextService.fileBuffer.has(message.fileId)) {
+          this.contextService.fileBuffer.set(message.fileId, []);
+        }
+        this.contextService.fileBuffer
+          .get(message.fileId)
+          .push(
+            this.coreAppUtilService.stringToArrayBuffer(<string>message.data)
+          );
+        break;
+
+      default:
+        LoggerUtil.logAny(`unknown file data received from: ${message.from}`);
+    }
   }
 
   /**
@@ -982,13 +1010,27 @@ export class FileTransferWindowComponent
    * handle file share progress event from file sharing service
    * @param fileShareProgressEvent event data
    */
-  handleFileProgress(fileShareProgressEvent: FileShareProgress) {}
+  handleFileProgress(fileShareProgressEvent: FileShareProgress) {
+    LoggerUtil.logAny(
+      `file progress event => (id: ${fileShareProgressEvent.id}, progress: ${fileShareProgressEvent.progress}, fragmentOffset: ${fileShareProgressEvent.fragmentOffset} )`
+    );
+    const fileContext: TransferredFileContext = this.contextService
+      .getFileContext(fileShareProgressEvent.username)
+      .get(fileShareProgressEvent.id);
+    fileContext.progress = fileShareProgressEvent.progress;
+    fileContext.fragmentOffsetAt = fileShareProgressEvent.fragmentOffset;
+  }
 
   /**
    * handle file share error event from file sharing service
    * @param fileShareErrorEvent
    */
-  handleFileShareError(fileShareErrorEvent: FileShareError) {}
+  handleFileShareError(fileShareErrorEvent: FileShareError) {
+    LoggerUtil.logAny(
+      `error occured while sending file to: ${fileShareErrorEvent.to} with error code: ${fileShareErrorEvent.errorCode}`
+    );
+    LoggerUtil.logAny(fileShareErrorEvent.error);
+  }
 
   /**
    * this will open the file explorer to choose files to be sent
@@ -1011,7 +1053,7 @@ export class FileTransferWindowComponent
     this.contextService.initializeFileQueue(userToChat);
     this.contextService.initializeFileContext(userToChat);
 
-    const fileContext: TransferredFileContext[] =
+    const fileContext: Map<string, TransferredFileContext> =
       this.contextService.getFileContext(userToChat);
 
     /**
@@ -1019,11 +1061,17 @@ export class FileTransferWindowComponent
      * @TODO implement allowed file type validation here
      *
      */
-    for (let i = 0; i < event.target.files.length; i++) {
-      const file: File = event.target.files[i];
+    for (const file of event.target.files) {
       // LoggerUtil.logAny(event.target.files[i]);
       const uniqueFileId: string = this.coreAppUtilService.generateIdentifier();
 
+      /**
+       *
+       * submit file for sharing to file sharing service,
+       * progress of sent file can be in an async way via listening to
+       * 'onFileProgress' event from file sharing service
+       *
+       */
       this.fileSharingService.submitFileToSend({
         id: uniqueFileId,
         channelToSendFile: AppConstants.FILE,
@@ -1033,15 +1081,17 @@ export class FileTransferWindowComponent
 
       const fileExtension: string = file.type.split("/")[1];
 
-      fileContext.push({
+      fileContext.set(uniqueFileId, {
         id: uniqueFileId,
         fileName: file.name,
         isSent: true,
-        uploadProgress: 0,
+        progress: 0,
         fileExtension,
-        isFragmented: true,
-        fragmentOffset: 0,
-        totalFragments: 0, //just a default value, this will be updated later once file is being sent
+        isFragmented: file.size > CoreFileSharingService.MAX_FILE_CHUNK_SIZE,
+        fragmentOffsetAt: 0,
+        totalFragments: Math.ceil(
+          file.size / CoreFileSharingService.MAX_FILE_CHUNK_SIZE
+        ),
         lastPartReceivedAt: null,
         lastAcknowledgementAt: null,
         from: this.userContextService.username,

@@ -4,11 +4,10 @@ export interface TransferredFileContext {
   id: string;
   fileName: string;
   isSent: boolean;
-  downloadProgress?: number;
-  uploadProgress?: number;
+  progress?: number;
   fileExtension: string;
   isFragmented: boolean;
-  fragmentOffset: number;
+  fragmentOffsetAt: number;
   totalFragments: number;
   fileBuffer?: any[];
   lastPartReceivedAt: Date;
@@ -30,6 +29,7 @@ export interface FileShareError {
   currentFileId: string;
   to: string; // username of the user to whom file needs to be sent
   errorCode: FileSendErrorType;
+  error: any;
 }
 
 export enum FileSendErrorType {
@@ -39,22 +39,23 @@ export enum FileSendErrorType {
 
 export interface FileShareProgress {
   id: string;
-  uploadProgress: number;
-  totalFragments: number;
+  progress: number;
   fragmentOffset: number;
   isPaused?: boolean;
+  username: string; // username of the user with whom file is shared
 }
 
 export interface FileData {
   type: MediaChannelType;
   fileFragmentType: FileFragmentType;
   fileName: string;
-  totalFragments: number;
+  totalFragments?: number;
+  fragmentOffset?: number;
   fileId: string;
-  fileSize: number;
+  fileSize?: number;
   from: string;
   to: string;
-  data?: string;
+  data?: string | ArrayBuffer;
 }
 
 export enum FileFragmentType {

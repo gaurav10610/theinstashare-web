@@ -1485,14 +1485,15 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       // LoggerUtil.log("reading file of type: " + contentType);
 
       const fileStreamer: CoreFileStreamer = new CoreFileStreamer(
-        event.target.files[i]
+        event.target.files[i],
+        16 * 1024
       );
       const dataArray: any[] = [];
       while (!fileStreamer.isEndOfFile()) {
         // const data: any = await fileStreamer.readBlockAsDataUrl();
         // LoggerUtil.log(data.replace('data:application/octet-stream;base64,', ''));
 
-        const data: any = await fileStreamer.readBlockAsArrayBuffer();
+        const data: ArrayBuffer = await fileStreamer.readBlockAsArrayBuffer();
         const dataChunk: any = {
           buffer: data,
         };
@@ -1500,7 +1501,9 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         dataArray.push(dataChunk);
       }
       LoggerUtil.logAny("Successfully read: " + event.target.files[i].name);
-      const newDataArray = dataArray.map((chunk) => chunk.buffer);
+      const newDataArray: ArrayBuffer[] = dataArray.map(
+        (chunk) => chunk.buffer
+      );
       const fileData = new Blob(newDataArray);
       const url = window.URL.createObjectURL(fileData);
       const downloadAnchor = this.renderer.createElement("a");

@@ -312,7 +312,7 @@
       <div
         style="margin: 10px"
         *ngFor="
-          let fileContext of contextService.getFileContext(
+          let fileContext of contextService.getSharedFiles(
             userContextService.userToChat,
             true
           )
@@ -329,7 +329,7 @@
                 <span>{{ fileContext.fileName }}</span>
               </div>
               <div class="row-flex-display align-center">
-                <span>{{ fileContext.uploadProgress }}%</span>
+                <span>{{ fileContext.progress }}%</span>
               </div>
               <div class="row-flex-display align-center">
                 <button mat-icon-button class="toolbar-icon">
@@ -374,7 +374,7 @@
       <div
         style="margin: 10px"
         *ngFor="
-          let fileContext of contextService.getFileContext(
+          let fileContext of contextService.getSharedFiles(
             userContextService.userToChat,
             false
           )

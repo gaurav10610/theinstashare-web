@@ -25,10 +25,20 @@ export class FileTransferContextService
    *
    * stores transferred files context in following manner
    *
-   * 'username' -> [{ ..received file context props }, { ..sent file context props }]
+   * 'username' -> {'123' -> { ..received file context props }, '321' -> { ..sent file context props }}
    *
    */
-  fileContext: Map<string, TransferredFileContext[]>;
+  fileContext: Map<string, Map<string, TransferredFileContext>>;
+
+  /**
+   *
+   *
+   * this will be used as buffer for received files in following manner
+   *
+   * 'fileId' -> [file chunks in form of array buffer]
+   *
+   */
+  fileBuffer: Map<string, ArrayBuffer[]>;
 
   /**
    * this will keep track of the file which is currently being sent
@@ -59,6 +69,7 @@ export class FileTransferContextService
   constructor(private userContextService: UserContextService) {
     this.messageContext = new Map();
     this.fileContext = new Map();
+    this.fileBuffer = new Map();
     this.fileQueues = new Map();
     this.userStatus = new Map();
     this.activeUsers = [];
@@ -89,20 +100,24 @@ export class FileTransferContextService
 
   initializeFileContext(username: string): void {
     if (!this.hasFileContext(username)) {
-      this.fileContext.set(username, []);
+      this.fileContext.set(username, new Map());
     }
   }
 
-  getFileContext(
-    username: string,
-    needSentFiles?: boolean
-  ): TransferredFileContext[] {
-    if (needSentFiles !== undefined && this.fileContext.get(username)) {
-      return this.fileContext
-        .get(username)
-        .filter((fileContext) => fileContext.isSent === needSentFiles);
-    }
+  getFileContext(username: string): Map<string, TransferredFileContext> {
     return this.fileContext.get(username);
+  }
+
+  getSharedFiles(
+    username: string,
+    needSentFiles: boolean
+  ): TransferredFileContext[] {
+    if (this.fileContext.has(username)) {
+      return Array.from(this.fileContext.get(username)?.values()).filter(
+        (file) => file.isSent === needSentFiles
+      );
+    }
+    return [];
   }
 
   hasMessageContext(username: string): boolean {

@@ -3,12 +3,14 @@ import { TransferredFileContext } from "../file/file";
 
 export interface FileTransferContextSpec {
   fileQueues: Map<string, QueueStorage<File>>;
-  fileContext: Map<string, TransferredFileContext[]>;
+  fileContext: Map<string, Map<string, TransferredFileContext>>;
+  fileBuffer: Map<string, ArrayBuffer[]>;
   hasFileContext(username: string): boolean;
   initializeFileContext(username: string): void;
-  getFileContext(
+  getFileContext(username: string): Map<string, TransferredFileContext>;
+  getSharedFiles(
     username: string,
-    needSentFiles?: boolean
+    needSentFiles: boolean
   ): TransferredFileContext[];
   hasFileQueue(username: string): boolean;
   initializeFileQueue(username: string): void;
