@@ -5,7 +5,7 @@ export interface TransferredFileContext {
   fileName: string;
   isSent: boolean;
   progress?: number;
-  fileExtension: string;
+  fileType: string;
   isFragmented: boolean;
   fragmentOffsetAt: number;
   totalFragments: number;
@@ -16,6 +16,7 @@ export interface TransferredFileContext {
   isPaused: boolean;
   size: number;
   icon: string;
+  isComplete: boolean; // specifies if download/upload is completed
 }
 
 export interface FileSubmitContext {
@@ -49,6 +50,7 @@ export interface FileData {
   type: MediaChannelType;
   fileFragmentType: FileFragmentType;
   fileName: string;
+  fileType?: string;
   totalFragments?: number;
   fragmentOffset?: number;
   fileId: string;
@@ -56,6 +58,7 @@ export interface FileData {
   from: string;
   to: string;
   data?: string | ArrayBuffer;
+  sent?: boolean;
 }
 
 export enum FileFragmentType {

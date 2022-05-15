@@ -19,7 +19,7 @@ import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Router } from "@angular/router";
 import { GoogleAnalyticsService } from "ngx-google-analytics";
-import { firstValueFrom, Observable } from "rxjs";
+import { firstValueFrom } from "rxjs";
 import { environment } from "src/environments/environment";
 import { AppLoginDialogComponent } from "../app-login-dialog/app-login-dialog.component";
 import { IconsDialogComponent } from "../icons-dialog/icons-dialog.component";
@@ -103,6 +103,9 @@ export class FileTransferWindowComponent
     );
     this.fileSharingService.onFileShareError.subscribe(
       this.handleFileShareError.bind(this)
+    );
+    this.fileSharingService.onFileMetadata.subscribe(
+      this.handleFileMetaData.bind(this)
     );
   }
 
@@ -218,7 +221,7 @@ export class FileTransferWindowComponent
   /*
    * handle connection open event with server
    */
-  onRouterConnect() {
+  async onRouterConnect(): Promise<void> {
     const username: String = this.userContextService.getUserName()
       ? this.userContextService.getUserName().trim()
       : undefined;
@@ -246,7 +249,7 @@ export class FileTransferWindowComponent
    * @param signalingMessage received signaling message
    *
    */
-  async onRouterMessage(signalingMessage: any) {
+  async onRouterMessage(signalingMessage: any): Promise<void> {
     try {
       LoggerUtil.logAny(
         `received message via ${signalingMessage.via} ${JSON.stringify(
@@ -360,7 +363,7 @@ export class FileTransferWindowComponent
    * @param dialogType type of dialog
    * @param data data to be passed to close handler
    */
-  openDialog(dialogType: DialogType, data = {}) {
+  async openDialog(dialogType: DialogType, data = {}): Promise<void> {
     this.closeDialog();
     switch (dialogType) {
       case DialogType.APP_LOGIN:
@@ -400,7 +403,9 @@ export class FileTransferWindowComponent
    * @param dialogCloseResult result data sent by the component contained in the dialog which got closed
    *
    */
-  handleDialogClose(dialogCloseResult?: DialogCloseResult) {
+  async handleDialogClose(
+    dialogCloseResult?: DialogCloseResult
+  ): Promise<void> {
     if (dialogCloseResult === undefined) {
       return;
     }
@@ -435,7 +440,7 @@ export class FileTransferWindowComponent
    * @param data data to be passed to close handler
    *
    */
-  closeDialog(data = {}) {
+  async closeDialog(data = {}): Promise<void> {
     if (this.dialogRef) {
       this.dialogRef.close(data);
     }
@@ -445,7 +450,7 @@ export class FileTransferWindowComponent
    * event handler for tab selection
    * @param selectedTab
    */
-  selectTab(selectedTab: string) {
+  async selectTab(selectedTab: string): Promise<void> {
     this.currentTab = selectedTab;
     const userToChat: string = this.userContextService.userToChat;
     if (
@@ -460,7 +465,7 @@ export class FileTransferWindowComponent
    * this will handle selecting user from sidepanel
    * @param username
    */
-  selectUser(username: string) {
+  async selectUser(username: string): Promise<void> {
     if (username !== this.userContextService.userToChat) {
       LoggerUtil.logAny(`user selected: ${username}`);
       this.userContextService.userToChat = username;
@@ -472,7 +477,7 @@ export class FileTransferWindowComponent
    * back to contacts click handler
    * this button is available only on mobile screen view
    */
-  backToContacts() {
+  async backToContacts(): Promise<void> {
     const userToChat = this.userContextService.userToChat;
     this.userContextService.userToChat = undefined;
   }
@@ -547,7 +552,7 @@ export class FileTransferWindowComponent
     }
   }
 
-  sendTextMessage(event?: KeyboardEvent): void {
+  async sendTextMessage(event?: KeyboardEvent): Promise<void> {
     //get the currenty selected user
     const userToChat: string = this.userContextService.userToChat;
 
@@ -694,7 +699,7 @@ export class FileTransferWindowComponent
 
   async onWebrtcConnectionStateChange(
     stateChangeContext: ConnectionStateChangeContext
-  ) {
+  ): Promise<void> {
     const webrtcContext: any = this.userContextService.getUserWebrtcContext(
       stateChangeContext.username
     );
@@ -853,8 +858,10 @@ export class FileTransferWindowComponent
    * @param jsonMessage message received via webrtc datachannel
    */
   async onDataChannelMessage(jsonMessage: string): Promise<void> {
-    LoggerUtil.logAny(`message received on data channel : ${jsonMessage}`);
     const message: any = JSON.parse(jsonMessage);
+    if (message.type !== AppConstants.FILE) {
+      LoggerUtil.logAny(`message received on data channel : ${jsonMessage}`);
+    }
     switch (message.type) {
       //handle signaling messages
       case AppConstants.SIGNALING:
@@ -868,7 +875,7 @@ export class FileTransferWindowComponent
         break;
 
       case AppConstants.FILE:
-        this.processFileMessage(<FileData>message);
+        this.fileSharingService.processFileMessage(<FileData>message);
         break;
 
       case AppConstants.TEXT:
@@ -889,34 +896,6 @@ export class FileTransferWindowComponent
             message.from ? message.from : message.username
           }`
         );
-    }
-  }
-
-  /**
-   * process datachannel messages of type 'file'
-   * @param message received datachannel message
-   */
-  async processFileMessage(message: FileData) {
-    switch (message.fileFragmentType) {
-      case FileFragmentType.START:
-        break;
-
-      case FileFragmentType.END:
-        break;
-
-      case FileFragmentType.DATA:
-        if (!this.contextService.fileBuffer.has(message.fileId)) {
-          this.contextService.fileBuffer.set(message.fileId, []);
-        }
-        this.contextService.fileBuffer
-          .get(message.fileId)
-          .push(
-            this.coreAppUtilService.stringToArrayBuffer(<string>message.data)
-          );
-        break;
-
-      default:
-        LoggerUtil.logAny(`unknown file data received from: ${message.from}`);
     }
   }
 
@@ -969,7 +948,7 @@ export class FileTransferWindowComponent
    * this will handle webrtc events
    * @param signalingMessage received signaling message
    */
-  handleWebrtcEvent(signalingMessage: any): void {
+  async handleWebrtcEvent(signalingMessage: any): Promise<void> {
     LoggerUtil.logAny(`handling webrtc event: ${signalingMessage.event}`);
     const webrtcContext: any = this.userContextService.getUserWebrtcContext(
       signalingMessage.from
@@ -1010,22 +989,27 @@ export class FileTransferWindowComponent
    * handle file share progress event from file sharing service
    * @param fileShareProgressEvent event data
    */
-  handleFileProgress(fileShareProgressEvent: FileShareProgress) {
-    LoggerUtil.logAny(
-      `file progress event => (id: ${fileShareProgressEvent.id}, progress: ${fileShareProgressEvent.progress}, fragmentOffset: ${fileShareProgressEvent.fragmentOffset} )`
-    );
+  async handleFileProgress(
+    fileShareProgressEvent: FileShareProgress
+  ): Promise<void> {
+    // LoggerUtil.logAny(
+    //   `file progress event => (id: ${fileShareProgressEvent.id}, progress: ${fileShareProgressEvent.progress}, fragmentOffset: ${fileShareProgressEvent.fragmentOffset} )`
+    // );
     const fileContext: TransferredFileContext = this.contextService
       .getFileContext(fileShareProgressEvent.username)
       .get(fileShareProgressEvent.id);
     fileContext.progress = fileShareProgressEvent.progress;
     fileContext.fragmentOffsetAt = fileShareProgressEvent.fragmentOffset;
+    fileContext.lastPartReceivedAt = new Date();
   }
 
   /**
    * handle file share error event from file sharing service
    * @param fileShareErrorEvent
    */
-  handleFileShareError(fileShareErrorEvent: FileShareError) {
+  async handleFileShareError(
+    fileShareErrorEvent: FileShareError
+  ): Promise<void> {
     LoggerUtil.logAny(
       `error occured while sending file to: ${fileShareErrorEvent.to} with error code: ${fileShareErrorEvent.errorCode}`
     );
@@ -1033,9 +1017,65 @@ export class FileTransferWindowComponent
   }
 
   /**
+   * handle file metadata receive event from file sharing service
+   * @param fileMetadata
+   */
+  async handleFileMetaData(fileMetadata: FileData): Promise<void> {
+    LoggerUtil.logAny(`file metadata event: ${JSON.stringify(fileMetadata)}`);
+    this.contextService.initializeFileContext(fileMetadata.from);
+    const fileContext: Map<string, TransferredFileContext> =
+      this.contextService.getFileContext(
+        fileMetadata.sent ? fileMetadata.to : fileMetadata.from
+      );
+
+    switch (fileMetadata.fileFragmentType) {
+      /**
+       * this payload will be received only for received files
+       */
+      case FileFragmentType.START:
+        fileContext.set(fileMetadata.fileId, {
+          id: fileMetadata.fileId,
+          fileName: fileMetadata.fileName,
+          isSent: false,
+          progress: 0,
+          fileType: fileMetadata.fileType,
+          isFragmented:
+            fileMetadata.fileSize > CoreFileSharingService.MAX_FILE_CHUNK_SIZE,
+          fragmentOffsetAt: 0,
+          totalFragments: fileMetadata.totalFragments,
+          lastPartReceivedAt: null,
+          lastAcknowledgementAt: null,
+          from: fileMetadata.from,
+          isPaused: false,
+          size: fileMetadata.fileSize,
+          icon: this.fileTransferService.getMappedFileIcon(
+            fileMetadata.fileType
+          ),
+          isComplete: false,
+        });
+        break;
+
+      /**
+       *
+       * this payload can be received for sent as well as for received files,
+       * see CoreFileSharingService implementation for more details
+       *
+       */
+      case FileFragmentType.END:
+        fileContext.get(fileMetadata.fileId).isComplete = true;
+        break;
+
+      default:
+        LoggerUtil.logAny(
+          `unkown file metadata received from: ${fileMetadata.from}`
+        );
+    }
+  }
+
+  /**
    * this will open the file explorer to choose files to be sent
    */
-  async openFileDialog() {
+  async openFileDialog(): Promise<void> {
     this.renderer.selectRootElement("#file-input", true).click();
   }
 
@@ -1043,7 +1083,7 @@ export class FileTransferWindowComponent
    * start sharing selected files
    * @event change event object
    */
-  async startSharingFile(event: any) {
+  async startSharingFile(event: any): Promise<void> {
     const userToChat: string = this.userContextService.userToChat;
     this.userContextService.initializeUserWebrtcContext(userToChat);
     const webrtcContext: any =
@@ -1079,14 +1119,12 @@ export class FileTransferWindowComponent
         to: userToChat,
       });
 
-      const fileExtension: string = file.type.split("/")[1];
-
       fileContext.set(uniqueFileId, {
         id: uniqueFileId,
         fileName: file.name,
         isSent: true,
         progress: 0,
-        fileExtension,
+        fileType: file.type,
         isFragmented: file.size > CoreFileSharingService.MAX_FILE_CHUNK_SIZE,
         fragmentOffsetAt: 0,
         totalFragments: Math.ceil(
@@ -1095,9 +1133,10 @@ export class FileTransferWindowComponent
         lastPartReceivedAt: null,
         lastAcknowledgementAt: null,
         from: this.userContextService.username,
-        isPaused: true,
+        isPaused: false,
         size: file.size,
         icon: this.fileTransferService.getMappedFileIcon(file.type),
+        isComplete: false,
       });
     }
     LoggerUtil.logAny(fileContext);
