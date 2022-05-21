@@ -28,6 +28,7 @@ export class CoreFileSharingService {
   private fileBuffer: Map<string, ArrayBuffer[]>;
 
   public static MAX_FILE_CHUNK_SIZE = 16 * 1024;
+  // public static MAX_FILE_CHUNK_SIZE = 65535;
 
   constructor(
     private userContextService: UserContextService,
@@ -289,11 +290,12 @@ export class CoreFileSharingService {
     fragmentOffset: number,
     totalFragments: number
   ): Promise<void> {
+    const progress: number = (fragmentOffset / totalFragments) * 100;
     this.onFileProgress.emit({
       username,
       id,
       fragmentOffset,
-      progress: (fragmentOffset / totalFragments) * 100,
+      progress: parseFloat(progress.toFixed(2)),
     });
   }
 

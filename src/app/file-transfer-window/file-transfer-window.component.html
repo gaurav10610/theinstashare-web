@@ -323,21 +323,24 @@
             <div class="row-flex-display">
               <div class="row-flex-display flex-grow-full align-center">
                 <button mat-icon-button class="toolbar-icon">
-                  <mat-icon>{{ fileContext.icon }}</mat-icon>
+                  <mat-icon svgIcon="{{ fileContext.icon }}"></mat-icon>
                 </button>
 
-                <span>{{ fileContext.fileName }}</span>
+                <span class="header-font bold-text">{{
+                  fileContext.fileName
+                }}</span>
               </div>
               <div class="row-flex-display align-center">
-                <span>{{ fileContext.progress }}%</span>
+                <span class="header-font bold-text">Progress: </span>
+                <span class="header-font">{{ fileContext.progress }}%</span>
               </div>
               <div class="row-flex-display align-center">
-                <button mat-icon-button class="toolbar-icon">
-                  <mat-icon>play_arrow</mat-icon>
-                </button>
-
-                <button mat-icon-button class="toolbar-icon">
-                  <mat-icon>pause</mat-icon>
+                <button
+                  mat-icon-button
+                  class="toolbar-icon"
+                  *ngIf="fileContext.isComplete"
+                >
+                  <mat-icon svgIcon="bin_icon"></mat-icon>
                 </button>
               </div>
             </div>
@@ -385,21 +388,32 @@
             <div class="row-flex-display">
               <div class="row-flex-display flex-grow-full align-center">
                 <button mat-icon-button class="toolbar-icon">
-                  <mat-icon>{{ fileContext.icon }}</mat-icon>
+                  <mat-icon svgIcon="{{ fileContext.icon }}"></mat-icon>
                 </button>
 
-                <span>{{ fileContext.fileName }}</span>
+                <span class="header-font bold-text">{{
+                  fileContext.fileName
+                }}</span>
               </div>
               <div class="row-flex-display align-center">
-                <span>{{ fileContext.progress }}%</span>
+                <span class="header-font bold-text">Progress: </span>
+                <span class="header-font">{{ fileContext.progress }}%</span>
               </div>
               <div class="row-flex-display align-center">
-                <button mat-icon-button class="toolbar-icon">
-                  <mat-icon>play_arrow</mat-icon>
+                <button
+                  mat-icon-button
+                  class="toolbar-icon"
+                  *ngIf="fileContext.isComplete"
+                >
+                  <mat-icon svgIcon="download_icon"></mat-icon>
                 </button>
 
-                <button mat-icon-button class="toolbar-icon">
-                  <mat-icon>pause</mat-icon>
+                <button
+                  mat-icon-button
+                  class="toolbar-icon"
+                  *ngIf="fileContext.isComplete"
+                >
+                  <mat-icon svgIcon="bin_icon"></mat-icon>
                 </button>
               </div>
             </div>

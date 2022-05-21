@@ -10,6 +10,7 @@ import {
   ApplicationRef,
   Component,
   ElementRef,
+  NgZone,
   OnDestroy,
   OnInit,
   Renderer2,
@@ -43,6 +44,8 @@ import { FileTransferUtilityService } from "../services/util/file-transfer-utili
 import { CoreWebrtcService } from "../services/webrtc/core-webrtc.service";
 import { FileTransferService } from "../services/webrtc/file-transfer-webrtc.service";
 import { CoreFileSharingService } from "../services/file-sharing/core-file-sharing.service";
+import { MatIconRegistry } from "@angular/material/icon";
+import { DomSanitizer } from "@angular/platform-browser";
 
 @Component({
   selector: "app-file-transfer-window",
@@ -68,7 +71,10 @@ export class FileTransferWindowComponent
     private router: Router,
     private gaService: GoogleAnalyticsService,
     private applicationRef: ApplicationRef,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    private zoneRef: NgZone,
+    private matIconRegistry: MatIconRegistry,
+    private domSanitizer: DomSanitizer
   ) {}
 
   @ViewChild("textMessage", { static: false }) messageInput: ElementRef;
@@ -79,6 +85,8 @@ export class FileTransferWindowComponent
 
   //assets path
   assetsPath = environment.is_native_app ? "assets/" : "../../assets/";
+
+  iconsPath = "images/icons/";
 
   currentTab: String = "file-upload"; // or 'chat'
 
@@ -106,6 +114,62 @@ export class FileTransferWindowComponent
     );
     this.fileSharingService.onFileMetadata.subscribe(
       this.handleFileMetaData.bind(this)
+    );
+
+    // adding svg icons
+    this.matIconRegistry.addSvgIcon(
+      "generic_file_icon",
+      this.domSanitizer.bypassSecurityTrustResourceUrl(
+        this.assetsPath + this.iconsPath + "generic-file.svg"
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      "audio_file_icon",
+      this.domSanitizer.bypassSecurityTrustResourceUrl(
+        this.assetsPath + this.iconsPath + "audio-file.svg"
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      "video_file_icon",
+      this.domSanitizer.bypassSecurityTrustResourceUrl(
+        this.assetsPath + this.iconsPath + "video-file.svg"
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      "text_file_icon",
+      this.domSanitizer.bypassSecurityTrustResourceUrl(
+        this.assetsPath + this.iconsPath + "text-file.svg"
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      "zip_file_icon",
+      this.domSanitizer.bypassSecurityTrustResourceUrl(
+        this.assetsPath + this.iconsPath + "zip-file.svg"
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      "image_file_icon",
+      this.domSanitizer.bypassSecurityTrustResourceUrl(
+        this.assetsPath + this.iconsPath + "image-file.svg"
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      "pdf_file_icon",
+      this.domSanitizer.bypassSecurityTrustResourceUrl(
+        this.assetsPath + this.iconsPath + "pdf-file.svg"
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      "download_icon",
+      this.domSanitizer.bypassSecurityTrustResourceUrl(
+        this.assetsPath + this.iconsPath + "download.svg"
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      "bin_icon",
+      this.domSanitizer.bypassSecurityTrustResourceUrl(
+        this.assetsPath + this.iconsPath + "bin.svg"
+      )
     );
   }
 
@@ -837,7 +901,6 @@ export class FileTransferWindowComponent
       .getMessageContext(messageContext[AppConstants.USERNAME])
       .push(messageContext);
     this.scrollMessages();
-    this.applicationRef.tick();
     return messageStatus;
   }
 
@@ -858,45 +921,48 @@ export class FileTransferWindowComponent
    * @param jsonMessage message received via webrtc datachannel
    */
   async onDataChannelMessage(jsonMessage: string): Promise<void> {
-    const message: any = JSON.parse(jsonMessage);
-    if (message.type !== AppConstants.FILE) {
-      LoggerUtil.logAny(`message received on data channel : ${jsonMessage}`);
-    }
-    switch (message.type) {
-      //handle signaling messages
-      case AppConstants.SIGNALING:
-        this.onRouterMessage(message.message);
-        break;
+    this.zoneRef.run(async () => {
+      const message: any = JSON.parse(jsonMessage);
+      if (message.type !== AppConstants.FILE) {
+        LoggerUtil.logAny(`message received on data channel : ${jsonMessage}`);
+      }
+      switch (message.type) {
+        //handle signaling messages
+        case AppConstants.SIGNALING:
+          this.onRouterMessage(message.message);
+          break;
 
-      //handle message acknowledgement
-      case AppConstants.MESSAGE_ACKNOWLEDGEMENT:
-        this.utilityService.updateChatMessageStatus(message);
-        this.applicationRef.tick();
-        break;
+        //handle message acknowledgement
+        case AppConstants.MESSAGE_ACKNOWLEDGEMENT:
+          this.utilityService.updateChatMessageStatus(message);
+          break;
 
-      case AppConstants.FILE:
-        this.fileSharingService.processFileMessage(<FileData>message);
-        break;
+        case AppConstants.FILE:
+          this.fileSharingService.processFileMessage(<FileData>message);
+          break;
 
-      case AppConstants.TEXT:
-        message.sent = false;
-        const messageStatus: string = await this.updateChatMessages(message);
-        if (messageStatus !== AppConstants.CHAT_MESSAGE_STATUS.NOT_APPLICABLE) {
-          this.utilityService.sendMessageAcknowledgement(
-            message,
-            messageStatus,
-            message.type
+        case AppConstants.TEXT:
+          message.sent = false;
+          const messageStatus: string = await this.updateChatMessages(message);
+          if (
+            messageStatus !== AppConstants.CHAT_MESSAGE_STATUS.NOT_APPLICABLE
+          ) {
+            this.utilityService.sendMessageAcknowledgement(
+              message,
+              messageStatus,
+              message.type
+            );
+          }
+          break;
+
+        default:
+          LoggerUtil.logAny(
+            `unkown message type recived on dataChannel from: ${
+              message.from ? message.from : message.username
+            }`
           );
-        }
-        break;
-
-      default:
-        LoggerUtil.logAny(
-          `unkown message type recived on dataChannel from: ${
-            message.from ? message.from : message.username
-          }`
-        );
-    }
+      }
+    });
   }
 
   /**

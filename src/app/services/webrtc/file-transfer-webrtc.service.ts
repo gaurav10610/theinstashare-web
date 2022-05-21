@@ -20,13 +20,13 @@ export class FileTransferService implements ComponentServiceSpec {
   onWebrtcConnectionStateChangeEvent: EventEmitter<ConnectionStateChangeContext>;
 
   fileIconsMapping: object = {
-    generic: "folder_special",
-    pdf: "picture_as_pdf",
-    image: "image",
-    video: "movie",
-    audio: "music_note",
-    plain: "description",
-    zip: "folder_zip",
+    generic: "generic_file_icon",
+    pdf: "pdf_file_icon",
+    image: "image_file_icon",
+    video: "video_file_icon",
+    audio: "audio_file_icon",
+    plain: "text_file_icon",
+    zip: "zip_file_icon",
   };
 
   constructor(
@@ -47,17 +47,17 @@ export class FileTransferService implements ComponentServiceSpec {
    */
   getMappedFileIcon(fileType: string): string {
     const fileExtension: string = fileType.split("/")[1];
+    console.log(fileType);
     if (this.fileIconsMapping[fileExtension]) {
       return this.fileIconsMapping[fileExtension];
     }
     let fileCategory: string = "generic";
-    const knownCategories: string[] = Object.keys(AppConstants.SUPPORTED_FILES);
 
-    for (let i = 0; i < knownCategories.length; i++) {
+    for (const knownCategory of Object.keys(AppConstants.SUPPORTED_FILES)) {
       let index =
-        AppConstants.SUPPORTED_FILES[knownCategories[i]].indexOf(fileExtension);
+        AppConstants.SUPPORTED_FILES[knownCategory].indexOf(fileExtension);
       if (index > -1) {
-        fileCategory = knownCategories[i];
+        fileCategory = knownCategory;
         break;
       }
     }
