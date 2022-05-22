@@ -2860,11 +2860,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
   /**
    * this will download any received file
-   *
    * @param event html event object
-   *
    * @param contentId content id of received blob in sharedContent
-   *
    * @param fileName name of the received file
    */
   downloadFile(contentId: string, fileName: string, event: any) {

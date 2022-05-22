@@ -27,7 +27,9 @@ export class CoreFileStreamer {
     return this.offset >= this.getFileSize();
   }
 
-  public readBlockAsDataUrl(length: number = this.defaultChunkSize) {
+  public readBlockAsDataUrl(
+    length: number = this.defaultChunkSize
+  ): Promise<string> {
     const fileReader: FileReader = new FileReader();
     const blob: Blob = this.file.slice(this.offset, this.offset + length);
 

@@ -127,7 +127,7 @@
         mat-raised-button
         color="primary"
         aria-label="upload icon button"
-        style="margin-right: 10px"
+        style="margin-right: 5px"
         (click)="selectTab('chat')"
         *ngIf="currentTab !== 'chat'"
       >
@@ -139,7 +139,7 @@
         mat-stroked-button
         color="primary"
         aria-label="upload icon button"
-        style="margin-right: 10px"
+        style="margin-right: 5px"
         *ngIf="currentTab === 'chat'"
       >
         <mat-icon style="margin-right: 5px">chat</mat-icon>
@@ -150,7 +150,7 @@
         mat-raised-button
         color="primary"
         aria-label="upload icon button"
-        style="margin-right: 10px"
+        style="margin-right: 5px"
         (click)="selectTab('file-upload')"
         *ngIf="currentTab !== 'file-upload'"
       >
@@ -162,7 +162,7 @@
         mat-stroked-button
         color="primary"
         aria-label="upload icon button"
-        style="margin-right: 10px"
+        style="margin-right: 5px"
         *ngIf="currentTab === 'file-upload'"
       >
         <mat-icon style="margin-right: 5px">cloud_upload</mat-icon>
@@ -173,7 +173,7 @@
         mat-raised-button
         color="primary"
         aria-label="upload icon button"
-        style="margin-right: 10px"
+        style="margin-right: 5px"
         (click)="selectTab('file-download')"
         *ngIf="currentTab !== 'file-download'"
       >
@@ -185,7 +185,7 @@
         mat-stroked-button
         color="primary"
         aria-label="upload icon button"
-        style="margin-right: 10px"
+        style="margin-right: 5px"
         *ngIf="currentTab === 'file-download'"
       >
         <mat-icon style="margin-right: 5px">cloud_download</mat-icon>
@@ -404,6 +404,9 @@
                   mat-icon-button
                   class="toolbar-icon"
                   *ngIf="fileContext.isComplete"
+                  (click)="
+                    downloadFile(userContextService.userToChat, fileContext.id)
+                  "
                 >
                   <mat-icon svgIcon="download_icon"></mat-icon>
                 </button>
@@ -412,6 +415,7 @@
                   mat-icon-button
                   class="toolbar-icon"
                   *ngIf="fileContext.isComplete"
+                  (click)="deleteFile(fileContext.id)"
                 >
                   <mat-icon svgIcon="bin_icon"></mat-icon>
                 </button>

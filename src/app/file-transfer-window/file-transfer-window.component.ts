@@ -1266,4 +1266,38 @@ export class FileTransferWindowComponent
       this.router.navigateByUrl("login");
     }
   }
+
+  /**
+   * download file using fileId
+   * @param username username of the user from whom file is received
+   * @param fileId
+   */
+  async downloadFile(username: string, fileId: string): Promise<void> {
+    try {
+      const fileBlob: Blob = new Blob(
+        this.fileSharingService.getReceivedFileData(fileId)
+      );
+      const url: string = window.URL.createObjectURL(fileBlob);
+      const downloadAnchor: HTMLAnchorElement =
+        this.renderer.createElement("a");
+      this.renderer.setProperty(downloadAnchor, "href", url);
+      this.renderer.setProperty(
+        downloadAnchor,
+        "download",
+        this.contextService.getFileContext(username).get(fileId).fileName
+      );
+      downloadAnchor.click();
+    } catch (e) {
+      LoggerUtil.logAny(
+        `error occured while downloading file with id: ${fileId}`
+      );
+      LoggerUtil.logAny(e);
+    }
+  }
+
+  /**
+   * delete file using fileId
+   * @param fileId
+   */
+  async deleteFile(fileId: string): Promise<void> {}
 }

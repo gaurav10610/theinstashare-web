@@ -299,8 +299,12 @@ export class CoreFileSharingService {
     });
   }
 
-  getReceivedData(fileId: string): ArrayBuffer[] {
+  getReceivedFileData(fileId: string): ArrayBuffer[] {
     return this.fileBuffer.get(fileId);
+  }
+
+  removeReceivedFiledData(fileId: string): void {
+    this.fileBuffer.delete(fileId);
   }
 
   /**

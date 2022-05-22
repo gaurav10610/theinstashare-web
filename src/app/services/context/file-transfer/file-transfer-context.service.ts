@@ -31,16 +31,6 @@ export class FileTransferContextService
   fileContext: Map<string, Map<string, TransferredFileContext>>;
 
   /**
-   *
-   *
-   * this will be used as buffer for received files in following manner
-   *
-   * 'fileId' -> [file chunks in form of array buffer]
-   *
-   */
-  fileBuffer: Map<string, ArrayBuffer[]>;
-
-  /**
    * this will keep track of the file which is currently being sent
    */
   currentSentFile: TransferredFileContext;
@@ -69,7 +59,6 @@ export class FileTransferContextService
   constructor(private userContextService: UserContextService) {
     this.messageContext = new Map();
     this.fileContext = new Map();
-    this.fileBuffer = new Map();
     this.fileQueues = new Map();
     this.userStatus = new Map();
     this.activeUsers = [];
