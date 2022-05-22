@@ -1,5 +1,5 @@
 export interface DashboardAppIconContext {
-    iconName: String; // application icon name
-    identifier: String; // unique application identifier
-    iconText: String; //text to display
+    iconName: string; // application icon name
+    identifier: string; // unique application identifier
+    iconText: string; //text to display
 }

@@ -97,7 +97,7 @@ export class AppConstants {
   // VIDEO channel constant
   public static VIDEO = "video";
 
-  public static GENERIC_FILE ="generic";
+  public static GENERIC_FILE = "generic";
 
   // AUDIO channel constant
   public static AUDIO = "audio";
@@ -267,7 +267,17 @@ export class AppConstants {
   public static SUPPORTED_AUDIO_FORMATS = ["mp3"];
 
   public static SUPPORTED_FILES = {
-    image: ["apng", "bmp", "gif", "x-icon", "jpeg", "png", "svg+xml", "webp"],
+    image: [
+      "apng",
+      "bmp",
+      "gif",
+      "x-icon",
+      "jpeg",
+      "png",
+      "svg+xml",
+      "webp",
+      "jpg",
+    ],
     video: ["mp4"],
     audio: ["mp3"],
     text: ["txt"],

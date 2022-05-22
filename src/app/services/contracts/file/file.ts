@@ -1,3 +1,4 @@
+import { CoreFileStreamer } from "../../file-sharing/CoreFileStreamer";
 import { MediaChannelType } from "../enum/MediaChannelType";
 
 export interface TransferredFileContext {
@@ -24,6 +25,7 @@ export interface FileSubmitContext {
   file: File;
   to: string; // username of the user to whom file needs to be sent
   channelToSendFile: string;
+  fileStreamer?: CoreFileStreamer;
 }
 
 export interface FileShareError {

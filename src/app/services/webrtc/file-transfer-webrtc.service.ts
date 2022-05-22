@@ -25,7 +25,7 @@ export class FileTransferService implements ComponentServiceSpec {
     image: "image_file_icon",
     video: "video_file_icon",
     audio: "audio_file_icon",
-    plain: "text_file_icon",
+    text: "text_file_icon",
     zip: "zip_file_icon",
   };
 
@@ -42,15 +42,12 @@ export class FileTransferService implements ComponentServiceSpec {
 
   /**
    * get appropriate icon for a file type
-   * @param fileType
+   * @param fileName name of the file
    * @returns
    */
-  getMappedFileIcon(fileType: string): string {
-    const fileExtension: string = fileType.split("/")[1];
-    console.log(fileType);
-    if (this.fileIconsMapping[fileExtension]) {
-      return this.fileIconsMapping[fileExtension];
-    }
+  getMappedFileIcon(fileName: string): string {
+    console.log(fileName)
+    const fileExtension: string = fileName.split('.').pop();
     let fileCategory: string = "generic";
 
     for (const knownCategory of Object.keys(AppConstants.SUPPORTED_FILES)) {

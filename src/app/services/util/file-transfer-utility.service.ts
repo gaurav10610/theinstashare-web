@@ -71,10 +71,10 @@ export class FileTransferUtilityService {
     const messages: any[] = this.fileTransferContextService.getMessageContext(
       ackMessage[AppConstants.USERNAME]
     );
-    for (let i = 0; i < messages.length; i++) {
-      if (messages[i].id === ackMessage.messageId) {
-        messages[i].status = ackMessage.status;
-        messages[i].time = new Date(ackMessage.time).toLocaleTimeString();
+    for (const message of messages) {
+      if (message.id === ackMessage.messageId) {
+        message.status = ackMessage.status;
+        message.time = new Date(ackMessage.time).toLocaleTimeString();
         break;
       }
     }

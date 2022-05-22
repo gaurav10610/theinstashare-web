@@ -1115,7 +1115,7 @@ export class FileTransferWindowComponent
           isPaused: false,
           size: fileMetadata.fileSize,
           icon: this.fileTransferService.getMappedFileIcon(
-            fileMetadata.fileType
+            fileMetadata.fileName
           ),
           isComplete: false,
         });
@@ -1201,7 +1201,7 @@ export class FileTransferWindowComponent
         from: this.userContextService.username,
         isPaused: false,
         size: file.size,
-        icon: this.fileTransferService.getMappedFileIcon(file.type),
+        icon: this.fileTransferService.getMappedFileIcon(file.name),
         isComplete: false,
       });
     }
