@@ -36,13 +36,6 @@ export class FileTransferContextService
   currentSentFile: TransferredFileContext;
 
   /**
-   * stores file queues(for uploaded files) in following manner
-   *
-   * 'username' -> [{ ..sent file context props }, { ..sent file context props }]
-   */
-  fileQueues: Map<string, QueueStorage<File>>;
-
-  /**
    * this contains list of all online users and their status mappings
    *
    * 'username1' -> true //online
@@ -59,7 +52,6 @@ export class FileTransferContextService
   constructor(private userContextService: UserContextService) {
     this.messageContext = new Map();
     this.fileContext = new Map();
-    this.fileQueues = new Map();
     this.userStatus = new Map();
     this.activeUsers = [];
 
@@ -67,20 +59,6 @@ export class FileTransferContextService
     this.bindingFlags = new Map();
     this.bindingFlags.set("showSidePanel", true);
     this.bindingFlags.set("showMessagePanel", true);
-  }
-
-  hasFileQueue(username: string): boolean {
-    return this.fileQueues.has(username);
-  }
-
-  initializeFileQueue(username: string): void {
-    if (!this.hasFileQueue(username)) {
-      this.fileQueues.set(username, new QueueStorage<File>());
-    }
-  }
-
-  getFileQueue(username: string): QueueStorage<File> {
-    return this.fileQueues.get(username);
   }
 
   hasFileContext(username: string): boolean {

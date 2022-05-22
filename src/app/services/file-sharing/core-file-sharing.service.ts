@@ -49,7 +49,7 @@ export class CoreFileSharingService {
   /**
    * trigger file sender job if it's not running already
    */
-  startSharing(): void {
+  async startSharing(): Promise<void> {
     if (!this.isSendingFiles) {
       LoggerUtil.logAny(`triggered the file sender job`);
       this.startSendingFiles();

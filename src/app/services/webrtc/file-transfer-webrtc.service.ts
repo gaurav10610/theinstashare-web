@@ -46,7 +46,6 @@ export class FileTransferService implements ComponentServiceSpec {
    * @returns
    */
   getMappedFileIcon(fileName: string): string {
-    console.log(fileName)
     const fileExtension: string = fileName.split('.').pop();
     let fileCategory: string = "generic";
 

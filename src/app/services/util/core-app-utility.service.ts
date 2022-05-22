@@ -374,22 +374,4 @@ export class CoreAppUtilityService {
     }
     return buf;
   }
-
-  // /**
-  //  * convert an array buffer to string
-  //  * @param arrayBuffer
-  //  * @returns
-  //  */
-  // arrayBufferToString(arrayBuffer: ArrayBuffer): string {
-  //   return new TextDecoder("utf-8").decode(new Uint8Array(arrayBuffer));
-  // }
-
-  // /**
-  //  * convert string to unit-16 array buffer
-  //  * @param stringData
-  //  * @returns
-  //  */
-  // stringToArrayBuffer(stringData: string): ArrayBuffer {
-  //   return new TextEncoder().encode(stringData);
-  // }
 }

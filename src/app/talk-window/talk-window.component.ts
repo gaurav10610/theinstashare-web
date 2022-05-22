@@ -1476,47 +1476,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     this.renderer.selectRootElement("#file_input", true).click();
   }
 
-  async testFileStreamer(event: any) {
-    /**
-     * start iterating selected files
-     */
-    for (let i = 0; i < event.target.files.length; i++) {
-      // const contentType = await this.talkWindowUtilService.resolveFileType(event.target.files[i].type.split('/')[1]);
-      // LoggerUtil.log("reading file of type: " + contentType);
-
-      const fileStreamer: CoreFileStreamer = new CoreFileStreamer(
-        event.target.files[i],
-        16 * 1024
-      );
-      const dataArray: any[] = [];
-      while (!fileStreamer.isEndOfFile()) {
-        // const data: any = await fileStreamer.readBlockAsDataUrl();
-        // LoggerUtil.log(data.replace('data:application/octet-stream;base64,', ''));
-
-        const data: ArrayBuffer = await fileStreamer.readBlockAsArrayBuffer();
-        const dataChunk: any = {
-          buffer: data,
-        };
-        LoggerUtil.logAny(JSON.stringify(dataChunk));
-        dataArray.push(dataChunk);
-      }
-      LoggerUtil.logAny("Successfully read: " + event.target.files[i].name);
-      const newDataArray: ArrayBuffer[] = dataArray.map(
-        (chunk) => chunk.buffer
-      );
-      const fileData = new Blob(newDataArray);
-      const url = window.URL.createObjectURL(fileData);
-      const downloadAnchor = this.renderer.createElement("a");
-      this.renderer.setProperty(downloadAnchor, "href", url);
-      this.renderer.setProperty(
-        downloadAnchor,
-        "download",
-        event.target.files[i].name
-      );
-      downloadAnchor.click();
-    }
-  }
-
   /**
    * this will share the file over a data channel and then clean it
    * @param event event object

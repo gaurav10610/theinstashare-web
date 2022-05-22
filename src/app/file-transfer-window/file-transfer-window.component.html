@@ -58,14 +58,13 @@
             (click)="selectUser(username)"
           >
             <mat-icon
-              [color]="
-                userContextService.userToChat === username ? 'primary' : ''
-              "
+              svgIcon="{{
+                contextService.getUserStatus(username)
+                  ? 'user_online_icon'
+                  : 'user_offline_icon'
+              }}"
               matListIcon
             >
-              {{
-                contextService.getUserStatus(username) ? "person" : "person_off"
-              }}
             </mat-icon>
             <h3 matLine>{{ username }}</h3>
             <mat-chip-list
@@ -101,7 +100,11 @@
     <div id="file-transfer-div-header" class="dashboard-header text-center">
       <mat-toolbar color="primary">
         <button mat-icon-button aria-label="Example icon-button with menu icon">
-          <mat-icon>person</mat-icon>
+          <mat-icon>{{
+            contextService.getUserStatus(userContextService.userToChat)
+              ? "person"
+              : "person_off"
+          }}</mat-icon>
         </button>
         <span class="header-font">{{ userContextService.userToChat }}</span>
         <span class="toolbar-spacer"></span>
@@ -330,7 +333,10 @@
                   fileContext.fileName
                 }}</span>
               </div>
-              <div class="row-flex-display align-center">
+              <div
+                class="row-flex-display align-center"
+                style="margin-right: 10px"
+              >
                 <span class="header-font bold-text">Progress: </span>
                 <span class="header-font">{{ fileContext.progress }}%</span>
               </div>
@@ -339,6 +345,9 @@
                   mat-icon-button
                   class="toolbar-icon"
                   *ngIf="fileContext.isComplete"
+                  (click)="
+                    deleteFile(userContextService.userToChat, fileContext.id)
+                  "
                 >
                   <mat-icon svgIcon="bin_icon"></mat-icon>
                 </button>
@@ -395,7 +404,10 @@
                   fileContext.fileName
                 }}</span>
               </div>
-              <div class="row-flex-display align-center">
+              <div
+                class="row-flex-display align-center"
+                style="margin-right: 10px"
+              >
                 <span class="header-font bold-text">Progress: </span>
                 <span class="header-font">{{ fileContext.progress }}%</span>
               </div>
@@ -415,7 +427,9 @@
                   mat-icon-button
                   class="toolbar-icon"
                   *ngIf="fileContext.isComplete"
-                  (click)="deleteFile(fileContext.id)"
+                  (click)="
+                    deleteFile(userContextService.userToChat, fileContext.id)
+                  "
                 >
                   <mat-icon svgIcon="bin_icon"></mat-icon>
                 </button>

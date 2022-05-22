@@ -1,11 +1,4 @@
 import {
-  FileData,
-  FileFragmentType,
-  FileShareError,
-  FileShareProgress,
-} from "./../services/contracts/file/file";
-import { TransferredFileContext } from "../services/contracts/file/file";
-import {
   AfterViewInit,
   ApplicationRef,
   Component,
@@ -17,7 +10,9 @@ import {
   ViewChild,
 } from "@angular/core";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
+import { MatIconRegistry } from "@angular/material/icon";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { DomSanitizer } from "@angular/platform-browser";
 import { Router } from "@angular/router";
 import { GoogleAnalyticsService } from "ngx-google-analytics";
 import { firstValueFrom } from "rxjs";
@@ -36,16 +31,21 @@ import { DialogCloseResult } from "../services/contracts/dialog/DialogCloseResul
 import { DialogCloseResultType } from "../services/contracts/enum/DialogCloseResultType";
 import { DialogType } from "../services/contracts/enum/DialogType";
 import { ConnectionStateChangeContext } from "../services/contracts/event/ConnectionStateChangeContext";
+import { TransferredFileContext } from "../services/contracts/file/file";
 import { CoreDataChannelService } from "../services/data-channel/core-data-channel.service";
+import { CoreFileSharingService } from "../services/file-sharing/core-file-sharing.service";
 import { LoggerUtil } from "../services/logging/LoggerUtil";
 import { SignalingService } from "../services/signaling/signaling.service";
 import { CoreAppUtilityService } from "../services/util/core-app-utility.service";
 import { FileTransferUtilityService } from "../services/util/file-transfer-utility.service";
 import { CoreWebrtcService } from "../services/webrtc/core-webrtc.service";
 import { FileTransferService } from "../services/webrtc/file-transfer-webrtc.service";
-import { CoreFileSharingService } from "../services/file-sharing/core-file-sharing.service";
-import { MatIconRegistry } from "@angular/material/icon";
-import { DomSanitizer } from "@angular/platform-browser";
+import {
+  FileData,
+  FileFragmentType,
+  FileShareError,
+  FileShareProgress,
+} from "./../services/contracts/file/file";
 
 @Component({
   selector: "app-file-transfer-window",
@@ -169,6 +169,18 @@ export class FileTransferWindowComponent
       "bin_icon",
       this.domSanitizer.bypassSecurityTrustResourceUrl(
         this.assetsPath + this.iconsPath + "bin.svg"
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      "user_online_icon",
+      this.domSanitizer.bypassSecurityTrustResourceUrl(
+        this.assetsPath + this.iconsPath + "user-online.svg"
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      "user_offline_icon",
+      this.domSanitizer.bypassSecurityTrustResourceUrl(
+        this.assetsPath + this.iconsPath + "user-offline.svg"
       )
     );
   }
@@ -517,10 +529,7 @@ export class FileTransferWindowComponent
   async selectTab(selectedTab: string): Promise<void> {
     this.currentTab = selectedTab;
     const userToChat: string = this.userContextService.userToChat;
-    if (
-      selectedTab === "chat" &&
-      this.userContextService.hasUserWebrtcContext(userToChat)
-    ) {
+    if (this.userContextService.hasUserWebrtcContext(userToChat)) {
       this.userContextService.getUserWebrtcContext(userToChat).unreadCount = 0;
     }
   }
@@ -878,7 +887,7 @@ export class FileTransferWindowComponent
       let isUserVisibleInViewport: any =
         await this.utilityService.isElementInViewport(listElement);
       if (!isUserVisibleInViewport) {
-        LoggerUtil.logString(
+        LoggerUtil.logAny(
           `user ${messageContext.username} is not visible in viewport`
         );
         this.coreAppUtilService.updateElemntPositionInArray(
@@ -1119,6 +1128,11 @@ export class FileTransferWindowComponent
           ),
           isComplete: false,
         });
+        if (this.userContextService.userToChat !== fileMetadata.from) {
+          this.userContextService.getUserWebrtcContext(fileMetadata.from)
+            .unreadCount++;
+          this.playIncomeingMessageTune(true);
+        }
         break;
 
       /**
@@ -1156,7 +1170,6 @@ export class FileTransferWindowComponent
       this.userContextService.getUserWebrtcContext(userToChat);
 
     // initialize required context for file transfer
-    this.contextService.initializeFileQueue(userToChat);
     this.contextService.initializeFileContext(userToChat);
 
     const fileContext: Map<string, TransferredFileContext> =
@@ -1205,7 +1218,6 @@ export class FileTransferWindowComponent
         isComplete: false,
       });
     }
-    LoggerUtil.logAny(fileContext);
 
     if (
       this.coreAppUtilService.isDataChannelConnected(
@@ -1246,6 +1258,7 @@ export class FileTransferWindowComponent
         this.fileTransferService.setUpDataChannel(createDataChannelType);
       }
     }
+    event.target.value = null;
   }
 
   async logout(): Promise<void> {
@@ -1297,7 +1310,11 @@ export class FileTransferWindowComponent
 
   /**
    * delete file using fileId
+   * @param username username of the user with whom file has been shared
    * @param fileId
    */
-  async deleteFile(fileId: string): Promise<void> {}
+  async deleteFile(username: string, fileId: string): Promise<void> {
+    this.contextService.getFileContext(username).delete(fileId);
+    this.fileSharingService.removeReceivedFiledData(fileId);
+  }
 }
