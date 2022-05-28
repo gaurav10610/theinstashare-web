@@ -305,7 +305,7 @@
         id="file-input"
         type="file"
         style="display: none"
-        (change)="startSharingFile($event)"
+        (change)="sendFiles($event)"
         multiple
       />
 
@@ -375,6 +375,12 @@
                   mat-icon-button
                   class="toolbar-icon"
                   *ngIf="fileContext.isResendEnable"
+                  (click)="
+                    retrySharingFiles(
+                      userContextService.userToChat,
+                      fileContext.id
+                    )
+                  "
                 >
                   <mat-icon svgIcon="refresh_icon"></mat-icon>
                 </button>

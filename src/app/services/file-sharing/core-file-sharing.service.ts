@@ -62,7 +62,7 @@ export class CoreFileSharingService {
       this.fileSenderTracker.has(username) &&
       !this.fileSenderTracker.get(username)
     ) {
-      LoggerUtil.logAny(`triggered the file sender job`);
+      LoggerUtil.logAny(`triggered the file sender job for ${username}`);
       this.startSendingFiles(username);
     }
   }
@@ -110,6 +110,7 @@ export class CoreFileSharingService {
           errorCode: FileSendErrorType.CHANNEL_NOT_OPEN,
           error: e,
         });
+        this.fileSenderTracker.set(username, false);
         return;
       }
 
@@ -233,6 +234,7 @@ export class CoreFileSharingService {
           to: submittedFile.to,
           error: e,
         });
+        this.fileSenderTracker.set(username, false);
         return;
       }
       fileQueue.dequeue();

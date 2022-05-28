@@ -1099,14 +1099,29 @@ export class FileTransferWindowComponent
   }
 
   /**
+   * retry sharing files with specified user
+   * @param username
+   */
+  async retrySharingFiles(username: string, fileId?: string): Promise<void> {
+    LoggerUtil.logAny(`retrying sending files with ${username}`);
+    if (fileId) {
+      const transferredFile: TransferredFileContext = this.contextService
+        .getFileContext(username)
+        .get(fileId);
+      transferredFile.error = false;
+      transferredFile.isResendEnable = false;
+    }
+    // trigger file sending flow
+    this.startSendingFiles(username);
+  }
+
+  /**
    * start sharing selected files
    * @event change event object
    */
-  async startSharingFile(event: any): Promise<void> {
+  async sendFiles(event: any): Promise<void> {
     const userToChat: string = this.userContextService.userToChat;
     this.userContextService.initializeUserWebrtcContext(userToChat);
-    const webrtcContext: any =
-      this.userContextService.getUserWebrtcContext(userToChat);
 
     // initialize required context for file transfer
     this.contextService.initializeFileContext(userToChat);
@@ -1159,7 +1174,17 @@ export class FileTransferWindowComponent
         isResendEnable: false,
       });
     }
+    this.startSendingFiles(userToChat);
+    event.target.value = null;
+  }
 
+  /**
+   * start sharing files with the specified user
+   * @param username
+   */
+  async startSendingFiles(username: string): Promise<void> {
+    const webrtcContext: any =
+      this.userContextService.getUserWebrtcContext(username);
     if (
       this.coreAppUtilService.isDataChannelConnected(
         webrtcContext,
@@ -1170,10 +1195,10 @@ export class FileTransferWindowComponent
       /**
        *  trigger file sender job
        */
-      this.fileSharingService.startSharing(userToChat);
+      this.fileSharingService.startSharing(username);
     } else {
       LoggerUtil.logAny(
-        `file data channel is not in open state for user: ${userToChat}`
+        `file data channel is not in open state for user: ${username}`
       );
 
       if (
@@ -1191,7 +1216,7 @@ export class FileTransferWindowComponent
          */
       } else {
         const createDataChannelType: CreateDataChannelType = {
-          username: userToChat,
+          username,
           channel: AppConstants.FILE,
         };
 
@@ -1199,7 +1224,6 @@ export class FileTransferWindowComponent
         this.fileTransferService.setUpDataChannel(createDataChannelType);
       }
     }
-    event.target.value = null;
   }
 
   async logout(): Promise<void> {
