@@ -61,6 +61,16 @@ export class UserContextService {
   }
 
   /**
+   * get user's webrtc connection
+   * @param username
+   */
+  getUserConnection(username: string): RTCPeerConnection {
+    return this.webrtcContext.hasOwnProperty(username)
+      ? this.webrtcContext[username][AppConstants.CONNECTION]
+      : undefined;
+  }
+
+  /**
    * This will set the userContext
    * @param username: username of the user
    * @param context: user context to set

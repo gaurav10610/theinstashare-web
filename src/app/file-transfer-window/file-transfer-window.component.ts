@@ -10,9 +10,7 @@ import {
   ViewChild,
 } from "@angular/core";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
-import { MatIconRegistry } from "@angular/material/icon";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { DomSanitizer } from "@angular/platform-browser";
 import { Router } from "@angular/router";
 import { GoogleAnalyticsService } from "ngx-google-analytics";
 import { firstValueFrom } from "rxjs";
@@ -72,9 +70,7 @@ export class FileTransferWindowComponent
     private gaService: GoogleAnalyticsService,
     private applicationRef: ApplicationRef,
     private renderer: Renderer2,
-    private zoneRef: NgZone,
-    private matIconRegistry: MatIconRegistry,
-    private domSanitizer: DomSanitizer
+    private zoneRef: NgZone
   ) {}
 
   @ViewChild("textMessage", { static: false }) messageInput: ElementRef;
@@ -85,8 +81,6 @@ export class FileTransferWindowComponent
 
   //assets path
   assetsPath = environment.is_native_app ? "assets/" : "../../assets/";
-
-  iconsPath = "images/icons/";
 
   currentTab: String = "file-upload"; // or 'chat'
 
@@ -114,74 +108,6 @@ export class FileTransferWindowComponent
     );
     this.fileSharingService.onFileMetadata.subscribe(
       this.handleFileMetaData.bind(this)
-    );
-
-    // adding svg icons
-    this.matIconRegistry.addSvgIcon(
-      "generic_file_icon",
-      this.domSanitizer.bypassSecurityTrustResourceUrl(
-        this.assetsPath + this.iconsPath + "generic-file.svg"
-      )
-    );
-    this.matIconRegistry.addSvgIcon(
-      "audio_file_icon",
-      this.domSanitizer.bypassSecurityTrustResourceUrl(
-        this.assetsPath + this.iconsPath + "audio-file.svg"
-      )
-    );
-    this.matIconRegistry.addSvgIcon(
-      "video_file_icon",
-      this.domSanitizer.bypassSecurityTrustResourceUrl(
-        this.assetsPath + this.iconsPath + "video-file.svg"
-      )
-    );
-    this.matIconRegistry.addSvgIcon(
-      "text_file_icon",
-      this.domSanitizer.bypassSecurityTrustResourceUrl(
-        this.assetsPath + this.iconsPath + "text-file.svg"
-      )
-    );
-    this.matIconRegistry.addSvgIcon(
-      "zip_file_icon",
-      this.domSanitizer.bypassSecurityTrustResourceUrl(
-        this.assetsPath + this.iconsPath + "zip-file.svg"
-      )
-    );
-    this.matIconRegistry.addSvgIcon(
-      "image_file_icon",
-      this.domSanitizer.bypassSecurityTrustResourceUrl(
-        this.assetsPath + this.iconsPath + "image-file.svg"
-      )
-    );
-    this.matIconRegistry.addSvgIcon(
-      "pdf_file_icon",
-      this.domSanitizer.bypassSecurityTrustResourceUrl(
-        this.assetsPath + this.iconsPath + "pdf-file.svg"
-      )
-    );
-    this.matIconRegistry.addSvgIcon(
-      "download_icon",
-      this.domSanitizer.bypassSecurityTrustResourceUrl(
-        this.assetsPath + this.iconsPath + "download.svg"
-      )
-    );
-    this.matIconRegistry.addSvgIcon(
-      "bin_icon",
-      this.domSanitizer.bypassSecurityTrustResourceUrl(
-        this.assetsPath + this.iconsPath + "bin.svg"
-      )
-    );
-    this.matIconRegistry.addSvgIcon(
-      "user_online_icon",
-      this.domSanitizer.bypassSecurityTrustResourceUrl(
-        this.assetsPath + this.iconsPath + "user-online.svg"
-      )
-    );
-    this.matIconRegistry.addSvgIcon(
-      "user_offline_icon",
-      this.domSanitizer.bypassSecurityTrustResourceUrl(
-        this.assetsPath + this.iconsPath + "user-offline.svg"
-      )
     );
   }
 
@@ -512,9 +438,7 @@ export class FileTransferWindowComponent
 
   /**
    * close currently open dialog with appropriate data
-   *
    * @param data data to be passed to close handler
-   *
    */
   async closeDialog(data = {}): Promise<void> {
     if (this.dialogRef) {
@@ -572,40 +496,36 @@ export class FileTransferWindowComponent
           signalingMessage.from
         );
         const peerConnection: RTCPeerConnection =
-          this.userContextService.getUserWebrtcContext(signalingMessage.from)[
-            AppConstants.CONNECTION
-          ];
+          this.userContextService.getUserConnection(signalingMessage.from);
 
-        if (!signalingMessage.seekReturnTracks) {
-          /**
-           * handle the received webrtc offer 'sdp', set the remote description and
-           * generate the answer sebsequently for sending it to the other user
-           *
-           * 'answerContainer' will contain the generated answer sdp and few other
-           * properties which app utilizes to compose an answer signaling message
-           * to be sent to other user
-           *
-           */
-          const answerContainer: any =
-            await this.coreWebrtcService.generateAnswer(
-              peerConnection,
-              signalingMessage.offer,
-              signalingMessage.channel
-            );
+        /**
+         * handle the received webrtc offer 'sdp', set the remote description and
+         * generate the answer sebsequently for sending it to the other user
+         *
+         * 'answerContainer' will contain the generated answer sdp and few other
+         * properties which app utilizes to compose an answer signaling message
+         * to be sent to other user
+         *
+         */
+        const answerContainer: any =
+          await this.coreWebrtcService.generateAnswer(
+            peerConnection,
+            signalingMessage.offer,
+            signalingMessage.channel
+          );
 
-          /**
-           * send the composed 'answer' signaling message to the other user from whom
-           * we've received the offer message
-           *
-           */
-          this.coreDataChannelService.sendPayload({
-            type: AppConstants.ANSWER,
-            answer: answerContainer.answerPayload.answer,
-            channel: answerContainer.answerPayload.channel,
-            from: this.userContextService.username,
-            to: signalingMessage.from,
-          });
-        }
+        /**
+         * send the composed 'answer' signaling message to the other user from whom
+         * we've received the offer message
+         *
+         */
+        this.coreDataChannelService.sendPayload({
+          type: AppConstants.ANSWER,
+          answer: answerContainer.answerPayload.answer,
+          channel: answerContainer.answerPayload.channel,
+          from: this.userContextService.username,
+          to: signalingMessage.from,
+        });
       } else {
         /**
          *
