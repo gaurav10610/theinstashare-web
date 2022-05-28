@@ -18,6 +18,8 @@ export interface TransferredFileContext {
   size: number;
   icon: string;
   isComplete: boolean; // specifies if download/upload is completed
+  error: boolean;
+  isResendEnable: boolean;
 }
 
 export interface FileSubmitContext {
@@ -29,7 +31,7 @@ export interface FileSubmitContext {
 }
 
 export interface FileShareError {
-  currentFileId: string;
+  fileId: string;
   to: string; // username of the user to whom file needs to be sent
   errorCode: FileSendErrorType;
   error: any;

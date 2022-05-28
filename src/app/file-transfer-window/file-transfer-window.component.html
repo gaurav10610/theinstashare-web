@@ -31,12 +31,12 @@
     </div>
 
     <!-- tab icons header -->
-    <div class="row-flex-display icons-header border-bottom">
-      <div class="flex-grow-full text-center">
+    <div class="row-flex-display border-bottom">
+      <div class="flex-grow-full row-flex-display align-center center-content">
         <span class="header-font">Contacts</span>
       </div>
 
-      <div style="margin: 10px" [ngClass]="{ 'pointer-cursor': true }">
+      <div style="margin: 10px" class="pointer-cursor">
         <mat-icon matListIcon>person_add</mat-icon>
       </div>
     </div>
@@ -122,10 +122,7 @@
     </div>
 
     <!-- tab control buttons -->
-    <div
-      id="tab-controls"
-      class="row-flex-display icons-header tab-contols-class"
-    >
+    <div id="tab-controls" class="row-flex-display tab-contols-class">
       <button
         mat-raised-button
         color="primary"
@@ -321,9 +318,10 @@
           )
         "
       >
-        <mat-card>
+        <mat-card style="margin: 5px">
           <mat-card-content>
             <div class="row-flex-display">
+              <!-- file icon & file name -->
               <div class="row-flex-display flex-grow-full align-center">
                 <button mat-icon-button class="toolbar-icon">
                   <mat-icon svgIcon="{{ fileContext.icon }}"></mat-icon>
@@ -333,14 +331,54 @@
                   fileContext.fileName
                 }}</span>
               </div>
+
+              <!-- file progress -->
               <div
                 class="row-flex-display align-center"
                 style="margin-right: 10px"
               >
-                <span class="header-font bold-text">Progress: </span>
-                <span class="header-font">{{ fileContext.progress }}%</span>
+                <span
+                  class="header-font bold-text"
+                  *ngIf="fileContext.progress === 0"
+                  >Queued
+                </span>
+                <span
+                  class="header-font bold-text"
+                  *ngIf="fileContext.progress !== 0"
+                  >Progress:
+                </span>
+                <span class="header-font" *ngIf="fileContext.progress !== 0"
+                  >{{ fileContext.progress }}%</span
+                >
               </div>
+
+              <!-- file action icons -->
               <div class="row-flex-display align-center">
+                <mat-progress-spinner
+                  mode="determinate"
+                  [value]="fileContext.progress"
+                  diameter="24"
+                  class="toolbar-icon"
+                >
+                </mat-progress-spinner>
+
+                <button
+                  mat-icon-button
+                  class="toolbar-icon"
+                  *ngIf="fileContext.error"
+                  title="connection error!"
+                >
+                  <mat-icon svgIcon="error_icon"></mat-icon>
+                </button>
+
+                <button
+                  mat-icon-button
+                  class="toolbar-icon"
+                  *ngIf="fileContext.isResendEnable"
+                >
+                  <mat-icon svgIcon="refresh_icon"></mat-icon>
+                </button>
+
                 <button
                   mat-icon-button
                   class="toolbar-icon"
@@ -395,6 +433,7 @@
         <mat-card>
           <mat-card-content>
             <div class="row-flex-display">
+              <!-- file icon & file name -->
               <div class="row-flex-display flex-grow-full align-center">
                 <button mat-icon-button class="toolbar-icon">
                   <mat-icon svgIcon="{{ fileContext.icon }}"></mat-icon>
@@ -404,6 +443,8 @@
                   fileContext.fileName
                 }}</span>
               </div>
+
+              <!-- file progress -->
               <div
                 class="row-flex-display align-center"
                 style="margin-right: 10px"
@@ -411,7 +452,25 @@
                 <span class="header-font bold-text">Progress: </span>
                 <span class="header-font">{{ fileContext.progress }}%</span>
               </div>
+
+              <!-- file action icons -->
               <div class="row-flex-display align-center">
+                <mat-progress-spinner
+                  mode="determinate"
+                  [value]="fileContext.progress"
+                  diameter="24"
+                >
+                </mat-progress-spinner>
+
+                <button
+                  mat-icon-button
+                  class="toolbar-icon"
+                  *ngIf="fileContext.error"
+                  title="connection error!"
+                >
+                  <mat-icon svgIcon="error_icon"></mat-icon>
+                </button>
+
                 <button
                   mat-icon-button
                   class="toolbar-icon"

@@ -46,7 +46,7 @@ export class FileTransferService implements ComponentServiceSpec {
    * @returns
    */
   getMappedFileIcon(fileName: string): string {
-    const fileExtension: string = fileName.split('.').pop();
+    const fileExtension: string = fileName.split(".").pop();
     let fileCategory: string = "generic";
 
     for (const knownCategory of Object.keys(AppConstants.SUPPORTED_FILES)) {
@@ -89,15 +89,10 @@ export class FileTransferService implements ComponentServiceSpec {
       LoggerUtil.logAny(
         `${username} webrtc connection state change: ${peerConnection.connectionState}`
       );
-      if (
-        peerConnection.connectionState === "connected" ||
-        peerConnection.connectionState === "disconnected"
-      ) {
-        this.onWebrtcConnectionStateChangeEvent.emit({
-          connectionState: peerConnection.connectionState,
-          username,
-        });
-      }
+      this.onWebrtcConnectionStateChangeEvent.emit({
+        connectionState: peerConnection.connectionState,
+        username,
+      });
     };
 
     /**

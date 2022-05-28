@@ -254,9 +254,7 @@ export class FileTransferWindowComponent
   async onRouterMessage(signalingMessage: any): Promise<void> {
     try {
       LoggerUtil.logAny(
-        `received message via ${signalingMessage.via} ${JSON.stringify(
-          signalingMessage
-        )}`
+        `received message via ${signalingMessage.via} of type: ${signalingMessage.type}`
       );
       switch (signalingMessage.type) {
         case AppConstants.REGISTER:
@@ -693,28 +691,28 @@ export class FileTransferWindowComponent
   async onWebrtcConnectionStateChange(
     stateChangeContext: ConnectionStateChangeContext
   ): Promise<void> {
-    const webrtcContext: any = this.userContextService.getUserWebrtcContext(
-      stateChangeContext.username
-    );
-    switch (stateChangeContext.connectionState) {
-      case "disconnected":
-        // handle the webrtc disconnection here
-        await this.webrtcConnectionDisconnectHandler(
-          stateChangeContext.username
-        );
-        break;
+    this.zoneRef.run(async () => {
+      const webrtcContext: any = this.userContextService.getUserWebrtcContext(
+        stateChangeContext.username
+      );
+      switch (stateChangeContext.connectionState) {
+        case "disconnected":
+          // handle the webrtc disconnection here
+          await this.handleWebrtcDisconnect(stateChangeContext.username);
+          break;
 
-      case "connected":
-        /**
-         * make the connection status as 'connected' in the user's webrtc context
-         */
-        webrtcContext[AppConstants.CONNECTION_STATE] =
-          AppConstants.CONNECTION_STATES.CONNECTED;
-        break;
-    }
+        case "connected":
+          /**
+           * make the connection status as 'connected' in the user's webrtc context
+           */
+          webrtcContext[AppConstants.CONNECTION_STATE] =
+            AppConstants.CONNECTION_STATES.CONNECTED;
+          break;
+      }
+    });
   }
 
-  async webrtcConnectionDisconnectHandler(username: string): Promise<void> {
+  async handleWebrtcDisconnect(username: string): Promise<void> {
     LoggerUtil.logAny(`handling webrtc connection disconnect for ${username}`);
     const webrtcContext: any =
       this.userContextService.getUserWebrtcContext(username);
@@ -749,6 +747,28 @@ export class FileTransferWindowComponent
     webrtcContext[AppConstants.CONNECTION] = undefined;
     webrtcContext[AppConstants.CONNECTION_STATE] =
       AppConstants.CONNECTION_STATES.NOT_CONNECTED;
+
+    /**
+     * mark files with error or isResendEnable
+     *
+     * 'error' & 'isResendEnable' flags in file context are being used to
+     * compose appropriate view for user on connection disconnect
+     */
+    const fileContext: Map<string, TransferredFileContext> =
+      this.contextService.getFileContext(username);
+    if (fileContext && fileContext.size > 0) {
+      for (const file of fileContext.values()) {
+        if (file.isSent) {
+          if (file.error) {
+            file.isResendEnable = true;
+          }
+        } else {
+          if (!file.isComplete) {
+            file.error = true;
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -972,7 +992,7 @@ export class FileTransferWindowComponent
 
           // handle file datachannel open processing
           case AppConstants.FILE:
-            this.fileSharingService.startSharing();
+            this.fileSharingService.startSharing(signalingMessage.from);
             break;
           default:
           //do nothing here
@@ -987,9 +1007,6 @@ export class FileTransferWindowComponent
   async handleFileProgress(
     fileShareProgressEvent: FileShareProgress
   ): Promise<void> {
-    // LoggerUtil.logAny(
-    //   `file progress event => (id: ${fileShareProgressEvent.id}, progress: ${fileShareProgressEvent.progress}, fragmentOffset: ${fileShareProgressEvent.fragmentOffset} )`
-    // );
     const fileContext: TransferredFileContext = this.contextService
       .getFileContext(fileShareProgressEvent.username)
       .get(fileShareProgressEvent.id);
@@ -1000,15 +1017,15 @@ export class FileTransferWindowComponent
 
   /**
    * handle file share error event from file sharing service
-   * @param fileShareErrorEvent
+   * @param errorData
    */
-  async handleFileShareError(
-    fileShareErrorEvent: FileShareError
-  ): Promise<void> {
+  async handleFileShareError(errorData: FileShareError): Promise<void> {
     LoggerUtil.logAny(
-      `error occured while sending file to: ${fileShareErrorEvent.to} with error code: ${fileShareErrorEvent.errorCode}`
+      `error occured while sending file with id: ${errorData.fileId} with error code: ${errorData.errorCode}`
     );
-    LoggerUtil.logAny(fileShareErrorEvent.error);
+    this.contextService
+      .getFileContext(errorData.to)
+      .get(errorData.fileId).error = true;
   }
 
   /**
@@ -1047,6 +1064,8 @@ export class FileTransferWindowComponent
             fileMetadata.fileName
           ),
           isComplete: false,
+          error: false,
+          isResendEnable: false,
         });
         if (this.userContextService.userToChat !== fileMetadata.from) {
           this.userContextService.getUserWebrtcContext(fileMetadata.from)
@@ -1111,7 +1130,7 @@ export class FileTransferWindowComponent
        * 'onFileProgress' event from file sharing service
        *
        */
-      this.fileSharingService.submitFileToSend({
+      await this.fileSharingService.submitFileToSend({
         id: uniqueFileId,
         channelToSendFile: AppConstants.FILE,
         file,
@@ -1136,6 +1155,8 @@ export class FileTransferWindowComponent
         size: file.size,
         icon: this.fileTransferService.getMappedFileIcon(file.name),
         isComplete: false,
+        error: false,
+        isResendEnable: false,
       });
     }
 
@@ -1149,7 +1170,7 @@ export class FileTransferWindowComponent
       /**
        *  trigger file sender job
        */
-      this.fileSharingService.startSharing();
+      this.fileSharingService.startSharing(userToChat);
     } else {
       LoggerUtil.logAny(
         `file data channel is not in open state for user: ${userToChat}`

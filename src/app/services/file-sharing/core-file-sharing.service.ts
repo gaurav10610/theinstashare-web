@@ -23,8 +23,8 @@ export class CoreFileSharingService {
   onFileProgress: EventEmitter<FileShareProgress>;
   onFileMetadata: EventEmitter<FileData>;
 
-  private isSendingFiles: boolean;
-  private fileSendQueue: QueueStorage<FileSubmitContext>;
+  private fileSenderTracker: Map<string, boolean>;
+  private fileSendQueue: Map<string, QueueStorage<FileSubmitContext>>;
   private fileBuffer: Map<string, ArrayBuffer[]>;
 
   public static MAX_FILE_CHUNK_SIZE = 16 * 1024;
@@ -37,39 +37,54 @@ export class CoreFileSharingService {
     this.onFileShareError = new EventEmitter(true);
     this.onFileProgress = new EventEmitter(true);
     this.onFileMetadata = new EventEmitter(true);
-    this.isSendingFiles = false;
-    this.fileSendQueue = new QueueStorage<FileSubmitContext>();
+    this.fileSenderTracker = new Map();
+    this.fileSendQueue = new Map();
     this.fileBuffer = new Map();
   }
 
-  submitFileToSend(fileToSend: FileSubmitContext): void {
-    this.fileSendQueue.enqueue(fileToSend);
+  async submitFileToSend(fileToSend: FileSubmitContext): Promise<void> {
+    if (!this.fileSendQueue.has(fileToSend.to)) {
+      this.fileSendQueue.set(
+        fileToSend.to,
+        new QueueStorage<FileSubmitContext>()
+      );
+      this.fileSenderTracker.set(fileToSend.to, false);
+    }
+    this.fileSendQueue.get(fileToSend.to).enqueue(fileToSend);
   }
 
   /**
    * trigger file sender job if it's not running already
+   * @param username
    */
-  async startSharing(): Promise<void> {
-    if (!this.isSendingFiles) {
+  async startSharing(username: string): Promise<void> {
+    if (
+      this.fileSenderTracker.has(username) &&
+      !this.fileSenderTracker.get(username)
+    ) {
       LoggerUtil.logAny(`triggered the file sender job`);
-      this.startSendingFiles();
+      this.startSendingFiles(username);
     }
   }
 
   /**
-   * send all the queued file
+   * send all the queued file to the specified user
+   * @param username
    */
-  private async startSendingFiles(): Promise<void> {
+  private async startSendingFiles(username: string): Promise<void> {
     /**
-     * set this to specify that file sender job is currenly running
+     * set this to specify that file sender job is currenly running for specified user
      */
-    this.isSendingFiles = true;
+    this.fileSenderTracker.set(username, true);
+
+    const fileQueue: QueueStorage<FileSubmitContext> =
+      this.fileSendQueue.get(username);
 
     /**
      * start iterating the files queue and start sending files one by one
      */
-    while (!this.fileSendQueue.isEmpty()) {
-      const submittedFile: FileSubmitContext = this.fileSendQueue.front();
+    while (!fileQueue.isEmpty()) {
+      const submittedFile: FileSubmitContext = fileQueue.front();
       let dataChannel: RTCDataChannel;
       try {
         dataChannel = this.userContextService.getUserWebrtcContext(
@@ -90,7 +105,7 @@ export class CoreFileSharingService {
          * emit a file share error if there is no open data channel found with user
          */
         this.onFileShareError.emit({
-          currentFileId: submittedFile.id,
+          fileId: submittedFile.id,
           to: submittedFile.to,
           errorCode: FileSendErrorType.CHANNEL_NOT_OPEN,
           error: e,
@@ -213,19 +228,19 @@ export class CoreFileSharingService {
          * throw error if not able to send the file
          */
         this.onFileShareError.emit({
-          currentFileId: submittedFile.id,
+          fileId: submittedFile.id,
           errorCode: FileSendErrorType.GENERIC_ERROR,
           to: submittedFile.to,
           error: e,
         });
         return;
       }
-      this.fileSendQueue.dequeue();
+      fileQueue.dequeue();
     }
-    if (this.fileSendQueue.isEmpty()) {
-      this.isSendingFiles = false;
+    if (fileQueue.isEmpty()) {
+      this.fileSenderTracker.set(username, false);
     } else {
-      this.startSendingFiles();
+      this.startSendingFiles(username);
     }
   }
 
