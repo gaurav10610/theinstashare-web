@@ -96,7 +96,7 @@
       display: userContextService.userToChat !== undefined ? 'flex' : 'none'
     }"
   >
-    <!-- header -->
+    <!-- file transfer div header -->
     <div id="file-transfer-div-header" class="dashboard-header text-center">
       <mat-toolbar color="primary">
         <button mat-icon-button aria-label="Example icon-button with menu icon">
@@ -127,7 +127,7 @@
         mat-raised-button
         color="primary"
         aria-label="upload icon button"
-        style="margin-right: 5px"
+        class="tab-icon-button"
         (click)="selectTab('chat')"
         *ngIf="currentTab !== 'chat'"
       >
@@ -139,7 +139,7 @@
         mat-stroked-button
         color="primary"
         aria-label="upload icon button"
-        style="margin-right: 5px"
+        class="tab-icon-button"
         *ngIf="currentTab === 'chat'"
       >
         <mat-icon style="margin-right: 5px">chat</mat-icon>
@@ -150,7 +150,7 @@
         mat-raised-button
         color="primary"
         aria-label="upload icon button"
-        style="margin-right: 5px"
+        class="tab-icon-button"
         (click)="selectTab('file-upload')"
         *ngIf="currentTab !== 'file-upload'"
       >
@@ -162,7 +162,7 @@
         mat-stroked-button
         color="primary"
         aria-label="upload icon button"
-        style="margin-right: 5px"
+        class="tab-icon-button"
         *ngIf="currentTab === 'file-upload'"
       >
         <mat-icon style="margin-right: 5px">cloud_upload</mat-icon>
@@ -173,7 +173,7 @@
         mat-raised-button
         color="primary"
         aria-label="upload icon button"
-        style="margin-right: 5px"
+        class="tab-icon-button"
         (click)="selectTab('file-download')"
         *ngIf="currentTab !== 'file-download'"
       >
@@ -185,7 +185,7 @@
         mat-stroked-button
         color="primary"
         aria-label="upload icon button"
-        style="margin-right: 5px"
+        class="tab-icon-button"
         *ngIf="currentTab === 'file-download'"
       >
         <mat-icon style="margin-right: 5px">cloud_download</mat-icon>
@@ -320,28 +320,43 @@
       >
         <mat-card style="margin: 5px">
           <mat-card-content>
-            <div class="row-flex-display">
-              <!-- file icon & file name -->
-              <div class="row-flex-display flex-grow-full align-center">
+            <div class="row-flex-display space-between-content">
+              <!-- file icon -->
+              <div>
                 <button mat-icon-button class="toolbar-icon">
                   <mat-icon svgIcon="{{ fileContext.icon }}"></mat-icon>
                 </button>
+              </div>
 
-                <span class="header-font bold-text">{{
-                  fileContext.fileName
-                }}</span>
+              <!-- file name -->
+              <div
+                class="row-flex-display flex-grow-full align-center hide-horizontal-overflow"
+              >
+                <span
+                  class="header-font bold-text"
+                  style="white-space: nowrap"
+                  >{{ fileContext.fileName }}</span
+                >
+              </div>
+
+              <!-- queued text for upload -->
+              <div
+                class="row-flex-display align-center"
+                style="margin-right: 5px"
+              >
+                <span
+                  class="header-font bold-text color-indigo"
+                  style="margin-left: 5px"
+                  *ngIf="fileContext.progress === 0"
+                  >Queued
+                </span>
               </div>
 
               <!-- file progress -->
               <div
                 class="row-flex-display align-center"
-                style="margin-right: 10px"
+                *ngIf="!userContextService.isMobile"
               >
-                <span
-                  class="header-font bold-text"
-                  *ngIf="fileContext.progress === 0"
-                  >Queued
-                </span>
                 <span
                   class="header-font bold-text"
                   *ngIf="fileContext.progress !== 0"
@@ -353,18 +368,19 @@
               </div>
 
               <!-- file action icons -->
-              <div class="row-flex-display align-center">
+              <div
+                class="row-flex-display align-center space-between-content"
+                style="margin-left: 5px"
+              >
                 <mat-progress-spinner
                   mode="determinate"
                   [value]="fileContext.progress"
                   diameter="24"
-                  class="toolbar-icon"
                 >
                 </mat-progress-spinner>
 
                 <button
                   mat-icon-button
-                  class="toolbar-icon"
                   *ngIf="fileContext.error"
                   title="connection error!"
                 >
@@ -373,7 +389,6 @@
 
                 <button
                   mat-icon-button
-                  class="toolbar-icon"
                   *ngIf="fileContext.isResendEnable"
                   (click)="
                     retrySharingFiles(
@@ -387,7 +402,6 @@
 
                 <button
                   mat-icon-button
-                  class="toolbar-icon"
                   *ngIf="fileContext.isComplete"
                   (click)="
                     deleteFile(userContextService.userToChat, fileContext.id)
@@ -438,29 +452,39 @@
       >
         <mat-card>
           <mat-card-content>
-            <div class="row-flex-display">
-              <!-- file icon & file name -->
-              <div class="row-flex-display flex-grow-full align-center">
-                <button mat-icon-button class="toolbar-icon">
+            <div class="row-flex-display space-between-content">
+              <!-- file icon -->
+              <div>
+                <button mat-icon-button>
                   <mat-icon svgIcon="{{ fileContext.icon }}"></mat-icon>
                 </button>
+              </div>
 
-                <span class="header-font bold-text">{{
-                  fileContext.fileName
-                }}</span>
+              <!-- file name -->
+              <div
+                class="row-flex-display flex-grow-full align-center hide-horizontal-overflow"
+              >
+                <span
+                  class="header-font bold-text"
+                  style="white-space: nowrap"
+                  >{{ fileContext.fileName }}</span
+                >
               </div>
 
               <!-- file progress -->
               <div
                 class="row-flex-display align-center"
-                style="margin-right: 10px"
+                *ngIf="!userContextService.isMobile"
               >
                 <span class="header-font bold-text">Progress: </span>
                 <span class="header-font">{{ fileContext.progress }}%</span>
               </div>
 
               <!-- file action icons -->
-              <div class="row-flex-display align-center">
+              <div
+                class="row-flex-display align-center"
+                style="margin-left: 5px"
+              >
                 <mat-progress-spinner
                   mode="determinate"
                   [value]="fileContext.progress"
@@ -470,7 +494,6 @@
 
                 <button
                   mat-icon-button
-                  class="toolbar-icon"
                   *ngIf="fileContext.error"
                   title="connection error!"
                 >
@@ -479,7 +502,6 @@
 
                 <button
                   mat-icon-button
-                  class="toolbar-icon"
                   *ngIf="fileContext.isComplete"
                   (click)="
                     downloadFile(userContextService.userToChat, fileContext.id)
@@ -490,7 +512,6 @@
 
                 <button
                   mat-icon-button
-                  class="toolbar-icon"
                   *ngIf="fileContext.isComplete"
                   (click)="
                     deleteFile(userContextService.userToChat, fileContext.id)

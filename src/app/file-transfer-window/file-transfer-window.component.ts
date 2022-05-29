@@ -109,6 +109,10 @@ export class FileTransferWindowComponent
     this.fileSharingService.onFileMetadata.subscribe(
       this.handleFileMetaData.bind(this)
     );
+
+    if (this.userContextService.isMobile) {
+      LoggerUtil.logAny("app rendered on mobile device");
+    }
   }
 
   ngAfterViewInit() {}

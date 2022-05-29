@@ -8,6 +8,10 @@
   flex-direction: column;
 }
 
+.space-between-content {
+  justify-content: space-between;
+}
+
 .row-flex-display {
   display: flex;
   flex-direction: row;
@@ -64,6 +68,10 @@
 
 .color-white {
   color: white;
+}
+
+.color-indigo {
+  color: #3f51b5;
 }
 
 .hidden-class {
