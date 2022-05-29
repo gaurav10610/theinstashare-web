@@ -29,7 +29,10 @@ import { DialogCloseResult } from "../services/contracts/dialog/DialogCloseResul
 import { DialogCloseResultType } from "../services/contracts/enum/DialogCloseResultType";
 import { DialogType } from "../services/contracts/enum/DialogType";
 import { ConnectionStateChangeContext } from "../services/contracts/event/ConnectionStateChangeContext";
-import { TransferredFileContext } from "../services/contracts/file/file";
+import {
+  FileTransferTabType,
+  TransferredFileContext,
+} from "../services/contracts/file/file-transfer";
 import { CoreDataChannelService } from "../services/data-channel/core-data-channel.service";
 import { CoreFileSharingService } from "../services/file-sharing/core-file-sharing.service";
 import { LoggerUtil } from "../services/logging/LoggerUtil";
@@ -43,7 +46,7 @@ import {
   FileFragmentType,
   FileShareError,
   FileShareProgress,
-} from "./../services/contracts/file/file";
+} from "../services/contracts/file/file-transfer";
 
 @Component({
   selector: "app-file-transfer-window",
@@ -82,7 +85,8 @@ export class FileTransferWindowComponent
   //assets path
   assetsPath = environment.is_native_app ? "assets/" : "../../assets/";
 
-  currentTab: String = "file-upload"; // or 'chat'
+  // selected tab on file transfer window
+  currentTab: FileTransferTabType = FileTransferTabType.UPLOADS;
 
   async ngOnInit(): Promise<void> {
     this.gaService.pageView("/file-transfer", "File Transfer");
@@ -453,7 +457,7 @@ export class FileTransferWindowComponent
    * @param selectedTab
    */
   async selectTab(selectedTab: string): Promise<void> {
-    this.currentTab = selectedTab;
+    this.currentTab = selectedTab as FileTransferTabType;
     const userToChat: string = this.userContextService.userToChat;
     if (this.userContextService.hasUserWebrtcContext(userToChat)) {
       this.userContextService.getUserWebrtcContext(userToChat).unreadCount = 0;
@@ -466,9 +470,9 @@ export class FileTransferWindowComponent
    */
   async selectUser(username: string): Promise<void> {
     if (username !== this.userContextService.userToChat) {
-      LoggerUtil.logAny(`user selected: ${username}`);
+      LoggerUtil.logAny(`selected user: ${username}`);
       this.userContextService.userToChat = username;
-      this.selectTab("chat");
+      this.selectTab(FileTransferTabType.CHAT);
     }
   }
 

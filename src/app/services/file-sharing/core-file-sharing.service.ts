@@ -9,7 +9,7 @@ import {
   FileShareError,
   FileShareProgress,
   FileSubmitContext,
-} from "./../contracts/file/file";
+} from "../contracts/file/file-transfer";
 import { EventEmitter, Injectable } from "@angular/core";
 import { UserContextService } from "../context/user.context.service";
 import { AppConstants } from "../AppConstants";

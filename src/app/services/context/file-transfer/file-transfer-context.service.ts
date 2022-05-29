@@ -3,7 +3,7 @@ import { MessageContextSpec } from "../../contracts/context/MessageContextSpec";
 import { MessageContext } from "../../contracts/context/MessageContext";
 import { UserContextService } from "../user.context.service";
 import { FileTransferContextSpec } from "../../contracts/context/FileTransferContextSpec";
-import { TransferredFileContext } from "../../contracts/file/file";
+import { TransferredFileContext } from "../../contracts/file/file-transfer";
 import { QueueStorage } from "../../util/QueueStorage";
 
 @Injectable({

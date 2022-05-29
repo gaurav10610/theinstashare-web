@@ -1,5 +1,4 @@
-import { QueueStorage } from "./../../util/QueueStorage";
-import { TransferredFileContext } from "../file/file";
+import { TransferredFileContext } from "../file/file-transfer";
 
 export interface FileTransferContextSpec {
   fileContext: Map<string, Map<string, TransferredFileContext>>;

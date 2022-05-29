@@ -138,7 +138,7 @@
       <button
         mat-stroked-button
         color="primary"
-        aria-label="upload icon button"
+        aria-label="chat icon button"
         class="tab-icon-button"
         *ngIf="currentTab === 'chat'"
       >
@@ -151,8 +151,8 @@
         color="primary"
         aria-label="upload icon button"
         class="tab-icon-button"
-        (click)="selectTab('file-upload')"
-        *ngIf="currentTab !== 'file-upload'"
+        (click)="selectTab('uploads')"
+        *ngIf="currentTab !== 'uploads'"
       >
         <mat-icon style="margin-right: 5px">cloud_upload</mat-icon>
         <span>Uploads</span>
@@ -163,7 +163,7 @@
         color="primary"
         aria-label="upload icon button"
         class="tab-icon-button"
-        *ngIf="currentTab === 'file-upload'"
+        *ngIf="currentTab === 'uploads'"
       >
         <mat-icon style="margin-right: 5px">cloud_upload</mat-icon>
         <span>Uploads</span>
@@ -172,10 +172,10 @@
       <button
         mat-raised-button
         color="primary"
-        aria-label="upload icon button"
+        aria-label="download icon button"
         class="tab-icon-button"
-        (click)="selectTab('file-download')"
-        *ngIf="currentTab !== 'file-download'"
+        (click)="selectTab('downloads')"
+        *ngIf="currentTab !== 'downloads'"
       >
         <mat-icon style="margin-right: 5px">cloud_download</mat-icon>
         <span>Downloads</span>
@@ -184,9 +184,9 @@
       <button
         mat-stroked-button
         color="primary"
-        aria-label="upload icon button"
+        aria-label="download icon button"
         class="tab-icon-button"
-        *ngIf="currentTab === 'file-download'"
+        *ngIf="currentTab === 'downloads'"
       >
         <mat-icon style="margin-right: 5px">cloud_download</mat-icon>
         <span>Downloads</span>
@@ -218,40 +218,58 @@
           "
           class="row-flex-display align-center"
           [ngStyle]="{
-            'flex-direction': message.isSent ? 'row-reverse' : 'row'
+            'flex-direction': message.isSent ? 'row-reverse' : 'row',
+            margin: '5px'
           }"
         >
-          <mat-icon>person</mat-icon>
+          <!-- user icon -->
+          <div
+            class="column-flex-display"
+            style="
+              align-self: flex-start;
+              margin-left: 10px;
+              margin-right: 10px;
+            "
+          >
+            <mat-icon>person</mat-icon>
+          </div>
 
-          <mat-list>
-            <mat-list-item>
-              <span matLine>
-                <mat-chip-list aria-label="Text Message">
-                  <mat-chip selected>{{ message.message }}</mat-chip>
-                </mat-chip-list>
-              </span>
+          <!-- message & timestamp div -->
+          <div class="column-flex-display">
+            <!-- message -->
+            <div
+              [ngStyle]="{
+                display: message.isSent ? 'flex' : '',
+                'flex-direction': message.isSent ? 'row-reverse' : '',
+                padding: '10px',
+                background: message.isSent ? '#3f51b5' : 'white',
+                'border-radius': '15px',
+                color: message.isSent ? 'white' : '',
+                'margin-bottom': message.isSent ? '' : '8px',
+                'word-break': 'break-word'
+              }"
+            >
+              {{ message.message }}
+            </div>
 
-              <div
-                matLine
-                [ngStyle]="{
-                  display: message.isSent ? 'flex' : '',
-                  'flex-direction': message.isSent ? 'row-reverse' : ''
-                }"
-              >
-                {{ message.timestamp }}
-              </div>
+            <div
+              [ngStyle]="{
+                display: message.isSent ? 'flex' : '',
+                'flex-direction': message.isSent ? 'row-reverse' : ''
+              }"
+            >
+              {{ message.timestamp }}
+            </div>
 
-              <div
-                matLine
-                [ngStyle]="{
-                  display: message.isSent ? 'flex' : 'none',
-                  'flex-direction': message.isSent ? 'row-reverse' : ''
-                }"
-              >
-                {{ message.status }}
-              </div>
-            </mat-list-item>
-          </mat-list>
+            <div
+              [ngStyle]="{
+                display: message.isSent ? 'flex' : 'none',
+                'flex-direction': message.isSent ? 'row-reverse' : ''
+              }"
+            >
+              {{ message.status }}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -295,7 +313,7 @@
       [ngClass]="{
         'flex-grow-full': true,
         'no-scroll': true,
-        'hidden-class': currentTab !== 'file-upload',
+        'hidden-class': currentTab !== 'uploads',
         'vertical-scroll': true,
         'column-flex-display': true,
         'app-background': true
@@ -421,7 +439,7 @@
         color="primary"
         aria-label="upload icon button"
         style="margin: 10px"
-        *ngIf="currentTab === 'file-upload'"
+        *ngIf="currentTab === 'uploads'"
         (click)="openFileDialog()"
       >
         <mat-icon style="margin-right: 5px">add_circle</mat-icon>
@@ -435,7 +453,7 @@
       [ngClass]="{
         'flex-grow-full': true,
         'no-scroll': true,
-        'hidden-class': currentTab !== 'file-download',
+        'hidden-class': currentTab !== 'downloads',
         'vertical-scroll': true,
         'column-flex-display': true,
         'app-background': true
