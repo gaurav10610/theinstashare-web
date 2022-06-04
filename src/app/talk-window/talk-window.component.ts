@@ -310,7 +310,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
 
   /**
    * open appropriate dialog
-   *
    * @param dialogType type of dialog
    * @param data data to be passed to close handler
    */

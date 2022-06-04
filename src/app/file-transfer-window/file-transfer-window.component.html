@@ -455,7 +455,15 @@
                   <mat-icon svgIcon="refresh_icon"></mat-icon>
                 </button>
 
-                <button mat-icon-button>
+                <button
+                  mat-icon-button
+                  (click)="
+                    showFileDetails(
+                      userContextService.userToChat,
+                      fileContext.id
+                    )
+                  "
+                >
                   <mat-icon svgIcon="info_icon"></mat-icon>
                 </button>
 
@@ -569,7 +577,15 @@
                   <mat-icon svgIcon="download_icon"></mat-icon>
                 </button>
 
-                <button mat-icon-button>
+                <button
+                  mat-icon-button
+                  (click)="
+                    showFileDetails(
+                      userContextService.userToChat,
+                      fileContext.id
+                    )
+                  "
+                >
                   <mat-icon svgIcon="info_icon"></mat-icon>
                 </button>
 

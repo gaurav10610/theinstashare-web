@@ -11,12 +11,14 @@ export interface InfoDialogContext {
 
 export interface InfoDialogRow {
   elements: InfoDialogElement[];
-  rowArrangement: string; // allowed values are same as justify-content css property
+  rowStyle?: any; // [ngClass] like json
+  needBorderAfterRow: boolean;
 }
 
 export interface InfoDialogElement {
   type: InfoDialogElementType;
   text?: string;
+  textStyle?: any; // [ngClass] like json
   isIconButton?: boolean;
   buttonIcon?: string;
   isSvgButton?: boolean;

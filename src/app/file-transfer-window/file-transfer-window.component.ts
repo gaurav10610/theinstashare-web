@@ -1,3 +1,4 @@
+import { InformationDialogComponent } from "./../information-dialog/information-dialog.component";
 import {
   AfterViewInit,
   ApplicationRef,
@@ -25,7 +26,10 @@ import { UserContextService } from "../services/context/user.context.service";
 import { MessageContext } from "../services/contracts/context/MessageContext";
 import { CreateDataChannelType } from "../services/contracts/CreateDataChannelType";
 import { DataChannelInfo } from "../services/contracts/datachannel/DataChannelInfo";
-import { DialogCloseResult } from "../services/contracts/dialog/dialog";
+import {
+  DialogCloseResult,
+  InfoDialogContext,
+} from "../services/contracts/dialog/dialog";
 import { DialogCloseResultType } from "../services/contracts/enum/DialogCloseResultType";
 import { DialogType } from "../services/contracts/enum/DialogType";
 import { ConnectionStateChangeContext } from "../services/contracts/event/ConnectionStateChangeContext";
@@ -80,7 +84,7 @@ export class FileTransferWindowComponent
   @ViewChild("messageHistoryDiv", { static: false })
   messageHistoryDiv: ElementRef;
 
-  dialogRef: MatDialogRef<any>;
+  currentDialogRef: MatDialogRef<any>;
 
   //assets path
   assetsPath = environment.is_native_app ? "assets/" : "../../assets/";
@@ -375,7 +379,7 @@ export class FileTransferWindowComponent
     this.closeDialog();
     switch (dialogType) {
       case DialogType.APP_LOGIN:
-        this.dialogRef = this.dialog.open(AppLoginDialogComponent, {
+        this.currentDialogRef = this.dialog.open(AppLoginDialogComponent, {
           disableClose: true,
           panelClass: "dialog-class",
           data,
@@ -384,17 +388,21 @@ export class FileTransferWindowComponent
         break;
 
       case DialogType.PROGRESS:
-        this.dialogRef = this.dialog.open(ProgressDialogComponent, {
+        this.currentDialogRef = this.dialog.open(ProgressDialogComponent, {
           disableClose: true,
           data,
         });
         break;
 
       case DialogType.INFORMATIONAL:
+        this.currentDialogRef = this.dialog.open(InformationDialogComponent, {
+          panelClass: "dialog-class",
+          data,
+        });
         break;
 
       case DialogType.ICONS_POPUP:
-        this.dialogRef = this.dialog.open(IconsDialogComponent, {
+        this.currentDialogRef = this.dialog.open(IconsDialogComponent, {
           data,
           width: this.userContextService.isMobile ? "300px" : undefined,
         });
@@ -403,7 +411,9 @@ export class FileTransferWindowComponent
       default:
       //do nothing here
     }
-    this.dialogRef.afterClosed().subscribe(this.handleDialogClose.bind(this));
+    this.currentDialogRef
+      .afterClosed()
+      .subscribe(this.handleDialogClose.bind(this));
   }
 
   /**
@@ -447,8 +457,8 @@ export class FileTransferWindowComponent
    * @param data data to be passed to close handler
    */
   async closeDialog(data = {}): Promise<void> {
-    if (this.dialogRef) {
-      this.dialogRef.close(data);
+    if (this.currentDialogRef) {
+      this.currentDialogRef.close(data);
     }
   }
 
@@ -943,7 +953,6 @@ export class FileTransferWindowComponent
   /**
    * this will send all the queued messages to a user over via an data channel
    * for that user
-   *
    * @param dataChannelInfo received data channel meta info
    */
   async sendQueuedMessagesOnChannel(
@@ -1089,6 +1098,7 @@ export class FileTransferWindowComponent
           isComplete: false,
           error: false,
           isResendEnable: false,
+          completedAt: null,
         });
         if (this.userContextService.userToChat !== fileMetadata.from) {
           this.userContextService.getUserWebrtcContext(fileMetadata.from)
@@ -1109,6 +1119,7 @@ export class FileTransferWindowComponent
        */
       case FileFragmentType.END:
         fileContext.get(fileMetadata.fileId).isComplete = true;
+        fileContext.get(fileMetadata.fileId).completedAt = new Date();
         break;
 
       default:
@@ -1199,6 +1210,7 @@ export class FileTransferWindowComponent
         isComplete: false,
         error: false,
         isResendEnable: false,
+        completedAt: null,
       });
     }
     this.startSendingFiles(userToChat);
@@ -1305,5 +1317,27 @@ export class FileTransferWindowComponent
   async deleteFile(username: string, fileId: string): Promise<void> {
     this.contextService.getFileContext(username).delete(fileId);
     this.fileSharingService.removeReceivedFiledData(fileId);
+  }
+
+  /**
+   * show file details in the dialog
+   * @param username
+   * @param fileId
+   */
+  async showFileDetails(username: string, fileId: string): Promise<void> {
+    if (this.contextService.hasFileContext(username)) {
+      const file: TransferredFileContext = this.contextService
+        .getFileContext(username)
+        .get(fileId);
+
+      // if file details exist then show it a info dialog
+      if (file) {
+        const infoDialogContext: InfoDialogContext =
+          await this.utilityService.buildFileInfoDialogContext(file);
+        this.openDialog(DialogType.INFORMATIONAL, infoDialogContext);
+      }
+    } else {
+      LoggerUtil.logAny(`file details doesn't exist for file id: ${fileId}`);
+    }
   }
 }

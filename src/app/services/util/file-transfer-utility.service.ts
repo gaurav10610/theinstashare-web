@@ -1,3 +1,9 @@
+import {
+  InfoDialogContext,
+  InfoDialogElementType,
+  InfoDialogRow,
+} from "./../contracts/dialog/dialog";
+import { TransferredFileContext } from "./../contracts/file/file-transfer";
 import { Injectable } from "@angular/core";
 import { AppConstants } from "../AppConstants";
 import { FileTransferContextService } from "../context/file-transfer/file-transfer-context.service";
@@ -166,5 +172,125 @@ export class FileTransferUtilityService {
     } catch (e) {
       return sentFlag;
     }
+  }
+
+  /**
+   * build context for informaational dialog box for showing file details
+   * @param file details of a shared file
+   * @returns InfoDialogContext
+   */
+  async buildFileInfoDialogContext(
+    file: TransferredFileContext
+  ): Promise<InfoDialogContext> {
+    const rows: InfoDialogRow[] = [];
+
+    const fileIconRow: InfoDialogRow = {
+      elements: [
+        {
+          type: InfoDialogElementType.ICON,
+          icon: file.icon,
+          isSvgIcon: true,
+        },
+      ],
+      needBorderAfterRow: false,
+      rowStyle: { "row-flex-display": true, "center-content": true },
+    };
+    rows.push(fileIconRow);
+
+    const fileNameRow: InfoDialogRow = {
+      elements: [
+        {
+          type: InfoDialogElementType.TEXT,
+          text: "File Name: ",
+          textStyle: {
+            "header-font": true,
+            "bold-text": true,
+            "single-line-text": true,
+          },
+        },
+        {
+          type: InfoDialogElementType.TEXT,
+          text: `${file.fileName}`,
+          textStyle: {
+            "header-font": true,
+          },
+        },
+      ],
+      needBorderAfterRow: true,
+    };
+    rows.push(fileNameRow);
+
+    const fileTypeRow: InfoDialogRow = {
+      elements: [
+        {
+          type: InfoDialogElementType.TEXT,
+          text: "File Type: ",
+          textStyle: {
+            "header-font": true,
+            "bold-text": true,
+            "single-line-text": true,
+          },
+        },
+        {
+          type: InfoDialogElementType.TEXT,
+          text: `${file.fileType}`,
+          textStyle: {
+            "header-font": true,
+          },
+        },
+      ],
+      needBorderAfterRow: true,
+    };
+    rows.push(fileTypeRow);
+
+    const fileSizeRow: InfoDialogRow = {
+      elements: [
+        {
+          type: InfoDialogElementType.TEXT,
+          text: "File Size: ",
+          textStyle: {
+            "header-font": true,
+            "bold-text": true,
+            "single-line-text": true,
+          },
+        },
+        {
+          type: InfoDialogElementType.TEXT,
+          text: `${file.size} Bytes`,
+          textStyle: {
+            "header-font": true,
+          },
+        },
+      ],
+      needBorderAfterRow: true,
+    };
+    rows.push(fileSizeRow);
+
+    const timestampRow: InfoDialogRow = {
+      elements: [
+        {
+          type: InfoDialogElementType.TEXT,
+          text: file.isSent ? "Sent At: " : "Received At: ",
+          textStyle: {
+            "header-font": true,
+            "bold-text": true,
+            "single-line-text": true,
+          },
+        },
+        {
+          type: InfoDialogElementType.TEXT,
+          text: file.completedAt.toISOString(),
+          textStyle: {
+            "header-font": true,
+          },
+        },
+      ],
+      needBorderAfterRow: true,
+    };
+    rows.push(timestampRow);
+
+    return {
+      rows,
+    };
   }
 }

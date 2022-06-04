@@ -18,7 +18,6 @@ export class InformationDialogComponent implements OnInit {
     private dialogRef: MatDialogRef<any>,
     @Inject(MAT_DIALOG_DATA) private data: any
   ) {
-    LoggerUtil.logAny(data);
     this.infoContext = data as InfoDialogContext;
   }
 

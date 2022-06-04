@@ -20,6 +20,7 @@ export interface TransferredFileContext {
   isComplete: boolean; // specifies if download/upload is completed
   error: boolean;
   isResendEnable: boolean;
+  completedAt: Date;
 }
 
 export interface FileSubmitContext {
