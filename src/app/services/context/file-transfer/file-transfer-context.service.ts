@@ -4,13 +4,16 @@ import { MessageContext } from "../../contracts/context/MessageContext";
 import { UserContextService } from "../user.context.service";
 import { FileTransferContextSpec } from "../../contracts/context/FileTransferContextSpec";
 import { TransferredFileContext } from "../../contracts/file/file-transfer";
-import { QueueStorage } from "../../util/QueueStorage";
+import { BaseContextServiceSpec } from "../../contracts/context/context";
 
 @Injectable({
   providedIn: "root",
 })
 export class FileTransferContextService
-  implements MessageContextSpec, FileTransferContextSpec
+  implements
+    MessageContextSpec,
+    FileTransferContextSpec,
+    BaseContextServiceSpec
 {
   /**
    *
@@ -49,16 +52,45 @@ export class FileTransferContextService
 
   bindingFlags: Map<string, boolean>;
 
-  constructor(private userContextService: UserContextService) {
+  /**
+   * this will keep the unread count for chat & files to show it on badges on buttons
+   *
+   * 'username' -> { chat: 3, file: 4}
+   */
+  unreadBadgeConfig: Map<string, any>;
+
+  constructor() {
     this.messageContext = new Map();
     this.fileContext = new Map();
     this.userStatus = new Map();
     this.activeUsers = [];
+    this.unreadBadgeConfig = new Map();
 
     // setting binding flags
     this.bindingFlags = new Map();
     this.bindingFlags.set("showSidePanel", true);
     this.bindingFlags.set("showMessagePanel", true);
+  }
+
+  cleanup(): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+
+  hasBadgeConfig(username: string): boolean {
+    return this.unreadBadgeConfig.has(username);
+  }
+
+  initializeBadgeConfig(username: string): void {
+    if (!this.hasBadgeConfig(username)) {
+      this.unreadBadgeConfig.set(username, {
+        chat: 0,
+        file: 0,
+      });
+    }
+  }
+
+  getBadgeConfig(username: string): any {
+    return this.unreadBadgeConfig.get(username);
   }
 
   hasFileContext(username: string): boolean {

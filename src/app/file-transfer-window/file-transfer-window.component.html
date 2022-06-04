@@ -131,7 +131,11 @@
     </div>
 
     <!-- tab control buttons -->
-    <div id="tab-controls" class="row-flex-display tab-contols-class">
+    <div
+      id="tab-controls"
+      class="row-flex-display tab-contols-class"
+      style="padding-right: 5px"
+    >
       <button
         mat-raised-button
         color="primary"
@@ -139,6 +143,18 @@
         class="tab-icon-button"
         (click)="selectTab('chat')"
         *ngIf="currentTab !== 'chat'"
+        matBadge="{{
+          contextService.getBadgeConfig(userContextService.userToChat)
+            ? contextService.getBadgeConfig(userContextService.userToChat).chat
+            : ''
+        }}"
+        matBadgeColor="accent"
+        matBadgeHidden="{{
+          contextService.getBadgeConfig(userContextService.userToChat) ===
+            undefined ||
+            contextService.getBadgeConfig(userContextService.userToChat)
+              .chat === 0
+        }}"
       >
         <mat-icon style="margin-right: 5px">chat</mat-icon>
         <span>Chat</span>
@@ -185,6 +201,18 @@
         class="tab-icon-button"
         (click)="selectTab('downloads')"
         *ngIf="currentTab !== 'downloads'"
+        matBadge="{{
+          contextService.getBadgeConfig(userContextService.userToChat)
+            ? contextService.getBadgeConfig(userContextService.userToChat).file
+            : ''
+        }}"
+        matBadgeColor="accent"
+        matBadgeHidden="{{
+          contextService.getBadgeConfig(userContextService.userToChat) ===
+            undefined ||
+            contextService.getBadgeConfig(userContextService.userToChat)
+              .file === 0
+        }}"
       >
         <mat-icon style="margin-right: 5px">cloud_download</mat-icon>
         <span>Downloads</span>

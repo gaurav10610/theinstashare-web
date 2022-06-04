@@ -462,6 +462,17 @@ export class FileTransferWindowComponent
     if (this.userContextService.hasUserWebrtcContext(userToChat)) {
       this.userContextService.getUserWebrtcContext(userToChat).unreadCount = 0;
     }
+    if (this.contextService.hasBadgeConfig(userToChat)) {
+      switch (this.currentTab) {
+        case FileTransferTabType.CHAT:
+          this.contextService.getBadgeConfig(userToChat).chat = 0;
+          break;
+        case FileTransferTabType.DOWNLOADS:
+          this.contextService.getBadgeConfig(userToChat).file = 0;
+          break;
+        default: // do nothing
+      }
+    }
   }
 
   /**
@@ -472,7 +483,7 @@ export class FileTransferWindowComponent
     if (username !== this.userContextService.userToChat) {
       LoggerUtil.logAny(`selected user: ${username}`);
       this.userContextService.userToChat = username;
-      this.selectTab(FileTransferTabType.CHAT);
+      this.selectTab(FileTransferTabType.UPLOADS);
     }
   }
 
@@ -845,10 +856,17 @@ export class FileTransferWindowComponent
         );
       }
 
-      //increment unread messages count
+      // increment unread messages count
       this.userContextService.getUserWebrtcContext(
         messageContext[AppConstants.USERNAME]
       ).unreadCount++;
+
+      // increment chat specic unread count for showing badge
+      this.contextService.initializeBadgeConfig(
+        messageContext[AppConstants.USERNAME]
+      );
+      this.contextService.getBadgeConfig(messageContext[AppConstants.USERNAME])
+        .chat++;
     }
 
     /**
@@ -1078,6 +1096,10 @@ export class FileTransferWindowComponent
         if (this.userContextService.userToChat !== fileMetadata.from) {
           this.userContextService.getUserWebrtcContext(fileMetadata.from)
             .unreadCount++;
+
+          // increment file specic unread count for showing badge
+          this.contextService.initializeBadgeConfig(fileMetadata.from);
+          this.contextService.getBadgeConfig(fileMetadata.from).file++;
           this.playIncomeingMessageTune(true);
         }
         break;
