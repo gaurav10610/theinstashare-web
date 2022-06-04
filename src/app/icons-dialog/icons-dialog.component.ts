@@ -2,7 +2,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TalkWindowContextService } from '../services/context/talk-window-context.service';
 import { UserContextService } from '../services/context/user.context.service';
-import { DialogCloseResult } from '../services/contracts/dialog/DialogCloseResult';
+import { DialogCloseResult } from '../services/contracts/dialog/dialog';
 import { DialogCloseResultType } from '../services/contracts/enum/DialogCloseResultType';
 import { DialogType } from '../services/contracts/enum/DialogType';
 
@@ -41,7 +41,7 @@ export class IconsDialogComponent implements OnInit {
   }
 
   /**
-   * 
+   *
    * handle dnd
    */
   handleDnd() {
@@ -75,10 +75,10 @@ export class IconsDialogComponent implements OnInit {
 
   /**
    * this will handle remote access start/stop requests for a screen sharing session
-   * 
+   *
    * @param action string param to distinguish whether to start/stop the remote access
    * possible values => 'start', 'stop'
-   * 
+   *
    */
   handleRemoteAccess(action: String) {
     const result: DialogCloseResult = {
@@ -109,7 +109,7 @@ export class IconsDialogComponent implements OnInit {
   }
 
   /**
-   * handle camera flip event 
+   * handle camera flip event
    */
   handleCameraFlip() {
     const result: DialogCloseResult = {

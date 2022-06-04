@@ -72,8 +72,17 @@ export class FileTransferContextService
     this.bindingFlags.set("showMessagePanel", true);
   }
 
-  cleanup(): Promise<boolean> {
-    throw new Error("Method not implemented.");
+  // clean the whole context
+  async cleanup(): Promise<boolean> {
+    this.messageContext.clear();
+    this.fileContext.clear();
+    this.userStatus.clear();
+    this.activeUsers = [];
+    this.unreadBadgeConfig.clear();
+    this.bindingFlags.clear();
+    this.bindingFlags.set("showSidePanel", true);
+    this.bindingFlags.set("showMessagePanel", true);
+    return true;
   }
 
   hasBadgeConfig(username: string): boolean {

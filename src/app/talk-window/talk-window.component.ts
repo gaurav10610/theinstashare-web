@@ -26,7 +26,7 @@ import { CallbackContextType } from "../services/contracts/CallbackContextType";
 import { CoreDataChannelService } from "../services/data-channel/core-data-channel.service";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { DialogCloseResult } from "../services/contracts/dialog/DialogCloseResult";
+import { DialogCloseResult } from "../services/contracts/dialog/dialog";
 import { DialogType } from "../services/contracts/enum/DialogType";
 import { ProgressDialogComponent } from "../progress-dialog/progress-dialog.component";
 import { GroupLoginDialogComponent } from "../group-login-dialog/group-login-dialog.component";

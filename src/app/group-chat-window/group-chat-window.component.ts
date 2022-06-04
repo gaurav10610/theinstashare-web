@@ -12,7 +12,7 @@ import { AppConstants } from '../services/AppConstants';
 import { GroupChatContextService } from '../services/context/group-chat-window/group-chat-context.service';
 import { UserContextService } from '../services/context/user.context.service';
 import { CreateDataChannelType } from '../services/contracts/CreateDataChannelType';
-import { DialogCloseResult } from '../services/contracts/dialog/DialogCloseResult';
+import { DialogCloseResult } from '../services/contracts/dialog/dialog';
 import { DialogCloseResultType } from '../services/contracts/enum/DialogCloseResultType';
 import { DialogType } from '../services/contracts/enum/DialogType';
 import { CoreDataChannelService } from '../services/data-channel/core-data-channel.service';
@@ -116,7 +116,7 @@ export class GroupChatWindowComponent implements OnInit {
        *
        *
        * a. register the 'reconnect' and 'onmessage' handlers only in this scenario
-       * 
+       *
        */
       const eventsConfig = {
         onmessage: this.onRouterMessage.bind(this),
@@ -206,10 +206,10 @@ export class GroupChatWindowComponent implements OnInit {
   }
 
   /**
-   * 
-   * this will handle webrtc events 
-   * 
-   * @param signalingMessage received signaling message 
+   *
+   * this will handle webrtc events
+   *
+   * @param signalingMessage received signaling message
    */
   async handleWebrtcEvent(signalingMessage: any) {
     LoggerUtil.logAny(`handling webrtc event from : ${signalingMessage.from}`);
@@ -217,7 +217,7 @@ export class GroupChatWindowComponent implements OnInit {
     switch (signalingMessage.event) {
 
       /**
-       * 
+       *
        * webrtc data channel open event received from remote user's end
        */
       case AppConstants.WEBRTC_EVENTS.CHANNEL_OPEN:
@@ -230,9 +230,9 @@ export class GroupChatWindowComponent implements OnInit {
             const groupName: String = this.groupChatContextService.getGroupName();
 
             /**
-             * if group name available in session storage then join in that group else open 
+             * if group name available in session storage then join in that group else open
              * appropiate dialog screen for user to choose whether to create a new group or join an existing group
-             * 
+             *
              */
             if (groupName) {
               const groupExist: Boolean = await this.groupChatWebrtcService.checkIfGroupExist(groupName);
@@ -263,9 +263,9 @@ export class GroupChatWindowComponent implements OnInit {
       try {
 
         /**
-         * 
+         *
          * if this offer message is for renegotiating an already established connection
-         * 
+         *
          */
         if (signalingMessage.renegotiate) {
 
@@ -299,8 +299,8 @@ export class GroupChatWindowComponent implements OnInit {
         } else {
 
           /**
-           * 
-           * this will setup a new webrtc connection 
+           *
+           * this will setup a new webrtc connection
            */
           this.groupChatWebrtcService.setUpWebrtcConnection(signalingMessage.from, signalingMessage);
         }
@@ -314,7 +314,7 @@ export class GroupChatWindowComponent implements OnInit {
 
   /*
    * handler to handle connection open event with server
-   * @TODO this can be removed later 
+   * @TODO this can be removed later
    */
   onRouterConnect() {
     const username: String = this.userContextService.getUserName()
@@ -333,7 +333,7 @@ export class GroupChatWindowComponent implements OnInit {
 
   /**
    * handle to handle received messages of type 'register'
-   * 
+   *
    * @param signalingMessage received signaling message
    * @TODO remove it afterwards as this is a common module
    */
@@ -370,8 +370,8 @@ export class GroupChatWindowComponent implements OnInit {
       } else {
 
         /**
-         * user registeration failed case - 
-         * 
+         * user registeration failed case -
+         *
          * close current progress dialog and open app login dialog again
          **/
         this.openDialog(DialogType.APP_LOGIN);
@@ -405,7 +405,7 @@ export class GroupChatWindowComponent implements OnInit {
 
           /**
            * establish webrtc data channel connection with media server
-           *  
+           *
            */
           const createDataChannel: CreateDataChannelType = {
             channel: AppConstants.TEXT,
@@ -427,7 +427,7 @@ export class GroupChatWindowComponent implements OnInit {
 
   /**
    * event handler for tab selection
-   * @param selectedTab 
+   * @param selectedTab
    */
   selectTab(selectedTab: String) {
     this.currentTab = selectedTab;
@@ -435,7 +435,7 @@ export class GroupChatWindowComponent implements OnInit {
 
   /**
    * open appropriate dialog
-   * 
+   *
    * @param dialogType type of dialog
    * @param data data to be passed to close handler
    */
@@ -476,9 +476,9 @@ export class GroupChatWindowComponent implements OnInit {
 
   /**
    * close currently open dialog with appropriate data
-   * 
+   *
    * @param data data to be passed to close handler
-   * 
+   *
    */
   closeDialog(data = {}) {
     if (this.dialogRef) {
@@ -489,7 +489,7 @@ export class GroupChatWindowComponent implements OnInit {
   /**
    * this will handle dialog close
    * @param dialogueCloseResult result data sent by the component contained in the dialog which got closed
-   * 
+   *
    */
   handleDialogClose(dialogueCloseResult: DialogCloseResult) {
     LoggerUtil.logAny(`dialog got closed with result: ${JSON.stringify(dialogueCloseResult)}`);
@@ -528,7 +528,7 @@ export class GroupChatWindowComponent implements OnInit {
    * this is onmessage event handler for data channel
    *
    * @param jsonMessage message received via webrtc datachannel
-   * 
+   *
    */
   async onDataChannelMessage(jsonMessage: string) {
     LoggerUtil.logAny(`message received on data channel: ${jsonMessage}`);

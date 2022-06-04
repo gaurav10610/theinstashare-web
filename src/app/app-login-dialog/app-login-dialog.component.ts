@@ -1,7 +1,7 @@
 import { Component, ElementRef, Inject, OnInit, ViewChild } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { environment } from '../../environments/environment';
-import { DialogCloseResult } from '../services/contracts/dialog/DialogCloseResult';
+import { DialogCloseResult } from '../services/contracts/dialog/dialog';
 import { DialogCloseResultType } from '../services/contracts/enum/DialogCloseResultType';
 import { LoggerUtil } from '../services/logging/LoggerUtil';
 import { SignalingService } from '../services/signaling/signaling.service';
@@ -31,7 +31,7 @@ export class AppLoginDialogComponent implements OnInit {
   }
 
   /**
-   * 
+   *
    * login handler
    */
   login(event?: any) {

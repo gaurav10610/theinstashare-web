@@ -25,7 +25,7 @@ import { UserContextService } from "../services/context/user.context.service";
 import { MessageContext } from "../services/contracts/context/MessageContext";
 import { CreateDataChannelType } from "../services/contracts/CreateDataChannelType";
 import { DataChannelInfo } from "../services/contracts/datachannel/DataChannelInfo";
-import { DialogCloseResult } from "../services/contracts/dialog/DialogCloseResult";
+import { DialogCloseResult } from "../services/contracts/dialog/dialog";
 import { DialogCloseResultType } from "../services/contracts/enum/DialogCloseResultType";
 import { DialogType } from "../services/contracts/enum/DialogType";
 import { ConnectionStateChangeContext } from "../services/contracts/event/ConnectionStateChangeContext";
@@ -972,12 +972,9 @@ export class FileTransferWindowComponent
 
   /**
    * this will play or pause incoming message tune
-   *
    * @param playFlag flag to distinguish between play or stop
-   *
-   * @TODO refactor it afterwards, see if this can be done in an easy way
    */
-  playIncomeingMessageTune(playFlag: boolean): void {
+  async playIncomeingMessageTune(playFlag: boolean): Promise<void> {
     if (playFlag) {
       this.renderer.selectRootElement("#messageTune", true).play();
     } else {
@@ -1259,10 +1256,7 @@ export class FileTransferWindowComponent
   async logout(): Promise<void> {
     try {
       LoggerUtil.logAny("logging out from file-transfer");
-      /**
-       * send de-register message to server to notify that user has opted to
-       * logout
-       */
+      await this.contextService.cleanup();
       this.signalingService.deRegisterOnSignalingServer(
         this.userContextService.getUserName()
       );

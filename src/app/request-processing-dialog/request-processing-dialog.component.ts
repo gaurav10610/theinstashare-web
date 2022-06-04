@@ -1,7 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TalkWindowContextService } from '../services/context/talk-window-context.service';
-import { DialogCloseResult } from '../services/contracts/dialog/DialogCloseResult';
+import { DialogCloseResult } from '../services/contracts/dialog/dialog';
 import { DialogCloseResultType } from '../services/contracts/enum/DialogCloseResultType';
 
 @Component({
@@ -42,7 +42,7 @@ export class RequestProcessingDialogComponent implements OnInit {
    * handler to decline/cancel media stream request
    *
    * @param action type of action i.e 'disconnect', 'close' or 'decline'
-   * 
+   *
    * @param channel media type i.e 'audio', 'video' etc.
    */
   closeCall(action: String, channel: String) {
@@ -58,7 +58,7 @@ export class RequestProcessingDialogComponent implements OnInit {
 
   /**
    * this will handle any media stream request acceptance
-   * 
+   *
    * @param channel media type i.e 'audio', 'video' etc.
    *
    */

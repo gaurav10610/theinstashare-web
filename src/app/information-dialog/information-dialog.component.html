@@ -1,1 +1,53 @@
-<p>information-dialog works!</p>
+<div id="info-container">
+  <div
+    *ngFor="let row of infoContext.rows"
+    class="column-flex-display align-center"
+  >
+    <div
+      *ngFor="let element of row.elements"
+      class="row-flex-display"
+      [ngStyle]="{
+        'justify-content': row.rowArrangement
+      }"
+    >
+      <!-- @TODO see if ngSwitch can be used here -->
+
+      <!-- text element -->
+      <div *ngIf="element.type === 'text'">
+        <span>{{ element.text }}</span>
+      </div>
+
+      <!-- icon -->
+      <div *ngIf="element.type === 'icon'">
+        <mat-icon
+          *ngIf="element.isSvgIcon"
+          svgIcon="{{ element.icon }}"
+        ></mat-icon>
+        <mat-icon *ngIf="!element.isSvgIcon">{{ element.icon }}</mat-icon>
+      </div>
+
+      <!-- button icon -->
+      <div *ngIf="element.type === 'button'">
+        <button
+          mat-icon-button
+          aria-label="app icon button"
+          *ngIf="element.isIconButton"
+          color="{{ element.buttonColor }}"
+        >
+          <mat-icon *ngIf="!element.isSvgIcon" svgIcon="app_icon"></mat-icon>
+          <mat-icon *ngIf="!element.isSvgIcon" svgIcon="app_icon"></mat-icon>
+          {{ element.buttonText }}
+        </button>
+
+        <button
+          mat-stroked-button
+          aria-label="app icon button"
+          *ngIf="!element.isIconButton"
+          color="{{ element.buttonColor }}"
+        >
+          {{ element.buttonText }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
