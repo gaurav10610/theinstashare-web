@@ -11,15 +11,16 @@
     }"
   >
     <!-- header -->
-    <div id="side-panel-div-header" class="dashboard-header text-center">
-      <mat-toolbar color="primary">
-        <img
-          src="{{ assetsPath + 'images/icons/title-40X40.png' }}"
-          alt=""
-          style="margin-right: 5px"
-        />
-        <span class="header-font">TheInstaShare</span>
-        <span class="toolbar-spacer"></span>
+    <div id="side-panel-div-header" class="dashboard-header">
+      <mat-toolbar color="primary" class="hide-horizontal-overflow">
+        <button mat-icon-button aria-label="app icon button">
+          <mat-icon svgIcon="app_icon" style="transform: scale(1.5)"></mat-icon>
+        </button>
+        <div
+          class="hide-horizontal-overflow flex-grow-full row-flex-display center-content header-font"
+        >
+          TheInstaShare
+        </div>
         <button
           mat-icon-button
           aria-label="logout icon button"
@@ -31,14 +32,13 @@
     </div>
 
     <!-- tab icons header -->
-    <div class="row-flex-display border-bottom">
-      <div class="flex-grow-full row-flex-display align-center center-content">
-        <span class="header-font">Contacts</span>
-      </div>
-
-      <div style="margin: 10px" class="pointer-cursor">
-        <mat-icon matListIcon>person_add</mat-icon>
-      </div>
+    <div
+      class="row-flex-display border-bottom center-content"
+      style="padding-top: 10px; padding-bottom: 10px"
+    >
+      <span class="header-font bold-text"
+        >Logged in as: {{ userContextService.username }}</span
+      >
     </div>
 
     <div class="flex-grow-full hide-vertical-overflow column-flex-display">
@@ -50,6 +50,15 @@
           'no-scroll': true
         }"
       >
+        <!-- no user online -->
+        <div
+          *ngIf="contextService.activeUsers.length === 0"
+          class="row-flex-display center-content"
+          style="padding: 10px"
+        >
+          <span class="header-font bold-text">No one is online!</span>
+        </div>
+
         <mat-list>
           <mat-list-item
             id="contact-{{ username }}"
@@ -267,7 +276,7 @@
                 'flex-direction': message.isSent ? 'row-reverse' : ''
               }"
             >
-              {{ message.status }}
+              <em>{{ message.status }}</em>
             </div>
           </div>
         </div>
@@ -418,6 +427,10 @@
                   <mat-icon svgIcon="refresh_icon"></mat-icon>
                 </button>
 
+                <button mat-icon-button>
+                  <mat-icon svgIcon="info_icon"></mat-icon>
+                </button>
+
                 <button
                   mat-icon-button
                   *ngIf="fileContext.isComplete"
@@ -526,6 +539,10 @@
                   "
                 >
                   <mat-icon svgIcon="download_icon"></mat-icon>
+                </button>
+
+                <button mat-icon-button>
+                  <mat-icon svgIcon="info_icon"></mat-icon>
                 </button>
 
                 <button

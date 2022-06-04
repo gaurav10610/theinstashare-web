@@ -100,5 +100,17 @@ export class IconRegistryService {
         this.assetsPath + this.iconsPath + "refresh.svg"
       )
     );
+    this.matIconRegistry.addSvgIcon(
+      "app_icon",
+      this.domSanitizer.bypassSecurityTrustResourceUrl(
+        this.assetsPath + this.iconsPath + "app-icon.svg"
+      )
+    );
+    this.matIconRegistry.addSvgIcon(
+      "info_icon",
+      this.domSanitizer.bypassSecurityTrustResourceUrl(
+        this.assetsPath + this.iconsPath + "info.svg"
+      )
+    );
   }
 }
