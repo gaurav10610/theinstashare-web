@@ -119,6 +119,10 @@
   white-space: nowrap;
 }
 
+.div-content-wrap {
+  overflow-wrap: anywhere;
+}
+
 html,
 body {
   height: 100%;

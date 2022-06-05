@@ -13,7 +13,6 @@ export class TalkWindowUtilityService {
   constructor(
     private userContextService: UserContextService,
     private talkWindowContextService: TalkWindowContextService,
-    public appRef: ApplicationRef,
     private deviceDetectorService: DeviceDetectorService,
     private coreAppUtilService: CoreAppUtilityService
   ) {}
@@ -215,7 +214,6 @@ export class TalkWindowUtilityService {
         break;
       }
     }
-    this.appRef.tick();
   }
 
   /**

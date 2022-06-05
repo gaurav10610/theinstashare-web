@@ -75,7 +75,15 @@
               matListIcon
             >
             </mat-icon>
-            <h3 matLine>{{ username }}</h3>
+            <span
+              matLine
+              class="header-font"
+              [ngStyle]="{
+                'font-weight':
+                  userContextService.userToChat === username ? 'bold' : ''
+              }"
+              >{{ username }}</span
+            >
             <mat-chip-list
               aria-label="Unread Message"
               *ngIf="
@@ -268,7 +276,7 @@
               margin-right: 10px;
             "
           >
-            <mat-icon>person</mat-icon>
+            <mat-icon svgIcon="user_online_icon"></mat-icon>
           </div>
 
           <!-- message & timestamp div -->

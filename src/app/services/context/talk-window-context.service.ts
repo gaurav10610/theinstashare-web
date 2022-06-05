@@ -11,22 +11,22 @@ export class TalkWindowContextService {
 
   /**
    * event emitter for any property update in media call context
-   * 
+   *
    */
   mediaContextUpdateEventEmitter: EventEmitter<any> = new EventEmitter(true);
 
   /**
    * this contains list of all online users and their status mappings
-   * 
+   *
    * 'username1' -> true //online
    * 'username2' -> false //offline
-   * 
+   *
    */
   userStatus = new Map();
 
   /**
    * list of all active users
-   * 
+   *
    */
   activeUsers: string[] = [];
 
@@ -35,8 +35,8 @@ export class TalkWindowContextService {
 
   /**
    * this will be used by media viewer to store selected media's details
-   * to display on UI 
-   *  
+   * to display on UI
+   *
    */
   mediaViewerContext = {
     contentType: undefined,
@@ -50,16 +50,16 @@ export class TalkWindowContextService {
 
   /**
    * this will store the message context for users,
-   * will keep mappings like below 
-   * 
+   * will keep mappings like below
+   *
    * 'username' -> [{message:'message1',sent:false}, {message:'message2',sent:true}]
-   *  
+   *
    */
   messageContext: Object = {};
 
   /**
    * this will store binary data messages against content id's
-   * 
+   *
    * 'contentId1' -> 'base64encodedString'
    */
   contentIdsMap: Object = {};
@@ -68,11 +68,11 @@ export class TalkWindowContextService {
   errors = [];
 
   /**
-   * this context will store timeout job ids against channel so that it can be 
+   * this context will store timeout job ids against channel so that it can be
    * used to disable the timeout job later on in certain flows
-   * 
+   *
    * i.e 'video' -> {'send' -> 1234, 'receive' -> 4321}
-   *  
+   *
    */
   timeoutJobContext = {
     video: {
@@ -142,21 +142,21 @@ export class TalkWindowContextService {
 
   /**
    * array to keep all the render2 unlisten function for remote access canvas
-   *  
+   *
    */
   canvasUnlistenFunctions: any[] = [];
 
   /**
    * update any property in media call context and emit an event
-   * 
+   *
    * @param  propertyName  name of the property which is to be set
-   * 
+   *
    * @param  propertyValue value of the property which is to be set
-   * 
-   * @param channel 
-   * 
+   *
+   * @param channel
+   *
    * @param senderUpdate
-   * 
+   *
    */
   updateBindingFlag(propertyName: string, propertyValue: any, channel: string) {
     this.bindingFlags[propertyName] = propertyValue;
@@ -186,7 +186,7 @@ export class TalkWindowContextService {
 
   /**
   * this will reset values of all remote access context properties
-  * 
+  *
   */
   resetRemoteAccessContext() {
     this.remoteAccessContext = {
@@ -205,7 +205,7 @@ export class TalkWindowContextService {
 
   /**
    * this will reset values of all the instance variables in this service
-   * 
+   *
    */
   resetAppContext() {
 

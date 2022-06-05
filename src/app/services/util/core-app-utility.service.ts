@@ -40,32 +40,9 @@ export class CoreAppUtilityService {
   }
 
   /**
-   * this will return identifier for webrtc connection within webrtcContext
-   * i.e 'send' or 'receive'
-   *
-   * @param channel webrtc connection's media type for connection means the type
-   * of media data that we will relay on this connection e.g 'text','video' or 'audio'
-   *
-   * @param needSender boolean value to determine whether sender or receive peer
-   * connection has to be initialized. Applicable only for media webrtc connection
-   * i.e connections other than 'data' or 'file'
-   *
-   *
-   */
-  getConnectionIdentifier(channel: string, needSendPeer: boolean) {
-    return channel === AppConstants.TEXT ||
-      channel === AppConstants.FILE ||
-      needSendPeer
-      ? AppConstants.SENDER
-      : AppConstants.RECEIVER;
-  }
-
-  /**
    * check if there is an open data channel with a user using it's provided webrtc
    * context
-   *
    * @param webrtcContext user's webrtc context
-   *
    * @param channel webrtc connection's media type for connection means the
    * type of media data that we will relay on this connection e.g 'text','video'
    * or 'audio'
@@ -85,9 +62,7 @@ export class CoreAppUtilityService {
   /**
    * check if dataChannel with a user is in connecting state using it's provided
    * webrtc context
-   *
    * @param webrtcContext user's webrtc context
-   *
    * @param channel webrtc connection's media type for connection means the
    * type of media data that we will relay on this connection e.g 'text','video'
    * or 'audio'
@@ -133,39 +108,6 @@ export class CoreAppUtilityService {
       this.getNestedValue(webrtcContext, AppConstants.CONNECTION_STATE) ===
       AppConstants.CONNECTION_STATES.CONNECTING
     );
-  }
-
-  /**
-   * get appropriate webrtc peer connection for a user from webrtc context
-   *
-   * @param username username of the user
-   *
-   * @param channel: media type audio/video/text
-   *
-   * @param needSender boolean flag to distinguish b/w send and receiver
-   */
-  getAppropriatePeerConnection(
-    username: string,
-    channel: string,
-    needSender: boolean
-  ) {
-    return new Promise<any>((resolve) => {
-      const webrtcContext =
-        this.userContextService.getUserWebrtcContext(username);
-      if (
-        this.getNestedValue(webrtcContext, AppConstants.MEDIA_CONTEXT, channel)
-      ) {
-        const connectionType: string = this.getConnectionIdentifier(
-          channel,
-          needSender
-        );
-        resolve(
-          webrtcContext[AppConstants.MEDIA_CONTEXT][channel][connectionType]
-        );
-      } else {
-        resolve(undefined);
-      }
-    });
   }
 
   /**
@@ -317,11 +259,9 @@ export class CoreAppUtilityService {
 
   /**
    * this will check if a certain value is in the specified array or not
-   *
    * @param value value to check in the array
    * @param array array of values
    * @returns boolean specifying whether value exist in array or not
-   *
    */
   checkMember(value: any, array: any[]): boolean {
     return array.indexOf(value) > -1;
@@ -373,5 +313,30 @@ export class CoreAppUtilityService {
       bufView[i] = stringData.charCodeAt(i);
     }
     return buf;
+  }
+
+  /**
+   * format size in to higher terms
+   * @param bytes
+   * @param decimals
+   * @returns
+   */
+  formatBytes(bytes: number, decimals: number = 2): string {
+    if (bytes === 0) return "0 Bytes";
+    const k: number = 1024;
+    const dm: number = decimals < 0 ? 0 : decimals;
+    const sizes: string[] = [
+      "Bytes",
+      "KB",
+      "MB",
+      "GB",
+      "TB",
+      "PB",
+      "EB",
+      "ZB",
+      "YB",
+    ];
+    const i: number = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
   }
 }

@@ -1,4 +1,3 @@
-import { LoggerUtil } from "./../services/logging/LoggerUtil";
 import { Component, Inject, OnInit } from "@angular/core";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
 import {
@@ -16,9 +15,9 @@ export class InformationDialogComponent implements OnInit {
   infoContext: InfoDialogContext;
   constructor(
     private dialogRef: MatDialogRef<any>,
-    @Inject(MAT_DIALOG_DATA) private data: any
+    @Inject(MAT_DIALOG_DATA) private data: InfoDialogContext
   ) {
-    this.infoContext = data as InfoDialogContext;
+    this.infoContext = data;
   }
 
   ngOnInit(): void {}

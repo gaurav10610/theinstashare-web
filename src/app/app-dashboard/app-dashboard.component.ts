@@ -353,6 +353,7 @@ export class AppDashboardComponent implements OnInit {
     );
     this.userContextService.applicationSignOut();
     this.userContextService.resetCoreAppContext();
+    this.userContextService.userSignOut();
     this.router.navigateByUrl("login");
   }
 }

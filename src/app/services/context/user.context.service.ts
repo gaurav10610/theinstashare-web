@@ -135,7 +135,6 @@ export class UserContextService {
   }
 
   resetCoreAppContext() {
-    this.userSignOut();
     this.userToChat = undefined;
     this.webrtcContext = {};
     this.screenStream = undefined;

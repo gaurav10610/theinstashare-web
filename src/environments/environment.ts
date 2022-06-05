@@ -10,5 +10,5 @@ export const environment = {
   api_media_server_base: "http://localhost:9696/instashare/media-server/",
   rtc_api_endpoint_base: "http://localhost:9090",
   google_tracking_id: "G-RJDZ532DZP",
-  apps_config: ["p2p", "group_chat", "file_transfer", "coming_soon_icon"],
+  apps_config: ["file_transfer", "p2p", "group_chat", "coming_soon_icon"],
 };

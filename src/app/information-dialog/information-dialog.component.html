@@ -2,13 +2,14 @@
   <div
     *ngFor="let row of infoContext.rows; last as isLast"
     class="column-flex-display"
+    style="margin-bottom: 10px"
   >
     <div [ngClass]="row.rowStyle ? row.rowStyle : { 'row-flex-display': true }">
       <div *ngFor="let element of row.elements">
         <!-- @TODO see if ngSwitch can be used here -->
 
         <!-- text element -->
-        <div *ngIf="element.type === 'text'">
+        <div *ngIf="element.type === 'text'" [ngClass]="element.textDivStyle">
           <span [ngClass]="element.textStyle">{{ element.text }}</span>
         </div>
 
@@ -49,7 +50,7 @@
     <!-- for border below every row -->
     <div
       *ngIf="row.needBorderAfterRow && !isLast"
-      style="width: 100%; border-bottom: 1px solid black"
+      style="width: 100%; border-bottom: 1px solid black; margin-top: 10px"
     ></div>
   </div>
 </div>

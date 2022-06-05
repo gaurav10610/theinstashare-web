@@ -1,3 +1,4 @@
+import { ComponentSpec } from './../services/contracts/component/component-specs';
 import { InformationDialogComponent } from "./../information-dialog/information-dialog.component";
 import {
   AfterViewInit,
@@ -58,7 +59,7 @@ import {
   styleUrls: ["./file-transfer-window.component.scss"],
 })
 export class FileTransferWindowComponent
-  implements OnInit, OnDestroy, AfterViewInit
+  implements OnInit, OnDestroy, AfterViewInit, ComponentSpec
 {
   constructor(
     public userContextService: UserContextService,
@@ -92,6 +93,9 @@ export class FileTransferWindowComponent
   // selected tab on file transfer window
   currentTab: FileTransferTabType = FileTransferTabType.UPLOADS;
 
+  // component scheduled job id
+  scheduledJobId: any;
+
   async ngOnInit(): Promise<void> {
     this.gaService.pageView("/file-transfer", "File Transfer");
     await this.setupSignaling();
@@ -121,6 +125,13 @@ export class FileTransferWindowComponent
     if (this.userContextService.isMobile) {
       LoggerUtil.logAny("app rendered on mobile device");
     }
+
+    this.scheduledJobId = setInterval(() => {
+      this.fileTransferService.scheduledCleanerJob();
+    }, AppConstants.CLEANUP_JOB_INTERVAL);
+    LoggerUtil.logAny(
+      `scheduled job with id: ${this.scheduledJobId} is scheduled`
+    );
   }
 
   ngAfterViewInit() {}
@@ -128,7 +139,14 @@ export class FileTransferWindowComponent
   /**
    * do clean up here before this component get destroyed
    */
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void {
+    if (this.scheduledJobId) {
+      LoggerUtil.logAny(
+        `scheduled job with id: ${this.scheduledJobId} is cleared`
+      );
+      clearInterval(this.scheduledJobId);
+    }
+  }
 
   /**
    * signaling setup
@@ -1265,6 +1283,9 @@ export class FileTransferWindowComponent
     }
   }
 
+  /**
+   * log out from the app
+   */
   async logout(): Promise<void> {
     try {
       LoggerUtil.logAny("logging out from file-transfer");
@@ -1274,7 +1295,8 @@ export class FileTransferWindowComponent
       );
       this.userContextService.applicationSignOut();
       this.userContextService.resetCoreAppContext();
-      this.router.navigateByUrl("login");
+      this.userContextService.userSignOut();
+      this.router.navigateByUrl("app");
     } catch (error) {
       LoggerUtil.logAny("error encounterd while resetting webrtc context");
       this.router.navigateByUrl("login");

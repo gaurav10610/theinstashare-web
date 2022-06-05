@@ -5,6 +5,7 @@ import {
   ViewChild,
   Renderer2,
   AfterViewInit,
+  NgZone,
 } from "@angular/core";
 import { SignalingService } from "../services/signaling/signaling.service";
 import { LoggerUtil } from "../services/logging/LoggerUtil";
@@ -29,13 +30,11 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { DialogCloseResult } from "../services/contracts/dialog/dialog";
 import { DialogType } from "../services/contracts/enum/DialogType";
 import { ProgressDialogComponent } from "../progress-dialog/progress-dialog.component";
-import { GroupLoginDialogComponent } from "../group-login-dialog/group-login-dialog.component";
 import { AppLoginDialogComponent } from "../app-login-dialog/app-login-dialog.component";
 import { MediaViewerDialogComponent } from "../media-viewer-dialog/media-viewer-dialog.component";
 import { IconsDialogComponent } from "../icons-dialog/icons-dialog.component";
 import { DialogCloseResultType } from "../services/contracts/enum/DialogCloseResultType";
 import { RequestProcessingDialogComponent } from "../request-processing-dialog/request-processing-dialog.component";
-import { CoreFileStreamer } from "../services/file-sharing/CoreFileStreamer";
 import { GoogleAnalyticsService } from "ngx-google-analytics";
 
 @Component({
@@ -60,7 +59,8 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     private coreDataChannelService: CoreDataChannelService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private gaService: GoogleAnalyticsService
+    private gaService: GoogleAnalyticsService,
+    private zoneRef: NgZone
   ) {}
 
   isGrouped: boolean = false;
@@ -257,29 +257,30 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       this.remoteVideo.nativeElement,
       "loadedmetadata",
       (event: any) => {
-        if (this.talkWindowContextService.bindingFlags.isScreenSharing) {
-          LoggerUtil.logAny("remote screen video stream has been loaded");
-          // this.renderer.addClass(this.remoteVideoDiv.nativeElement, 'align-center');
-          this.renderer.addClass(
-            this.remoteVideoDiv.nativeElement,
-            "center-content"
-          );
-          this.webRemoteAccessService.calculateRemoteAccessParameters(
-            this.remoteVideo.nativeElement.videoWidth,
-            this.remoteVideo.nativeElement.videoHeight,
-            this.remoteVideoDiv.nativeElement.clientWidth,
-            this.remoteVideoDiv.nativeElement.clientHeight,
-            this.remoteVideo,
-            this.remoteVideoCanvas
-          );
-        } else {
-          LoggerUtil.logAny("remote video stream has been loaded");
-          this.renderer.removeClass(
-            this.remoteVideoDiv.nativeElement,
-            "center-content"
-          );
-        }
-        this.talkWindowUtilService.appRef.tick();
+        this.zoneRef.run(() => {
+          if (this.talkWindowContextService.bindingFlags.isScreenSharing) {
+            LoggerUtil.logAny("remote screen video stream has been loaded");
+            // this.renderer.addClass(this.remoteVideoDiv.nativeElement, 'align-center');
+            this.renderer.addClass(
+              this.remoteVideoDiv.nativeElement,
+              "center-content"
+            );
+            this.webRemoteAccessService.calculateRemoteAccessParameters(
+              this.remoteVideo.nativeElement.videoWidth,
+              this.remoteVideo.nativeElement.videoHeight,
+              this.remoteVideoDiv.nativeElement.clientWidth,
+              this.remoteVideoDiv.nativeElement.clientHeight,
+              this.remoteVideo,
+              this.remoteVideoCanvas
+            );
+          } else {
+            LoggerUtil.logAny("remote video stream has been loaded");
+            this.renderer.removeClass(
+              this.remoteVideoDiv.nativeElement,
+              "center-content"
+            );
+          }
+        });
       }
     );
 
@@ -360,71 +361,73 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    */
   handleDialogClose(dialogCloseResult?: DialogCloseResult) {
-    if (dialogCloseResult === undefined) {
-      return;
-    }
-    LoggerUtil.logAny(
-      `dialog got closed with result: ${JSON.stringify(dialogCloseResult)}`
-    );
-    switch (dialogCloseResult.type) {
-      case DialogCloseResultType.APP_LOGIN:
-        this.openDialog(DialogType.PROGRESS, {
-          message: "login in progress",
-        });
-        this.signalingService.registerOnSignalingServer(
-          dialogCloseResult.data.username,
-          true
-        );
-        break;
+    this.zoneRef.run(() => {
+      if (dialogCloseResult === undefined) {
+        return;
+      }
+      LoggerUtil.logAny(
+        `dialog got closed with result: ${JSON.stringify(dialogCloseResult)}`
+      );
+      switch (dialogCloseResult.type) {
+        case DialogCloseResultType.APP_LOGIN:
+          this.openDialog(DialogType.PROGRESS, {
+            message: "login in progress",
+          });
+          this.signalingService.registerOnSignalingServer(
+            dialogCloseResult.data.username,
+            true
+          );
+          break;
 
-      case DialogCloseResultType.MEDIA_VIEWER:
-        LoggerUtil.logAny(
-          `media viewer dialog closed for content type: ${dialogCloseResult.data.contentType}`
-        );
-        break;
+        case DialogCloseResultType.MEDIA_VIEWER:
+          LoggerUtil.logAny(
+            `media viewer dialog closed for content type: ${dialogCloseResult.data.contentType}`
+          );
+          break;
 
-      case DialogCloseResultType.RESIZE_REMOTE_VIDEO:
-        this.resizeRemoteVideo(dialogCloseResult.data.minimizeFlag);
-        break;
+        case DialogCloseResultType.RESIZE_REMOTE_VIDEO:
+          this.resizeRemoteVideo(dialogCloseResult.data.minimizeFlag);
+          break;
 
-      case DialogCloseResultType.DND:
-        this.handleDnd();
-        break;
+        case DialogCloseResultType.DND:
+          this.handleDnd();
+          break;
 
-      case DialogCloseResultType.MUTE:
-        this.handleMute();
-        break;
+        case DialogCloseResultType.MUTE:
+          this.handleMute();
+          break;
 
-      case DialogCloseResultType.MEDIA_STREAM:
-        this.handleMediaStreaming(dialogCloseResult.data.clickedIcon);
-        break;
+        case DialogCloseResultType.MEDIA_STREAM:
+          this.handleMediaStreaming(dialogCloseResult.data.clickedIcon);
+          break;
 
-      case DialogCloseResultType.REMOTE_ACCESS:
-        this.handleRemoteAccess(dialogCloseResult.data.action);
-        break;
+        case DialogCloseResultType.REMOTE_ACCESS:
+          this.handleRemoteAccess(dialogCloseResult.data.action);
+          break;
 
-      case DialogCloseResultType.FULL_SCREEN:
-        this.handleVideoFullScreen(dialogCloseResult.data.makeFullScreenFlag);
-        break;
+        case DialogCloseResultType.FULL_SCREEN:
+          this.handleVideoFullScreen(dialogCloseResult.data.makeFullScreenFlag);
+          break;
 
-      case DialogCloseResultType.CAMERA_FLIP:
-        this.handleCameraFlip();
-        break;
+        case DialogCloseResultType.CAMERA_FLIP:
+          this.handleCameraFlip();
+          break;
 
-      case DialogCloseResultType.ACCEPT_CALL:
-        this.acceptCall(dialogCloseResult.data.channel);
-        break;
+        case DialogCloseResultType.ACCEPT_CALL:
+          this.acceptCall(dialogCloseResult.data.channel);
+          break;
 
-      case DialogCloseResultType.CLOSE_CALL:
-        this.closeCall(
-          dialogCloseResult.data.action,
-          dialogCloseResult.data.channel
-        );
-        break;
+        case DialogCloseResultType.CLOSE_CALL:
+          this.closeCall(
+            dialogCloseResult.data.action,
+            dialogCloseResult.data.channel
+          );
+          break;
 
-      default:
-      //do nothing here
-    }
+        default:
+        //do nothing here
+      }
+    });
   }
 
   /*
@@ -459,71 +462,72 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    *
    */
   async onRouterMessage(signalingMessage: any) {
-    try {
-      LoggerUtil.logAny(
-        "received message via " +
-          signalingMessage.via +
-          ": " +
-          JSON.stringify(signalingMessage)
-      );
-      switch (signalingMessage.type) {
-        case AppConstants.REGISTER:
-          await this.handleRegister(signalingMessage);
-          break;
+    this.zoneRef.run(async () => {
+      try {
+        LoggerUtil.logAny(
+          "received message via " +
+            signalingMessage.via +
+            ": " +
+            JSON.stringify(signalingMessage)
+        );
+        switch (signalingMessage.type) {
+          case AppConstants.REGISTER:
+            await this.handleRegister(signalingMessage);
+            break;
 
-        case AppConstants.OFFER:
-          await this.consumeWebrtcOffer(signalingMessage);
-          break;
+          case AppConstants.OFFER:
+            await this.consumeWebrtcOffer(signalingMessage);
+            break;
 
-        case AppConstants.ANSWER:
-          await this.coreWebrtcService.handleAnswer(signalingMessage);
-          break;
+          case AppConstants.ANSWER:
+            await this.coreWebrtcService.handleAnswer(signalingMessage);
+            break;
 
-        case AppConstants.CANDIDATE:
-          await this.coreWebrtcService.handleCandidate(signalingMessage);
-          break;
+          case AppConstants.CANDIDATE:
+            await this.coreWebrtcService.handleCandidate(signalingMessage);
+            break;
 
-        case AppConstants.DISCONNECT:
-          this.handleDisconnectionRequest(signalingMessage);
-          break;
+          case AppConstants.DISCONNECT:
+            this.handleDisconnectionRequest(signalingMessage);
+            break;
 
-        case AppConstants.RECONNECT:
-          this.handleReconnectionRequest(signalingMessage);
-          break;
+          case AppConstants.RECONNECT:
+            this.handleReconnectionRequest(signalingMessage);
+            break;
 
-        case AppConstants.CALL_REQUEST:
-          await this.handleMediaStreamRequests(signalingMessage);
-          break;
+          case AppConstants.CALL_REQUEST:
+            await this.handleMediaStreamRequests(signalingMessage);
+            break;
 
-        case AppConstants.REMOTE_ACCESS_REQUEST:
-          this.handleRemoteAccessRequest(signalingMessage);
-          break;
+          case AppConstants.REMOTE_ACCESS_REQUEST:
+            this.handleRemoteAccessRequest(signalingMessage);
+            break;
 
-        case AppConstants.USER_ACTIVE_STATUS:
-          this.talkWindowUtilService.updateUserStatus(
-            signalingMessage.connected,
-            signalingMessage.username
-          );
-          break;
+          case AppConstants.USER_ACTIVE_STATUS:
+            this.talkWindowUtilService.updateUserStatus(
+              signalingMessage.connected,
+              signalingMessage.username
+            );
+            break;
 
-        case AppConstants.WEBRTC_EVENT:
-          this.handleWebrtcEvent(signalingMessage);
-          break;
+          case AppConstants.WEBRTC_EVENT:
+            this.handleWebrtcEvent(signalingMessage);
+            break;
 
-        default:
-          LoggerUtil.logAny(
-            "received unknown signaling message with type: " +
-              signalingMessage.type
-          );
+          default:
+            LoggerUtil.logAny(
+              "received unknown signaling message with type: " +
+                signalingMessage.type
+            );
+        }
+      } catch (err) {
+        LoggerUtil.logAny(
+          "error occured while handling received signaling message"
+        );
+        LoggerUtil.logAny(JSON.stringify(signalingMessage));
+        LoggerUtil.logAny(err);
       }
-      this.talkWindowUtilService.appRef.tick();
-    } catch (err) {
-      LoggerUtil.logAny(
-        "error occured while handling received signaling message"
-      );
-      LoggerUtil.logAny(JSON.stringify(signalingMessage));
-      LoggerUtil.logAny(err);
-    }
+    });
   }
 
   /**
@@ -976,7 +980,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
        */
       this.setMediaStreamRequest(channel);
     }
-    this.talkWindowUtilService.appRef.tick();
   }
 
   /**
@@ -1306,7 +1309,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
             selectedUser
           ).unreadCount = 0;
         }
-        this.talkWindowUtilService.appRef.tick();
         this.scrollMessages();
       } else {
         LoggerUtil.logAny("already connected with user: " + selectedUser);
@@ -1935,7 +1937,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         AppConstants.AUDIO
       );
     }
-    this.talkWindowUtilService.appRef.tick();
   }
 
   /**
@@ -2020,7 +2021,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   handleDnd() {
     this.talkWindowContextService.bindingFlags.isDndOn =
       !this.talkWindowContextService.bindingFlags.isDndOn;
-    this.talkWindowUtilService.appRef.tick();
   }
 
   /**
@@ -2068,11 +2068,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
   async logout() {
     try {
       this.showLoader = true;
-
-      /**
-       * send de-register message to server to notify that user has opted to
-       * logout
-       */
       this.signalingService.deRegisterOnSignalingServer(
         this.userContextService.getUserName()
       );
@@ -2080,7 +2075,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       /**
        * stop any ongoing media streaming as user now wants to call/share media
        * stream with some other user
-       *
        */
       const userToChat = this.userContextService.userToChat;
       const userContext =
@@ -2097,7 +2091,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
             }
           }
         );
-        // this.appUtilService.appRef.tick();
       }
       await this.webrtcService.cleanWebrtcContext();
 
@@ -2105,6 +2098,7 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       this.talkWindowContextService.resetAppContext();
       this.showLoader = false;
       this.userContextService.applicationSignOut();
+      this.userContextService.userSignOut();
 
       LoggerUtil.logAny(
         "selected user while logging out: " + this.userContextService.userToChat
@@ -2122,12 +2116,13 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
    * @param  hideFlag flag to distinguish whether to hide/show the popup
    */
   setIconsPopup(hideFlag?: boolean) {
-    if (hideFlag) {
-      this.closeDialog();
-    } else {
-      this.openDialog(DialogType.ICONS_POPUP);
-    }
-    this.talkWindowUtilService.appRef.tick();
+    this.zoneRef.run(() => {
+      if (hideFlag) {
+        this.closeDialog();
+      } else {
+        this.openDialog(DialogType.ICONS_POPUP);
+      }
+    });
   }
 
   /**
@@ -2166,7 +2161,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       ];
     localAudioTrack.enabled =
       !this.talkWindowContextService.bindingFlags.isOnMute;
-    this.talkWindowUtilService.appRef.tick();
   }
 
   /**
@@ -2365,7 +2359,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
       makeFullScreenFlag;
     this.setCentralIconsPopup(makeFullScreenFlag);
     this.resizeRemoteVideo(false);
-    this.talkWindowUtilService.appRef.tick();
   }
 
   /**
@@ -2393,27 +2386,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     this.talkWindowContextService.mediaViewerContext[AppConstants.CONTENT_ID] =
       contentId;
     this.openDialog(DialogType.MEDIA_VIEWER);
-  }
-
-  /**
-   * this will close the media viewer on the chat window
-   *
-   * @param event HTML event
-   */
-  closeMediaViewer(event: any) {
-    event.stopImmediatePropagation();
-    LoggerUtil.logAny("close media viewer action triggered");
-    if (event.target.id.includes(AppConstants.VIDEO)) {
-      this.renderer.selectRootElement("#viewer_video", true).pause();
-    } else {
-      this.talkWindowContextService.mediaViewerContext[
-        AppConstants.CONTENT_TYPE
-      ] = undefined;
-      this.talkWindowContextService.mediaViewerContext[
-        AppConstants.CONTENT_ID
-      ] = undefined;
-    }
-    this.talkWindowUtilService.appRef.tick();
   }
 
   /**
@@ -2446,7 +2418,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     if (this.userContextService.isMobile && minimizeFlag) {
       this.setIconsPopup(true);
     }
-    this.talkWindowUtilService.appRef.tick();
   }
 
   /**
@@ -2623,7 +2594,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
     if (this.userContextService.isMobile) {
       this.talkWindowContextService.bindingFlags.showSidepanel = hideFlag;
     }
-    this.talkWindowUtilService.appRef.tick();
   }
 
   /**
@@ -2715,8 +2685,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         .getMessageContext(messagePayload[AppConstants.USERNAME])
         .push(messagePayload);
 
-      //refresh dom
-      this.talkWindowUtilService.appRef.tick();
       this.scrollMessages();
       resolve(messageStatus);
     });
@@ -2782,9 +2750,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         URL.createObjectURL(mediaStream)
       );
     }
-    setTimeout(() => {
-      this.talkWindowUtilService.appRef.tick();
-    }, 1000);
   }
 
   /**
@@ -3271,7 +3236,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         this.requestProcessingDialogRef
           .afterClosed()
           .subscribe(this.handleDialogClose.bind(this));
-        this.talkWindowUtilService.appRef.tick();
       }
     }
   }
@@ -3293,7 +3257,6 @@ export class TalkWindowComponent implements OnInit, AfterViewInit {
         data: {},
       };
       this.requestProcessingDialogRef.close(result);
-      this.talkWindowUtilService.appRef.tick();
     }
   }
 

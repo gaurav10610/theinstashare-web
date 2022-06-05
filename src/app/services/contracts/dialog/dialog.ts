@@ -18,6 +18,7 @@ export interface InfoDialogRow {
 export interface InfoDialogElement {
   type: InfoDialogElementType;
   text?: string;
+  textDivStyle?: any; // [ngClass] like json
   textStyle?: any; // [ngClass] like json
   isIconButton?: boolean;
   buttonIcon?: string;

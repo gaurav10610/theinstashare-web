@@ -2,13 +2,12 @@ import { EventEmitter, Injectable } from "@angular/core";
 import { AppConstants } from "../AppConstants";
 import { UserContextService } from "../context/user.context.service";
 import { CallbackContextType } from "../contracts/CallbackContextType";
-import { ComponentServiceSpec } from "../contracts/component/ComponentServiceSpec";
+import { ComponentServiceSpec } from "../contracts/component/component-specs";
 import { CreateDataChannelType } from "../contracts/CreateDataChannelType";
 import { DataChannelInfo } from "../contracts/datachannel/DataChannelInfo";
 import { ConnectionStateChangeContext } from "../contracts/event/ConnectionStateChangeContext";
 import { CoreDataChannelService } from "../data-channel/core-data-channel.service";
 import { LoggerUtil } from "../logging/LoggerUtil";
-import { FileTransferUtilityService } from "../util/file-transfer-utility.service";
 import { CoreWebrtcService } from "./core-webrtc.service";
 
 @Injectable({
@@ -32,12 +31,22 @@ export class FileTransferService implements ComponentServiceSpec {
   constructor(
     private userContextService: UserContextService,
     private coreWebrtcService: CoreWebrtcService,
-    private coreDataChannelService: CoreDataChannelService,
-    private utilityService: FileTransferUtilityService
+    private coreDataChannelService: CoreDataChannelService
   ) {
     this.onDataChannelMessageEvent = new EventEmitter(true);
     this.onDataChannelReceiveEvent = new EventEmitter(true);
     this.onWebrtcConnectionStateChangeEvent = new EventEmitter(true);
+  }
+
+  /**
+   * trigger a scheduled cleaner job
+   */
+  async scheduledCleanerJob(): Promise<void> {
+    LoggerUtil.logAny(`scheduled job started at: ${new Date().toISOString()}`);
+    LoggerUtil.logAny(this.userContextService.webrtcContext);
+    LoggerUtil.logAny(
+      `scheduled job completed at: ${new Date().toISOString()}`
+    );
   }
 
   /**

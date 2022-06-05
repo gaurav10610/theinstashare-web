@@ -214,6 +214,9 @@ export class FileTransferUtilityService {
           textStyle: {
             "header-font": true,
           },
+          textDivStyle: {
+            "div-content-wrap": true,
+          },
         },
       ],
       needBorderAfterRow: true,
@@ -256,7 +259,7 @@ export class FileTransferUtilityService {
         },
         {
           type: InfoDialogElementType.TEXT,
-          text: `${file.size} Bytes`,
+          text: this.coreAppUtilService.formatBytes(file.size),
           textStyle: {
             "header-font": true,
           },
@@ -279,7 +282,7 @@ export class FileTransferUtilityService {
         },
         {
           type: InfoDialogElementType.TEXT,
-          text: file.completedAt.toISOString(),
+          text: file.completedAt.toLocaleString(),
           textStyle: {
             "header-font": true,
           },

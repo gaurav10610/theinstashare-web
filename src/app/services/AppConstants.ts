@@ -5,6 +5,8 @@
 export class AppConstants {
   public static DATACHANNEL = "dataChannel";
 
+  public static CLEANUP_JOB_INTERVAL = 30000;
+
   public static WEBRTC_EVENTS = {
     CHANNEL_OPEN: "channelOpen",
     REMOTE_TRACK_RECEIVED: "remoteTrack",
