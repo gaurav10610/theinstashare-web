@@ -1,4 +1,4 @@
-<div class="column-flex-display full-height-width">
+<div class="column-flex-display full-height-width app-background">
 
     <div class="dashboard-header">
         <mat-toolbar color="primary" class="dashboard-header">
@@ -12,22 +12,26 @@
         </mat-toolbar>
     </div>
 
+    <div id="username-header" class="row-flex-display header-font"
+        style="flex-direction: row-reverse; margin: 10px;" *ngIf="userContextService.username">
+        <span>{{userContextService.username}}</span>
+        <span style="font-weight: bold;">Logged in as: </span>
+    </div>
+
     <!-- container for all the applications -->
     <div id="apps-container" class="apps-container">
-        <div *ngFor="let tile of tiles"
-            class="app-class column-flex-display align-center center-content border-class border-box-class pointer-cursor"
-            (click)="registerApplicationUser(tile.identifier)">
+        <div *ngFor="let appContext of appIconsContext" (click)="registerApplicationUser(appContext.identifier)"
+            class="app-class pointer-cursor">
 
-            <div
-            *ngIf="tile.icon" [ngClass]="{'text-center':true, 'hidden-class': userContextService.selectedApp === tile.identifier && isRegistering}">
-                <img src="{{assetsPath + tile.icon}}" alt="" />
-            </div>
-            <span *ngIf="!tile.icon" class="header-font">{{tile.iconText}}</span>
-            <span *ngIf="tile.description && !isRegistering" class="header-font">{{tile.description}}</span>
+            <mat-card>
+                <mat-card-content>
+                    <div class="column-flex-display align-center">
+                        <mat-icon class="icon-class" svgIcon="{{appContext.iconName}}"></mat-icon>
+                        <span class="header-font app-name">{{appContext.iconText}}</span>
+                    </div>
+                </mat-card-content>
+            </mat-card>
 
-            <mat-progress-spinner *ngIf="userContextService.selectedApp === tile.identifier && isRegistering"
-                color="primary" mode="indeterminate" value="value">
-            </mat-progress-spinner>
         </div>
     </div>
 </div>

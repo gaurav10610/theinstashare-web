@@ -1,7 +1,7 @@
 import { Component, ElementRef, Inject, OnInit, ViewChild } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { environment } from '../../environments/environment';
-import { DialogCloseResult } from '../services/contracts/dialog/DialogCloseResult';
+import { DialogCloseResult } from '../services/contracts/dialog/dialog';
 import { DialogCloseResultType } from '../services/contracts/enum/DialogCloseResultType';
 import { LoggerUtil } from '../services/logging/LoggerUtil';
 import { SignalingService } from '../services/signaling/signaling.service';
@@ -31,7 +31,7 @@ export class AppLoginDialogComponent implements OnInit {
   }
 
   /**
-   * 
+   *
    * login handler
    */
   login(event?: any) {
@@ -54,13 +54,13 @@ export class AppLoginDialogComponent implements OnInit {
   async doLogin() {
     this.isRegistering = true;
     const username: String = this.usernameInput.nativeElement.value.trim();
-    LoggerUtil.log(`validating username: ${username}`);
+    LoggerUtil.logAny(`validating username: ${username}`);
     const isUsernameTaken: Boolean = await this.signalingService.checkIfUsernameTaken(username);
     if (isUsernameTaken) {
       this.errorMessage = 'username is either invalid or already been taken';
       this.isRegistering = false;
     } else {
-      LoggerUtil.log(`username is valid and available, so trying login`);
+      LoggerUtil.logAny(`username is valid and available, so trying login`);
       this.isRegistering = false;
       const result: DialogCloseResult = {
         type: DialogCloseResultType.APP_LOGIN,

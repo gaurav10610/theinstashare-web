@@ -1,0 +1,624 @@
+<div id="frame" class="full-height-width top-container">
+  <div
+    id="side-panel-div"
+    class="column-flex-display border-class hide-vertical-overflow"
+    [ngStyle]="{
+      display:
+        userContextService.userToChat !== undefined &&
+        userContextService.isMobile
+          ? 'none'
+          : 'flex'
+    }"
+  >
+    <!-- header -->
+    <div id="side-panel-div-header" class="dashboard-header">
+      <mat-toolbar color="primary" class="hide-horizontal-overflow">
+        <button mat-icon-button aria-label="app icon button">
+          <mat-icon svgIcon="app_icon" style="transform: scale(1.5)"></mat-icon>
+        </button>
+        <div
+          class="hide-horizontal-overflow flex-grow-full row-flex-display center-content header-font"
+        >
+          TheInstaShare
+        </div>
+        <button
+          mat-icon-button
+          aria-label="logout icon button"
+          (click)="logout()"
+        >
+          <mat-icon>logout</mat-icon>
+        </button>
+      </mat-toolbar>
+    </div>
+
+    <!-- tab icons header -->
+    <div
+      class="row-flex-display border-bottom center-content"
+      style="padding-top: 10px; padding-bottom: 10px"
+    >
+      <span class="header-font bold-text"
+        >Logged in as: {{ userContextService.username }}</span
+      >
+    </div>
+
+    <div class="flex-grow-full hide-vertical-overflow column-flex-display">
+      <!-- contacts tab -->
+      <div
+        [ngClass]="{
+          'flex-grow-full': true,
+          'vertical-scroll': true,
+          'no-scroll': true
+        }"
+      >
+        <!-- no user online -->
+        <div
+          *ngIf="contextService.activeUsers.length === 0"
+          class="row-flex-display center-content"
+          style="padding: 10px"
+        >
+          <span class="header-font bold-text">No one is online!</span>
+        </div>
+
+        <mat-list>
+          <mat-list-item
+            id="contact-{{ username }}"
+            *ngFor="let username of contextService.activeUsers; last as last"
+            class="pointer-cursor"
+            (click)="selectUser(username)"
+          >
+            <mat-icon
+              svgIcon="{{
+                contextService.getUserStatus(username)
+                  ? 'user_online_icon'
+                  : 'user_offline_icon'
+              }}"
+              matListIcon
+            >
+            </mat-icon>
+            <span
+              matLine
+              class="header-font"
+              [ngStyle]="{
+                'font-weight':
+                  userContextService.userToChat === username ? 'bold' : ''
+              }"
+              >{{ username }}</span
+            >
+            <mat-chip-list
+              aria-label="Unread Message"
+              *ngIf="
+                userContextService.getUserWebrtcContext(username) !== null &&
+                userContextService.getUserWebrtcContext(username)
+                  .unreadCount !== 0
+              "
+            >
+              <mat-chip color="primary" selected>
+                {{
+                  userContextService.getUserWebrtcContext(username).unreadCount
+                }}</mat-chip
+              >
+            </mat-chip-list>
+            <!-- <mat-divider [inset]="true" *ngIf="!last"></mat-divider> -->
+            <mat-divider [inset]="true"></mat-divider>
+          </mat-list-item>
+        </mat-list>
+      </div>
+    </div>
+  </div>
+
+  <div
+    id="file-transfer-div"
+    class="border-class column-flex-display"
+    [ngStyle]="{
+      display: userContextService.userToChat !== undefined ? 'flex' : 'none'
+    }"
+  >
+    <!-- file transfer div header -->
+    <div id="file-transfer-div-header" class="dashboard-header text-center">
+      <mat-toolbar color="primary">
+        <button mat-icon-button aria-label="Example icon-button with menu icon">
+          <mat-icon>{{
+            contextService.getUserStatus(userContextService.userToChat)
+              ? "person"
+              : "person_off"
+          }}</mat-icon>
+        </button>
+        <span class="header-font">{{ userContextService.userToChat }}</span>
+        <span class="toolbar-spacer"></span>
+
+        <button
+          mat-icon-button
+          aria-label="back icon button"
+          class="toolbar-icon"
+          (click)="backToContacts()"
+          *ngIf="userContextService.isMobile"
+        >
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+      </mat-toolbar>
+    </div>
+
+    <!-- tab control buttons -->
+    <div
+      id="tab-controls"
+      class="row-flex-display tab-contols-class"
+      style="padding-right: 5px"
+    >
+      <button
+        mat-raised-button
+        color="primary"
+        aria-label="upload icon button"
+        class="tab-icon-button"
+        (click)="selectTab('chat')"
+        *ngIf="currentTab !== 'chat'"
+        matBadge="{{
+          contextService.getBadgeConfig(userContextService.userToChat)
+            ? contextService.getBadgeConfig(userContextService.userToChat).chat
+            : ''
+        }}"
+        matBadgeColor="accent"
+        matBadgeHidden="{{
+          contextService.getBadgeConfig(userContextService.userToChat) ===
+            undefined ||
+            contextService.getBadgeConfig(userContextService.userToChat)
+              .chat === 0
+        }}"
+      >
+        <mat-icon style="margin-right: 5px">chat</mat-icon>
+        <span>Chat</span>
+      </button>
+
+      <button
+        mat-stroked-button
+        color="primary"
+        aria-label="chat icon button"
+        class="tab-icon-button"
+        *ngIf="currentTab === 'chat'"
+      >
+        <mat-icon style="margin-right: 5px">chat</mat-icon>
+        <span>Chat</span>
+      </button>
+
+      <button
+        mat-raised-button
+        color="primary"
+        aria-label="upload icon button"
+        class="tab-icon-button"
+        (click)="selectTab('uploads')"
+        *ngIf="currentTab !== 'uploads'"
+      >
+        <mat-icon style="margin-right: 5px">cloud_upload</mat-icon>
+        <span>Uploads</span>
+      </button>
+
+      <button
+        mat-stroked-button
+        color="primary"
+        aria-label="upload icon button"
+        class="tab-icon-button"
+        *ngIf="currentTab === 'uploads'"
+      >
+        <mat-icon style="margin-right: 5px">cloud_upload</mat-icon>
+        <span>Uploads</span>
+      </button>
+
+      <button
+        mat-raised-button
+        color="primary"
+        aria-label="download icon button"
+        class="tab-icon-button"
+        (click)="selectTab('downloads')"
+        *ngIf="currentTab !== 'downloads'"
+        matBadge="{{
+          contextService.getBadgeConfig(userContextService.userToChat)
+            ? contextService.getBadgeConfig(userContextService.userToChat).file
+            : ''
+        }}"
+        matBadgeColor="accent"
+        matBadgeHidden="{{
+          contextService.getBadgeConfig(userContextService.userToChat) ===
+            undefined ||
+            contextService.getBadgeConfig(userContextService.userToChat)
+              .file === 0
+        }}"
+      >
+        <mat-icon style="margin-right: 5px">cloud_download</mat-icon>
+        <span>Downloads</span>
+      </button>
+
+      <button
+        mat-stroked-button
+        color="primary"
+        aria-label="download icon button"
+        class="tab-icon-button"
+        *ngIf="currentTab === 'downloads'"
+      >
+        <mat-icon style="margin-right: 5px">cloud_download</mat-icon>
+        <span>Downloads</span>
+      </button>
+    </div>
+
+    <!-- chat tab -->
+    <div
+      id="chat-tab"
+      [ngClass]="{
+        'flex-grow-full': true,
+        'no-scroll': true,
+        'hidden-class': currentTab !== 'chat',
+        'hide-vertical-overflow': true,
+        'column-flex-display': true
+      }"
+    >
+      <div
+        id="message-history-div"
+        #messageHistoryDiv
+        class="no-scroll vertical-scroll app-background"
+        style="height: 100%"
+      >
+        <div
+          *ngFor="
+            let message of contextService.getMessageContext(
+              userContextService.userToChat
+            )
+          "
+          class="row-flex-display align-center"
+          [ngStyle]="{
+            'flex-direction': message.isSent ? 'row-reverse' : 'row',
+            margin: '5px'
+          }"
+        >
+          <!-- user icon -->
+          <div
+            class="column-flex-display"
+            style="
+              align-self: flex-start;
+              margin-left: 10px;
+              margin-right: 10px;
+            "
+          >
+            <mat-icon svgIcon="user_online_icon"></mat-icon>
+          </div>
+
+          <!-- message & timestamp div -->
+          <div class="column-flex-display">
+            <!-- message -->
+            <div
+              [ngStyle]="{
+                display: message.isSent ? 'flex' : '',
+                'flex-direction': message.isSent ? 'row-reverse' : '',
+                padding: '10px',
+                background: message.isSent ? '#3f51b5' : 'white',
+                'border-radius': '15px',
+                color: message.isSent ? 'white' : '',
+                'margin-bottom': message.isSent ? '' : '8px',
+                'word-break': 'break-word'
+              }"
+            >
+              {{ message.message }}
+            </div>
+
+            <div
+              [ngStyle]="{
+                display: message.isSent ? 'flex' : '',
+                'flex-direction': message.isSent ? 'row-reverse' : ''
+              }"
+            >
+              {{ message.timestamp }}
+            </div>
+
+            <div
+              [ngStyle]="{
+                display: message.isSent ? 'flex' : 'none',
+                'flex-direction': message.isSent ? 'row-reverse' : ''
+              }"
+            >
+              <em>{{ message.status }}</em>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message Input -->
+      <div class="input-message hide-vertical-overflow row-flex-display">
+        <!-- Input Message Text Field -->
+        <div class="flex-grow-full column-flex-display">
+          <mat-form-field
+            appearance="outline"
+            style="width: 100%"
+            color="primary"
+          >
+            <mat-label>Enter your message</mat-label>
+            <input
+              matInput
+              #textMessage
+              maxlength="256"
+              placeholder="Enter your message"
+              (keyup)="sendTextMessage($event)"
+            />
+          </mat-form-field>
+        </div>
+
+        <!-- Send Message Button -->
+        <div class="column-flex-display center-content">
+          <button
+            mat-icon-button
+            color="primary"
+            aria-label="send message icon button"
+            (click)="sendTextMessage()"
+          >
+            <mat-icon>send</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- file upload tab -->
+    <div
+      id="file-upload-tab"
+      [ngClass]="{
+        'flex-grow-full': true,
+        'no-scroll': true,
+        'hidden-class': currentTab !== 'uploads',
+        'vertical-scroll': true,
+        'column-flex-display': true,
+        'app-background': true
+      }"
+    >
+      <input
+        id="file-input"
+        type="file"
+        style="display: none"
+        (change)="sendFiles($event)"
+        multiple
+      />
+
+      <div
+        style="margin: 10px"
+        *ngFor="
+          let fileContext of contextService.getSharedFiles(
+            userContextService.userToChat,
+            true
+          )
+        "
+      >
+        <mat-card style="margin: 5px">
+          <mat-card-content>
+            <div class="row-flex-display space-between-content">
+              <!-- file icon -->
+              <div>
+                <button mat-icon-button class="toolbar-icon">
+                  <mat-icon svgIcon="{{ fileContext.icon }}"></mat-icon>
+                </button>
+              </div>
+
+              <!-- file name -->
+              <div
+                class="row-flex-display flex-grow-full align-center hide-horizontal-overflow"
+              >
+                <span
+                  class="header-font bold-text"
+                  style="white-space: nowrap"
+                  >{{ fileContext.fileName }}</span
+                >
+              </div>
+
+              <!-- queued text for upload -->
+              <div
+                class="row-flex-display align-center"
+                style="margin-right: 5px"
+              >
+                <span
+                  class="header-font bold-text color-indigo"
+                  style="margin-left: 5px"
+                  *ngIf="fileContext.progress === 0"
+                  >Queued
+                </span>
+              </div>
+
+              <!-- file progress -->
+              <div
+                class="row-flex-display align-center"
+                *ngIf="!userContextService.isMobile"
+              >
+                <span
+                  class="header-font bold-text"
+                  *ngIf="fileContext.progress !== 0"
+                  >Progress:
+                </span>
+                <span class="header-font" *ngIf="fileContext.progress !== 0"
+                  >{{ fileContext.progress }}%</span
+                >
+              </div>
+
+              <!-- file action icons -->
+              <div
+                class="row-flex-display align-center space-between-content"
+                style="margin-left: 10px"
+              >
+                <mat-progress-spinner
+                  mode="determinate"
+                  [value]="fileContext.progress"
+                  diameter="24"
+                >
+                </mat-progress-spinner>
+
+                <button
+                  mat-icon-button
+                  *ngIf="fileContext.error"
+                  title="connection error!"
+                >
+                  <mat-icon svgIcon="error_icon"></mat-icon>
+                </button>
+
+                <button
+                  mat-icon-button
+                  *ngIf="fileContext.isResendEnable"
+                  (click)="
+                    retrySharingFiles(
+                      userContextService.userToChat,
+                      fileContext.id
+                    )
+                  "
+                >
+                  <mat-icon svgIcon="refresh_icon"></mat-icon>
+                </button>
+
+                <button
+                  mat-icon-button
+                  (click)="
+                    showFileDetails(
+                      userContextService.userToChat,
+                      fileContext.id
+                    )
+                  "
+                >
+                  <mat-icon svgIcon="info_icon"></mat-icon>
+                </button>
+
+                <button
+                  mat-icon-button
+                  *ngIf="fileContext.isComplete"
+                  (click)="
+                    deleteFile(userContextService.userToChat, fileContext.id)
+                  "
+                >
+                  <mat-icon svgIcon="bin_icon"></mat-icon>
+                </button>
+              </div>
+            </div>
+          </mat-card-content>
+          <mat-card-footer> </mat-card-footer>
+        </mat-card>
+      </div>
+
+      <button
+        mat-raised-button
+        color="primary"
+        aria-label="upload icon button"
+        style="margin: 10px"
+        *ngIf="currentTab === 'uploads'"
+        (click)="openFileDialog()"
+      >
+        <mat-icon style="margin-right: 5px">add_circle</mat-icon>
+        <span>Upload New File</span>
+      </button>
+    </div>
+
+    <!-- file download tab -->
+    <div
+      id="file-download-tab"
+      [ngClass]="{
+        'flex-grow-full': true,
+        'no-scroll': true,
+        'hidden-class': currentTab !== 'downloads',
+        'vertical-scroll': true,
+        'column-flex-display': true,
+        'app-background': true
+      }"
+    >
+      <div
+        style="margin: 10px"
+        *ngFor="
+          let fileContext of contextService.getSharedFiles(
+            userContextService.userToChat,
+            false
+          )
+        "
+      >
+        <mat-card>
+          <mat-card-content>
+            <div class="row-flex-display space-between-content">
+              <!-- file icon -->
+              <div>
+                <button mat-icon-button>
+                  <mat-icon svgIcon="{{ fileContext.icon }}"></mat-icon>
+                </button>
+              </div>
+
+              <!-- file name -->
+              <div
+                class="row-flex-display flex-grow-full align-center hide-horizontal-overflow"
+              >
+                <span
+                  class="header-font bold-text"
+                  style="white-space: nowrap"
+                  >{{ fileContext.fileName }}</span
+                >
+              </div>
+
+              <!-- file progress -->
+              <div
+                class="row-flex-display align-center"
+                *ngIf="!userContextService.isMobile"
+              >
+                <span class="header-font bold-text">Progress: </span>
+                <span class="header-font">{{ fileContext.progress }}%</span>
+              </div>
+
+              <!-- file action icons -->
+              <div
+                class="row-flex-display align-center"
+                style="margin-left: 5px"
+              >
+                <mat-progress-spinner
+                  mode="determinate"
+                  [value]="fileContext.progress"
+                  diameter="24"
+                >
+                </mat-progress-spinner>
+
+                <button
+                  mat-icon-button
+                  *ngIf="fileContext.error"
+                  title="connection error!"
+                >
+                  <mat-icon svgIcon="error_icon"></mat-icon>
+                </button>
+
+                <button
+                  mat-icon-button
+                  *ngIf="fileContext.isComplete"
+                  (click)="
+                    downloadFile(userContextService.userToChat, fileContext.id)
+                  "
+                >
+                  <mat-icon svgIcon="download_icon"></mat-icon>
+                </button>
+
+                <button
+                  mat-icon-button
+                  (click)="
+                    showFileDetails(
+                      userContextService.userToChat,
+                      fileContext.id
+                    )
+                  "
+                >
+                  <mat-icon svgIcon="info_icon"></mat-icon>
+                </button>
+
+                <button
+                  mat-icon-button
+                  *ngIf="fileContext.isComplete"
+                  (click)="
+                    deleteFile(userContextService.userToChat, fileContext.id)
+                  "
+                >
+                  <mat-icon svgIcon="bin_icon"></mat-icon>
+                </button>
+              </div>
+            </div>
+          </mat-card-content>
+          <mat-card-footer> </mat-card-footer>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+
+  <audio
+    id="messageTune"
+    style="display: none"
+    muted
+    src="{{ assetsPath + 'media/message.mp3' }}"
+  ></audio>
+</div>

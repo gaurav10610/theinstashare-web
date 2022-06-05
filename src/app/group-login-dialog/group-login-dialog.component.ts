@@ -3,7 +3,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { GroupChatWindowComponent } from '../group-chat-window/group-chat-window.component';
 import { ApiService } from '../services/api/api.service';
 import { AppConstants } from '../services/AppConstants';
-import { DialogCloseResult } from '../services/contracts/dialog/DialogCloseResult';
+import { DialogCloseResult } from '../services/contracts/dialog/dialog';
 import { DialogCloseResultType } from '../services/contracts/enum/DialogCloseResultType';
 import { LoggerUtil } from '../services/logging/LoggerUtil';
 
@@ -35,13 +35,13 @@ export class GroupLoginDialogComponent implements OnInit {
    * handle keyup event on input field
    */
   handleKeyUpEvent() {
-    LoggerUtil.log('input field keyup event');
+    LoggerUtil.logAny('input field keyup event');
     this.errorMessage = undefined
   }
 
   /**
-   * join or create a new group 
-   * @param operation 
+   * join or create a new group
+   * @param operation
    */
   async createOrJoinGroup(operation: String) {
     const groupName: String = this.groupNameInput.nativeElement.value
@@ -52,13 +52,13 @@ export class GroupLoginDialogComponent implements OnInit {
       this.errorMessage = 'invalid group name';
       return;
     }
-    LoggerUtil.log(`user selected operation: ${operation} with group name: ${groupName}`);
+    LoggerUtil.logAny(`user selected operation: ${operation} with group name: ${groupName}`);
     this.isRegistering = true;
 
     /**
-     * 
+     *
      * validate entered groupName
-     * 
+     *
      */
     const isGroupExist: Boolean = await this.checkIfGroupExist(groupName.trim());
 
@@ -103,8 +103,8 @@ export class GroupLoginDialogComponent implements OnInit {
         await this.apiService.get(`group/${groupName}`, AppConstants.MEDIA_SERVER).toPromise();
         resolve(true);
       } catch (e) {
-        LoggerUtil.log(`error occured while checking group existence for group: ${groupName}`);
-        LoggerUtil.log(e);
+        LoggerUtil.logAny(`error occured while checking group existence for group: ${groupName}`);
+        LoggerUtil.logAny(e);
         resolve(false);
       }
     });

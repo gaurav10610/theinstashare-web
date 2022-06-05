@@ -63,7 +63,7 @@ export class MessageService {
     if (this.messageMappings.hasOwnProperty(key)) {
       return this.messageMappings[key];
     } else {
-      LoggerUtil.log('message key not found: ' + key);
+      LoggerUtil.logAny('message key not found: ' + key);
       return key;
     }
   }

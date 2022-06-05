@@ -1,26 +1,53 @@
 <div id="container" class="full-height-width">
-
-  <div id="frame"
-    [ngClass]="{'full-height-width top-container':true, 'full-screen-video':talkWindowContextService.bindingFlags.isFullScreenMode}">
-
+  <div
+    id="frame"
+    [ngClass]="{
+      'full-height-width top-container': true,
+      'full-screen-video':
+        talkWindowContextService.bindingFlags.isFullScreenMode
+    }"
+  >
     <!-- Draggable DIV -->
-    <div id="draggable_div" class="draggable-div"
-      *ngIf="talkWindowContextService.bindingFlags.isAccessingRemote && talkWindowContextService.bindingFlags.isFullScreenMode"
-      (click)="handleRemoteAccess('stop')">
+    <div
+      id="draggable_div"
+      class="draggable-div"
+      *ngIf="
+        talkWindowContextService.bindingFlags.isAccessingRemote &&
+        talkWindowContextService.bindingFlags.isFullScreenMode
+      "
+      (click)="handleRemoteAccess('stop')"
+    >
       <!-- Include a header DIV with the same name as the draggable DIV, followed by "header" -->
-      <div id="draggable_header" class="draggable-div-header crimson-color">End Remote Access</div>>
+      <div id="draggable_header" class="draggable-div-header crimson-color">
+        End Remote Access
+      </div>
+      >
     </div>
 
     <!-- sidepanel -->
-    <div id="sidepanel" [ngClass]="{'hidden-class':talkWindowContextService.bindingFlags.isFullScreenMode || !talkWindowContextService.bindingFlags.showSidepanel,
-       'column-flex-display': true, 'border-class': true, 'border-box-class': true }">
-
+    <div
+      id="sidepanel"
+      [ngClass]="{
+        'hidden-class':
+          talkWindowContextService.bindingFlags.isFullScreenMode ||
+          !talkWindowContextService.bindingFlags.showSidepanel,
+        'column-flex-display': true,
+        'border-class': true,
+        'border-box-class': true
+      }"
+    >
       <!-- username header -->
       <div class="username-header">
         <mat-toolbar color="primary" class="username-header">
-          <span class="header-font hide-horizontal-overflow">Logged in as: {{userContextService.username}}</span>
+          <span class="header-font hide-horizontal-overflow"
+            >Logged in as: {{ userContextService.username }}</span
+          >
           <span class="toolbar-spacer"></span>
-          <button mat-icon-button aria-label="logout icon button" (click)="logout()">
+          <button
+            mat-icon-button
+            aria-label="logout icon button"
+            (click)="logout()"
+          >
             <mat-icon>logout</mat-icon>
           </button>
         </mat-toolbar>
@@ -28,27 +55,61 @@
 
       <!-- online users -->
       <div id="contacts" class="flex-grow-full">
-
         <!-- no body is online -->
-        <div id="no_one_online" style="margin-top: 10px;" class="row-flex-display center-content"
-          *ngIf="talkWindowContextService.activeUsers.length === 0">
-          <span style="font-size: large;">Nobody is Online!!</span>
+        <div
+          id="no_one_online"
+          style="margin-top: 10px"
+          class="row-flex-display center-content"
+          *ngIf="talkWindowContextService.activeUsers.length === 0"
+        >
+          <span style="font-size: large">Nobody is Online!!</span>
         </div>
 
-        <div [ngClass]="{'flex-grow-full': true, 'vertical-scroll': true, 'no-scroll': true }">
+        <div
+          [ngClass]="{
+            'flex-grow-full': true,
+            'vertical-scroll': true,
+            'no-scroll': true
+          }"
+        >
           <mat-list>
-            <mat-list-item id="contact-{{user}}" *ngFor="let user of talkWindowContextService.activeUsers;"
-              (click)="startTextChat(user)" class="pointer-cursor">
-              <mat-icon [color]="userContextService.userToChat === user ?'primary':''" matListIcon>
-                {{talkWindowContextService.getUserStatus(user) ? 'person': 'person_off'}}
+            <mat-list-item
+              id="contact-{{ user }}"
+              *ngFor="let user of talkWindowContextService.activeUsers"
+              (click)="startTextChat(user)"
+              class="pointer-cursor"
+            >
+              <mat-icon
+                matListIcon
+                svgIcon="{{
+                  talkWindowContextService.getUserStatus(user)
+                    ? 'user_online_icon'
+                    : 'user_offline_icon'
+                }}"
+              >
               </mat-icon>
-              <h3 matLine> {{user}} </h3>
+              <span
+                matLine
+                [ngStyle]="{
+                  'font-weight':
+                    userContextService.userToChat === user ? 'bold' : ''
+                }"
+                >{{ user }}</span
+              >
 
               <!-- unread message badge -->
-              <mat-chip-list aria-label="Fish selection" *ngIf="userContextService.getUserWebrtcContext(user) !== null && 
-              userContextService.getUserWebrtcContext(user).unreadCount !== 0">
+              <mat-chip-list
+                aria-label="Unread Message"
+                *ngIf="
+                  userContextService.getUserWebrtcContext(user) !== null &&
+                  userContextService.getUserWebrtcContext(user).unreadCount !==
+                    0
+                "
+              >
                 <mat-chip color="primary" selected>
-                  {{userContextService.getUserWebrtcContext(user).unreadCount}}
+                  {{
+                    userContextService.getUserWebrtcContext(user).unreadCount
+                  }}
                 </mat-chip>
               </mat-chip-list>
 
@@ -56,241 +117,563 @@
             </mat-list-item>
           </mat-list>
         </div>
-
       </div>
-
-
     </div>
 
-    <div #chat_div id="chat_div" [ngClass]="{'column-flex-display': true,
-      'hidden-class': !talkWindowContextService.bindingFlags.showChatWindow,
-      'hide-vertical-overflow': true}">
-
+    <div
+      #chat_div
+      id="chat_div"
+      [ngClass]="{
+        'column-flex-display': true,
+        'hidden-class': !talkWindowContextService.bindingFlags.showChatWindow,
+        'hide-vertical-overflow': true
+      }"
+    >
       <!-- contact profile header -->
-      <div id="contact-profile-header"
-        [ngClass]="{'username-header': true,
-      'hidden-class':(userContextService.isMobile && talkWindowContextService.bindingFlags.haveRemoteVideoStream 
-      && !talkWindowContextService.bindingFlags.minimizeVideo) || talkWindowContextService.bindingFlags.isFullScreenMode}">
+      <div
+        id="contact-profile-header"
+        [ngClass]="{
+          'username-header': true,
+          'hidden-class':
+            (userContextService.isMobile &&
+              talkWindowContextService.bindingFlags.haveRemoteVideoStream &&
+              !talkWindowContextService.bindingFlags.minimizeVideo) ||
+            talkWindowContextService.bindingFlags.isFullScreenMode
+        }"
+      >
         <mat-toolbar color="primary" class="username-header">
           <mat-icon>
-            {{talkWindowContextService.getUserStatus(userContextService.userToChat) ? 'person': 'person_off'}}
+            {{
+              talkWindowContextService.getUserStatus(
+                userContextService.userToChat
+              )
+                ? "person"
+                : "person_off"
+            }}
           </mat-icon>
-          <span style="margin-left: 10px;" class="header-font">{{userContextService.userToChat}}</span>
+          <span style="margin-left: 10px" class="header-font">{{
+            userContextService.userToChat
+          }}</span>
           <span class="toolbar-spacer"></span>
 
-          <button mat-icon-button aria-label="back icon button" *ngIf="userContextService.isMobile"
-            (click)="backToContacts()">
+          <button
+            mat-icon-button
+            aria-label="back icon button"
+            *ngIf="userContextService.isMobile"
+            (click)="backToContacts()"
+          >
             <mat-icon>arrow_back</mat-icon>
           </button>
 
-          <button mat-icon-button aria-label="text icon button" *ngIf="!userContextService.isMobile 
-          && talkWindowContextService.bindingFlags.haveRemoteVideoStream 
-          && !talkWindowContextService.bindingFlags.minimizeVideo" (click)="resizeRemoteVideo(true)">
+          <button
+            mat-icon-button
+            aria-label="text icon button"
+            *ngIf="
+              !userContextService.isMobile &&
+              talkWindowContextService.bindingFlags.haveRemoteVideoStream &&
+              !talkWindowContextService.bindingFlags.minimizeVideo
+            "
+            (click)="resizeRemoteVideo(true)"
+          >
             <mat-icon>message</mat-icon>
           </button>
 
-          <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isDndOn ? 'warn':''"
-            aria-label="dnd icon button" *ngIf="!userContextService.isMobile" (click)="handleDnd()">
+          <button
+            mat-icon-button
+            [color]="
+              talkWindowContextService.bindingFlags.isDndOn ? 'warn' : ''
+            "
+            aria-label="dnd icon button"
+            *ngIf="!userContextService.isMobile"
+            (click)="handleDnd()"
+          >
             <mat-icon>
-              {{talkWindowContextService.bindingFlags.isDndOn ? 'do_not_disturb_off' : 'do_not_disturb_on'}}
+              {{
+                talkWindowContextService.bindingFlags.isDndOn
+                  ? "do_not_disturb_off"
+                  : "do_not_disturb_on"
+              }}
             </mat-icon>
           </button>
 
-          <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isOnMute ? 'warn':''"
+          <button
+            mat-icon-button
+            [color]="
+              talkWindowContextService.bindingFlags.isOnMute ? 'warn' : ''
+            "
             aria-label="mute icon button"
-            *ngIf="!userContextService.isMobile && talkWindowContextService.bindingFlags.isAudioCalling"
-            (click)="handleMute()">
-            <mat-icon>{{talkWindowContextService.bindingFlags.isOnMute ? 'mic_off' : 'mic'}}</mat-icon>
+            *ngIf="
+              !userContextService.isMobile &&
+              talkWindowContextService.bindingFlags.isAudioCalling
+            "
+            (click)="handleMute()"
+          >
+            <mat-icon>{{
+              talkWindowContextService.bindingFlags.isOnMute ? "mic_off" : "mic"
+            }}</mat-icon>
           </button>
 
-          <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isScreenSharing ? 'warn':''"
-            aria-label="screen sharing icon button" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
-          || (!userContextService.isMobile && !talkWindowContextService.bindingFlags.isVideoCalling)"
-            (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isScreenSharing ? 'stop-screen' : 'screen')">
+          <button
+            mat-icon-button
+            [color]="
+              talkWindowContextService.bindingFlags.isScreenSharing
+                ? 'warn'
+                : ''
+            "
+            aria-label="screen sharing icon button"
+            *ngIf="
+              talkWindowContextService.bindingFlags.isScreenSharing ||
+              (!userContextService.isMobile &&
+                !talkWindowContextService.bindingFlags.isVideoCalling)
+            "
+            (click)="
+              handleMediaStreaming(
+                talkWindowContextService.bindingFlags.isScreenSharing
+                  ? 'stop-screen'
+                  : 'screen'
+              )
+            "
+          >
             <mat-icon>
-              {{talkWindowContextService.bindingFlags.isScreenSharing ? 'desktop_access_disabled':'desktop_windows'}}
+              {{
+                talkWindowContextService.bindingFlags.isScreenSharing
+                  ? "desktop_access_disabled"
+                  : "desktop_windows"
+              }}
             </mat-icon>
           </button>
 
-          <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isAccessingRemote ? 'warn':''"
-            aria-label="remote access icon button" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
-          && talkWindowContextService.bindingFlags.haveRemoteVideoStream 
-          && talkWindowContextService.remoteAccessContext['canAccessRemote']"
-            (click)="handleRemoteAccess(talkWindowContextService.bindingFlags.isAccessingRemote ? 'stop' : 'start')">
+          <button
+            mat-icon-button
+            [color]="
+              talkWindowContextService.bindingFlags.isAccessingRemote
+                ? 'warn'
+                : ''
+            "
+            aria-label="remote access icon button"
+            *ngIf="
+              talkWindowContextService.bindingFlags.isScreenSharing &&
+              talkWindowContextService.bindingFlags.haveRemoteVideoStream &&
+              talkWindowContextService.remoteAccessContext['canAccessRemote']
+            "
+            (click)="
+              handleRemoteAccess(
+                talkWindowContextService.bindingFlags.isAccessingRemote
+                  ? 'stop'
+                  : 'start'
+              )
+            "
+          >
             <mat-icon>mouse</mat-icon>
           </button>
 
-          <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isSoundSharing ? 'warn':''"
-            aria-label="system sound icon button" *ngIf="talkWindowContextService.bindingFlags.isScreenSharing 
-          && talkWindowContextService.bindingFlags.haveLocalVideoStream 
-          && (userContextService.isNativeApp || talkWindowContextService.bindingFlags.isSoundSharing)"
-            (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isSoundSharing ? 'stop-sound' : 'sound')">
+          <button
+            mat-icon-button
+            [color]="
+              talkWindowContextService.bindingFlags.isSoundSharing ? 'warn' : ''
+            "
+            aria-label="system sound icon button"
+            *ngIf="
+              talkWindowContextService.bindingFlags.isScreenSharing &&
+              talkWindowContextService.bindingFlags.haveLocalVideoStream &&
+              (userContextService.isNativeApp ||
+                talkWindowContextService.bindingFlags.isSoundSharing)
+            "
+            (click)="
+              handleMediaStreaming(
+                talkWindowContextService.bindingFlags.isSoundSharing
+                  ? 'stop-sound'
+                  : 'sound'
+              )
+            "
+          >
             <mat-icon>
-              {{talkWindowContextService.bindingFlags.isSoundSharing ? 'volume_off':'volume_up'}}
+              {{
+                talkWindowContextService.bindingFlags.isSoundSharing
+                  ? "volume_off"
+                  : "volume_up"
+              }}
             </mat-icon>
           </button>
 
-          <button mat-icon-button aria-label="full screen icon button"
-            *ngIf="!userContextService.isMobile && talkWindowContextService.bindingFlags.haveRemoteVideoStream"
-            (click)="handleVideoFullScreen(true)">
+          <button
+            mat-icon-button
+            aria-label="full screen icon button"
+            *ngIf="
+              !userContextService.isMobile &&
+              talkWindowContextService.bindingFlags.haveRemoteVideoStream
+            "
+            (click)="handleVideoFullScreen(true)"
+          >
             <mat-icon>zoom_out_map</mat-icon>
           </button>
 
-          <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isVideoCalling ? 'warn':''"
+          <button
+            mat-icon-button
+            [color]="
+              talkWindowContextService.bindingFlags.isVideoCalling ? 'warn' : ''
+            "
             aria-label="video call icon button"
-            *ngIf="!userContextService.isMobile && !talkWindowContextService.bindingFlags.isScreenSharing"
-            (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isVideoCalling ? 'stop-video' :'video')">
+            *ngIf="
+              !userContextService.isMobile &&
+              !talkWindowContextService.bindingFlags.isScreenSharing
+            "
+            (click)="
+              handleMediaStreaming(
+                talkWindowContextService.bindingFlags.isVideoCalling
+                  ? 'stop-video'
+                  : 'video'
+              )
+            "
+          >
             <mat-icon>
-              {{talkWindowContextService.bindingFlags.isVideoCalling ? 'videocam_off': 'videocam'}}
+              {{
+                talkWindowContextService.bindingFlags.isVideoCalling
+                  ? "videocam_off"
+                  : "videocam"
+              }}
             </mat-icon>
           </button>
 
-          <button mat-icon-button [color]="talkWindowContextService.bindingFlags.isAudioCalling ? 'warn':''"
-            aria-label="audio call icon button" *ngIf="!userContextService.isMobile"
-            (click)="handleMediaStreaming(talkWindowContextService.bindingFlags.isAudioCalling ? 'stop-audio' :'audio')">
+          <button
+            mat-icon-button
+            [color]="
+              talkWindowContextService.bindingFlags.isAudioCalling ? 'warn' : ''
+            "
+            aria-label="audio call icon button"
+            *ngIf="!userContextService.isMobile"
+            (click)="
+              handleMediaStreaming(
+                talkWindowContextService.bindingFlags.isAudioCalling
+                  ? 'stop-audio'
+                  : 'audio'
+              )
+            "
+          >
             <mat-icon>
-              {{talkWindowContextService.bindingFlags.isAudioCalling ? 'phone_disabled': 'phone_enabled'}}
+              {{
+                talkWindowContextService.bindingFlags.isAudioCalling
+                  ? "phone_disabled"
+                  : "phone_enabled"
+              }}
             </mat-icon>
           </button>
 
-          <button mat-icon-button aria-label="audio call icon button" *ngIf="userContextService.isMobile"
-            (click)="setIconsPopup()">
+          <button
+            mat-icon-button
+            aria-label="audio call icon button"
+            *ngIf="userContextService.isMobile"
+            (click)="setIconsPopup()"
+          >
             <mat-icon>more_vert</mat-icon>
           </button>
-
         </mat-toolbar>
       </div>
 
-      <div #remote_video_div id="remote_video_div" [ngClass]="{
-        'hidden-class':!talkWindowContextService.bindingFlags.haveRemoteVideoStream,
-        'local-video':talkWindowContextService.bindingFlags.minimizeVideo,
-        'full-height-width':true,
-        'column-flex-display':true
-      }" style="background: black;">
-
-        <video #remoteVideo id="remoteVideo" [ngClass]="{
-          'hidden-class':!talkWindowContextService.bindingFlags.haveRemoteVideoStream,
-          'scale-video': !talkWindowContextService.bindingFlags.isScreenSharing && userContextService.isMobile
-        }" autoplay>
-        </video>
+      <div
+        #remote_video_div
+        id="remote_video_div"
+        [ngClass]="{
+          'hidden-class':
+            !talkWindowContextService.bindingFlags.haveRemoteVideoStream,
+          'local-video': talkWindowContextService.bindingFlags.minimizeVideo,
+          'full-height-width': true,
+          'column-flex-display': true
+        }"
+        style="background: black"
+      >
+        <video
+          #remoteVideo
+          id="remoteVideo"
+          [ngClass]="{
+            'hidden-class':
+              !talkWindowContextService.bindingFlags.haveRemoteVideoStream,
+            'scale-video':
+              !talkWindowContextService.bindingFlags.isScreenSharing &&
+              userContextService.isMobile
+          }"
+          autoplay
+        ></video>
 
         <!-- this is blank canvas used for remote access -->
-        <canvas #remote_video_canvas id="remote_video_canvas" style="position: absolute;" [ngClass]="{
-          'hidden-class':!talkWindowContextService.bindingFlags.isScreenSharing
-          || !talkWindowContextService.bindingFlags.haveRemoteVideoStream 
-          || !talkWindowContextService.bindingFlags.isAccessingRemote}" tabindex="0">
+        <canvas
+          #remote_video_canvas
+          id="remote_video_canvas"
+          style="position: absolute"
+          [ngClass]="{
+            'hidden-class':
+              !talkWindowContextService.bindingFlags.isScreenSharing ||
+              !talkWindowContextService.bindingFlags.haveRemoteVideoStream ||
+              !talkWindowContextService.bindingFlags.isAccessingRemote
+          }"
+          tabindex="0"
+        >
         </canvas>
-
       </div>
 
-      <div id="local_video_div" [ngClass]="{
-        'local-video':talkWindowContextService.bindingFlags.haveLocalVideoStream  
-        && !talkWindowContextService.bindingFlags.minimizeVideo,
-        'mobile-local-video':talkWindowContextService.bindingFlags.isFullScreenMode || userContextService.isMobile,
-        'hidden-class': !talkWindowContextService.bindingFlags.haveLocalVideoStream 
-        || talkWindowContextService.bindingFlags.minimizeVideo 
-        || talkWindowContextService.bindingFlags.isScreenSharing,
-        'column-flex-display':true}">
-        <video #localVideo id="localVideo" class="scale-video mirror-video" autoplay></video>
+      <div
+        id="local_video_div"
+        [ngClass]="{
+          'local-video':
+            talkWindowContextService.bindingFlags.haveLocalVideoStream &&
+            !talkWindowContextService.bindingFlags.minimizeVideo,
+          'mobile-local-video':
+            talkWindowContextService.bindingFlags.isFullScreenMode ||
+            userContextService.isMobile,
+          'hidden-class':
+            !talkWindowContextService.bindingFlags.haveLocalVideoStream ||
+            talkWindowContextService.bindingFlags.minimizeVideo ||
+            talkWindowContextService.bindingFlags.isScreenSharing,
+          'column-flex-display': true
+        }"
+      >
+        <video
+          #localVideo
+          id="localVideo"
+          class="scale-video mirror-video"
+          autoplay
+        ></video>
       </div>
 
-      <div #messageHistory id="message-history" [ngClass]="{
-      'flex-grow-full':true,
-      'hidden-class':talkWindowContextService.bindingFlags.haveRemoteVideoStream 
-      && !talkWindowContextService.bindingFlags.minimizeVideo,
-      'hide-vertical-overflow':true}">
-
-        <div #messageHistoryDiv id="message-history-div" class="no-scroll vertical-scroll full-height-width">
-          <div *ngIf="talkWindowContextService.hasMessageContext(userContextService.userToChat)" style="margin: 10px;">
-            <div *ngFor="let message of talkWindowContextService.getMessageContext(userContextService.userToChat)"
+      <div
+        #messageHistory
+        id="message-history"
+        [ngClass]="{
+          'flex-grow-full': true,
+          'hidden-class':
+            talkWindowContextService.bindingFlags.haveRemoteVideoStream &&
+            !talkWindowContextService.bindingFlags.minimizeVideo,
+          'hide-vertical-overflow': true
+        }"
+      >
+        <div
+          #messageHistoryDiv
+          id="message-history-div"
+          class="no-scroll vertical-scroll full-height-width"
+        >
+          <div
+            *ngIf="
+              talkWindowContextService.hasMessageContext(
+                userContextService.userToChat
+              )
+            "
+            style="margin: 10px"
+          >
+            <div
+              *ngFor="
+                let message of talkWindowContextService.getMessageContext(
+                  userContextService.userToChat
+                )
+              "
               class="row-flex-display"
-              [ngStyle]="{'flex-direction':message.sent ? 'row-reverse': 'row', 'margin':'10px'}">
-              <mat-icon matListIcon style="margin-right: 10px;">person</mat-icon>
+              [ngStyle]="{
+                'flex-direction': message.sent ? 'row-reverse' : 'row',
+                margin: '20px'
+              }"
+            >
+              <mat-icon
+                matListIcon
+                style="margin-right: 10px; margin-left: 10px"
+                svgIcon="user_online_icon"
+              ></mat-icon>
 
-              <div [ngStyle]="{'align-items': message.sent ? 'flex-end': 'flex-start', 'width':'100%'}"
-                class="column-flex-display">
-
-                <div *ngIf="message.type === 'text'" [ngClass]="{'message-class':true,
-                   'indigo-background':message.sent,
-                    'pink-backgroud':!message.sent,
-                    'color-white':true}">
-                  {{message.message}}
+              <div
+                [ngStyle]="{
+                  'align-items': message.sent ? 'flex-end' : 'flex-start',
+                  width: '100%'
+                }"
+                class="column-flex-display"
+              >
+                <div
+                  *ngIf="message.type === 'text'"
+                  [ngClass]="{
+                    'message-class': true,
+                    'indigo-background': message.sent,
+                    'pink-backgroud': !message.sent,
+                    'color-white': true
+                  }"
+                >
+                  {{ message.message }}
                 </div>
 
-                <div *ngIf="message.type === 'file'" class="column-flex-display message-class">
-
+                <div
+                  *ngIf="message.type === 'file'"
+                  class="column-flex-display message-class"
+                >
                   <!-- progress bar for file receive -->
-                  <mat-progress-bar color="primary" mode="indeterminate"
-                    *ngIf="talkWindowContextService.sharedContent[message.contentId] === undefined">
+                  <mat-progress-bar
+                    color="primary"
+                    mode="indeterminate"
+                    *ngIf="
+                      talkWindowContextService.sharedContent[
+                        message.contentId
+                      ] === undefined
+                    "
+                  >
                   </mat-progress-bar>
 
-                  <img id="media_{{message.contentId}}"
-                    *ngIf="message.contentType === 'image' && talkWindowContextService.sharedContent[message.contentId] !== undefined"
-                    src="{{talkWindowContextService.sharedContent[message.contentId]}}"
-                    (click)="openMediaViewer(message.contentType,message.contentId)">
+                  <img
+                    id="media_{{ message.contentId }}"
+                    *ngIf="
+                      message.contentType === 'image' &&
+                      talkWindowContextService.sharedContent[
+                        message.contentId
+                      ] !== undefined
+                    "
+                    src="{{
+                      talkWindowContextService.sharedContent[message.contentId]
+                    }}"
+                    (click)="
+                      openMediaViewer(message.contentType, message.contentId)
+                    "
+                  />
 
-                  <video id="media_{{message.contentId}}"
-                    *ngIf="message.contentType === 'video' && talkWindowContextService.sharedContent[message.contentId] !== undefined"
-                    src="{{talkWindowContextService.sharedContent[message.contentId]}}"
-                    (click)="openMediaViewer(message.contentType,message.contentId)"></video>
+                  <video
+                    id="media_{{ message.contentId }}"
+                    *ngIf="
+                      message.contentType === 'video' &&
+                      talkWindowContextService.sharedContent[
+                        message.contentId
+                      ] !== undefined
+                    "
+                    src="{{
+                      talkWindowContextService.sharedContent[message.contentId]
+                    }}"
+                    (click)="
+                      openMediaViewer(message.contentType, message.contentId)
+                    "
+                  ></video>
 
-                  <audio id="media_{{message.contentId}}"
-                    *ngIf="message.contentType === 'audio' && talkWindowContextService.sharedContent[message.contentId] !== undefined"
-                    src="{{talkWindowContextService.sharedContent[message.contentId]}}" controls></audio>
+                  <audio
+                    id="media_{{ message.contentId }}"
+                    *ngIf="
+                      message.contentType === 'audio' &&
+                      talkWindowContextService.sharedContent[
+                        message.contentId
+                      ] !== undefined
+                    "
+                    src="{{
+                      talkWindowContextService.sharedContent[message.contentId]
+                    }}"
+                    controls
+                  ></audio>
 
-                  <button mat-icon-button aria-label=""
-                    *ngIf="!message.sent && talkWindowContextService.sharedContent[message.contentId] !== undefined"
-                    (click)="downloadFile(message.contentId,message.fileName,$event)">
+                  <button
+                    mat-icon-button
+                    aria-label=""
+                    *ngIf="
+                      !message.sent &&
+                      talkWindowContextService.sharedContent[
+                        message.contentId
+                      ] !== undefined
+                    "
+                    (click)="
+                      downloadFile(message.contentId, message.fileName, $event)
+                    "
+                  >
                     <mat-icon>file_download</mat-icon>
                   </button>
                 </div>
 
                 <!-- message delievery status -->
                 <p *ngIf="message.sent">
-                  {{message.status}}
+                  {{ message.status }}
                 </p>
                 <!-- message time -->
                 <p *ngIf="message.sent">
-                  {{message.time}}
+                  {{ message.time }}
                 </p>
               </div>
             </div>
           </div>
         </div>
-
       </div>
 
       <!-- message input -->
-      <div id="type-message" [ngClass]="{
-        'hidden-class':talkWindowContextService.bindingFlags.haveRemoteVideoStream 
-        && !talkWindowContextService.bindingFlags.minimizeVideo,
-        'row-flex-display': true,
-        'type-message-class': true}">
-
-        <div class="flex-grow-full hide-vertical-overflow hide-horizontal-overflow" style="height: 100%;">
-          <input #text_msg maxlength="256" placeholder="Enter your message" class="full-height-width"
-            (keyup)="sendTextMessage($event)">
+      <div
+        id="type-message"
+        [ngClass]="{
+          'hidden-class':
+            talkWindowContextService.bindingFlags.haveRemoteVideoStream &&
+            !talkWindowContextService.bindingFlags.minimizeVideo,
+          'row-flex-display': true,
+          'type-message-class': true
+        }"
+      >
+        <div
+          class="flex-grow-full hide-vertical-overflow hide-horizontal-overflow"
+          style="height: 100%"
+        >
+          <input
+            #text_msg
+            maxlength="256"
+            placeholder="Enter your message"
+            class="full-height-width"
+            (keyup)="sendTextMessage($event)"
+          />
         </div>
-        <input id="file_input" type="file" style="display:none" (change)="startSharingFile($event)" multiple />
+        <input
+          id="file_input"
+          type="file"
+          style="display: none"
+          (change)="startSharingFile($event)"
+          multiple
+        />
 
-        <div class="border-class column-flex-display center-content border-box-class" style="height: 100%;">
-          <button mat-icon-button color="accent" aria-label="attachment icon button" (click)="openFileDialog()">
+        <div
+          class="border-class column-flex-display center-content border-box-class"
+          style="height: 100%"
+        >
+          <button
+            mat-icon-button
+            color="accent"
+            aria-label="attachment icon button"
+            (click)="openFileDialog()"
+          >
             <mat-icon>attachment</mat-icon>
           </button>
         </div>
 
-        <div class="border-class column-flex-display center-content border-box-class" style="height: 100%;">
-          <button mat-icon-button color="primary" aria-label="send message icon button" (click)="sendTextMessage()">
+        <div
+          class="border-class column-flex-display center-content border-box-class"
+          style="height: 100%"
+        >
+          <button
+            mat-icon-button
+            color="primary"
+            aria-label="send message icon button"
+            (click)="sendTextMessage()"
+          >
             <mat-icon>send</mat-icon>
           </button>
         </div>
-
       </div>
 
-      <audio #remoteAudio id="remoteAudio" style="display:none" autoplay></audio>
-      <audio #remoteSound id="remoteSound" style="display:none" autoplay></audio>
-      <audio id="callerTune" style="display:none" muted src="{{assetsPath + 'media/tune.mp3'}}" loop></audio>
-      <audio id="messageTune" style="display:none" muted src="{{assetsPath + 'media/message.mp3'}}"></audio>
+      <audio
+        #remoteAudio
+        id="remoteAudio"
+        style="display: none"
+        autoplay
+      ></audio>
+      <audio
+        #remoteSound
+        id="remoteSound"
+        style="display: none"
+        autoplay
+      ></audio>
+      <audio
+        id="callerTune"
+        style="display: none"
+        muted
+        src="{{ assetsPath + 'media/tune.mp3' }}"
+        loop
+      ></audio>
+      <audio
+        id="messageTune"
+        style="display: none"
+        muted
+        src="{{ assetsPath + 'media/message.mp3' }}"
+      ></audio>
     </div>
   </div>
 </div>

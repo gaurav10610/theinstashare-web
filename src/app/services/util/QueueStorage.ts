@@ -1,7 +1,6 @@
-export class QueueStorage {
-
+export class QueueStorage<T> {
   // An array to implement queue
-  items: any[];
+  items: T[];
 
   constructor() {
     // declaring
@@ -9,34 +8,34 @@ export class QueueStorage {
   }
 
   // enqueue function
-  enqueue(element: any) {
+  enqueue(element: T) {
     // adding element to the queue
     this.items.push(element);
   }
 
   // dequeue function
-  dequeue() {
+  dequeue(): T {
     // removing element from the queue
     // returns underflow when called
     // on empty queue
     if (this.isEmpty()) {
-      return 'Underflow';
+      throw Error("no elements in queue");
     }
     return this.items.shift();
   }
 
   // front function
-  front() {
+  front(): T {
     // returns the Front element of
     // the queue without removing it.
     if (this.isEmpty()) {
-      return 'No elements in Queue';
+      throw Error("no elements in queue");
     }
     return this.items[0];
   }
 
   // isEmpty function
-  isEmpty() {
+  isEmpty(): boolean {
     // return true if the queue is empty.
     return this.items.length === 0;
   }

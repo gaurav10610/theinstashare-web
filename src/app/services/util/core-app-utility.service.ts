@@ -1,13 +1,12 @@
-import { Injectable } from '@angular/core';
-import { AppConstants } from '../AppConstants';
-import { UserContextService } from '../context/user.context.service';
+import { Injectable } from "@angular/core";
+import { AppConstants } from "../AppConstants";
+import { UserContextService } from "../context/user.context.service";
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root",
 })
 export class CoreAppUtilityService {
-
-  constructor(private userContextService: UserContextService) { }
+  constructor(private userContextService: UserContextService) {}
 
   /**
    * get stored value from browser storage
@@ -33,7 +32,7 @@ export class CoreAppUtilityService {
 
   /**
    * remove value stored at provided key from storage
-   * 
+   *
    * @param key key corresponding to which a value is stored
    */
   removeStorageValue(key: string) {
@@ -41,51 +40,43 @@ export class CoreAppUtilityService {
   }
 
   /**
-   * this will return identifier for webrtc connection within webrtcContext
-   * i.e 'send' or 'receive'
-   *
-   * @param channel webrtc connection's media type for connection means the type
-   * of media data that we will relay on this connection e.g 'text','video' or 'audio'
-   *
-   * @param needSender boolean value to determine whether sender or receive peer
-   * connection has to be initialized. Applicable only for media webrtc connection
-   * i.e connections other than 'data' or 'file'
-   *
-   *
-   */
-  getConnectionIdentifier(channel: string, needSendPeer: boolean) {
-    return (channel === AppConstants.TEXT || channel === AppConstants.FILE || needSendPeer)
-      ? AppConstants.SENDER : AppConstants.RECEIVER;
-  }
-
-  /**
    * check if there is an open data channel with a user using it's provided webrtc
    * context
-   *
    * @param webrtcContext user's webrtc context
-   *
    * @param channel webrtc connection's media type for connection means the
    * type of media data that we will relay on this connection e.g 'text','video'
    * or 'audio'
    *
    */
   isDataChannelConnected(webrtcContext: any, channel: string) {
-    return this.getNestedValue(webrtcContext, AppConstants.MEDIA_CONTEXT, channel, AppConstants.CONNECTION_STATE) === AppConstants.CONNECTION_STATES.CONNECTED;
+    return (
+      this.getNestedValue(
+        webrtcContext,
+        AppConstants.MEDIA_CONTEXT,
+        channel,
+        AppConstants.CONNECTION_STATE
+      ) === AppConstants.CONNECTION_STATES.CONNECTED
+    );
   }
 
   /**
    * check if dataChannel with a user is in connecting state using it's provided
    * webrtc context
-   *
    * @param webrtcContext user's webrtc context
-   *
    * @param channel webrtc connection's media type for connection means the
    * type of media data that we will relay on this connection e.g 'text','video'
    * or 'audio'
    *
    */
   isDataChannelConnecting(webrtcContext: any, channel: string) {
-    return this.getNestedValue(webrtcContext, AppConstants.MEDIA_CONTEXT, channel, AppConstants.CONNECTION_STATE) === AppConstants.CONNECTION_STATES.CONNECTING;
+    return (
+      this.getNestedValue(
+        webrtcContext,
+        AppConstants.MEDIA_CONTEXT,
+        channel,
+        AppConstants.CONNECTION_STATE
+      ) === AppConstants.CONNECTION_STATES.CONNECTING
+    );
   }
 
   /**
@@ -96,10 +87,13 @@ export class CoreAppUtilityService {
    * @param webrtcContext user's webrtc context
    *
    * @return a boolean result
-   * 
+   *
    */
   isWebrtcConnectionConnected(webrtcContext: any) {
-    return this.getNestedValue(webrtcContext, AppConstants.CONNECTION_STATE) === AppConstants.CONNECTION_STATES.CONNECTING;
+    return (
+      this.getNestedValue(webrtcContext, AppConstants.CONNECTION_STATE) ===
+      AppConstants.CONNECTION_STATES.CONNECTING
+    );
   }
 
   /**
@@ -110,28 +104,10 @@ export class CoreAppUtilityService {
    *
    */
   isWebrtcConnectionConnecting(webrtcContext: any) {
-    return this.getNestedValue(webrtcContext, AppConstants.CONNECTION_STATE) === AppConstants.CONNECTION_STATES.CONNECTING;
-  }
-
-  /**
-   * get appropriate webrtc peer connection for a user from webrtc context
-   *
-   * @param username username of the user
-   *
-   * @param channel: media type audio/video/text
-   *
-   * @param needSender boolean flag to distinguish b/w send and receiver
-   */
-  getAppropriatePeerConnection(username: string, channel: string, needSender: boolean) {
-    return new Promise<any>((resolve) => {
-      const webrtcContext = this.userContextService.getUserWebrtcContext(username);
-      if (this.getNestedValue(webrtcContext, AppConstants.MEDIA_CONTEXT, channel)) {
-        const connectionType: string = this.getConnectionIdentifier(channel, needSender);
-        resolve(webrtcContext[AppConstants.MEDIA_CONTEXT][channel][connectionType]);
-      } else {
-        resolve(undefined);
-      }
-    });
+    return (
+      this.getNestedValue(webrtcContext, AppConstants.CONNECTION_STATE) ===
+      AppConstants.CONNECTION_STATES.CONNECTING
+    );
   }
 
   /**
@@ -161,22 +137,19 @@ export class CoreAppUtilityService {
 
   /**
    * delay implementatio
-   * 
+   *
    * @param timeToSleep time in ms to sleep
    */
   delay(timeToSleep: number) {
-    return new Promise(resolve => setTimeout(resolve, timeToSleep));
+    return new Promise((resolve) => setTimeout(resolve, timeToSleep));
   }
 
   /**
    * this will generate a unique identifier
-   *
    * @return a promise containing a unique numberic identifier
    */
-  generateIdentifier() {
-    return new Promise<number>((resolve) => {
-      resolve(Date.now());
-    });
+  generateIdentifier(): string {
+    return "_" + Math.random().toString(36).slice(2, 9);
   }
 
   /**
@@ -189,34 +162,43 @@ export class CoreAppUtilityService {
    * @return value of deep nested property else undefined
    */
   getNestedValue(object: any, ...levels: any) {
-    return levels.reduce((object: any, level: any) => object && object[level], object);
+    return levels.reduce(
+      (object: any, level: any) => object && object[level],
+      object
+    );
   }
 
   /**
-   * this will return the media type for sdp modification so that app can apply 
+   * this will return the media type for sdp modification so that app can apply
    * max bitrate limit for a webrtc connection
-   *  
-   * @param channel: media type audio/video/text 
-   * 
+   *
+   * @param channel: media type audio/video/text
+   *
    */
   getMediaTypeForSdpModification(channel: string) {
     if (channel === AppConstants.VIDEO || channel === AppConstants.SCREEN) {
       return AppConstants.VIDEO;
-    } else if (channel === AppConstants.FILE || channel === AppConstants.TEXT
-      || channel === AppConstants.REMOTE_CONTROL) {
+    } else if (
+      channel === AppConstants.FILE ||
+      channel === AppConstants.TEXT ||
+      channel === AppConstants.REMOTE_CONTROL
+    ) {
       return AppConstants.APPLICATION;
-    } else if (channel === AppConstants.AUDIO || channel === AppConstants.SOUND) {
+    } else if (
+      channel === AppConstants.AUDIO ||
+      channel === AppConstants.SOUND
+    ) {
       return AppConstants.AUDIO;
     }
   }
 
   /**
    * this will return the max bitrate to configure in the SDP
-   * 
-   * @param channel: media type audio/video/text 
-   * 
+   *
+   * @param channel: media type audio/video/text
+   *
    * @TODO fix it afterwards
-   * 
+   *
    */
   getMaxBitrateForSdpModification(channel: string) {
     let bitrate = 10000;
@@ -247,34 +229,114 @@ export class CoreAppUtilityService {
   }
 
   /**
-   * 
+   *
    * check if provided channel uses data channel
-   * 
+   *
    * @param channel type of media i.e 'text', 'file' or 'remoteControl'
    */
   isDataChannel(channel: string): boolean {
-    return this.checkMember(channel, [AppConstants.TEXT, AppConstants.FILE, AppConstants.REMOTE_CONTROL]);
+    return this.checkMember(channel, [
+      AppConstants.TEXT,
+      AppConstants.FILE,
+      AppConstants.REMOTE_CONTROL,
+    ]);
   }
 
   /**
-   * 
+   *
    * check if provided channel uses data channel
-   * 
+   *
    * @param channel type of media i.e 'audio', 'video' etc
    */
   isMediaChannel(channel: string): boolean {
-    return this.checkMember(channel, [AppConstants.VIDEO, AppConstants.AUDIO, AppConstants.SCREEN, AppConstants.SOUND]);
+    return this.checkMember(channel, [
+      AppConstants.VIDEO,
+      AppConstants.AUDIO,
+      AppConstants.SCREEN,
+      AppConstants.SOUND,
+    ]);
   }
 
   /**
    * this will check if a certain value is in the specified array or not
-   * 
    * @param value value to check in the array
    * @param array array of values
    * @returns boolean specifying whether value exist in array or not
-   * 
    */
   checkMember(value: any, array: any[]): boolean {
     return array.indexOf(value) > -1;
+  }
+
+  /**
+   * this will resolve the media file type i.e 'audio', 'video' or 'image' with
+   * the provided file extension
+   *
+   * @param fileExtension file extension
+   *
+   * @return a promise containing the file type
+   *
+   * @TODO refactor it afterwards, this can be done in an easy way
+   */
+  resolveFileType(fileExtension: string): string {
+    let index = AppConstants.SUPPORTED_IMAGE_FORMATS.indexOf(fileExtension);
+    if (index > -1) {
+      return AppConstants.IMAGE;
+    }
+    index = AppConstants.SUPPORTED_VIDEO_FORMATS.indexOf(fileExtension);
+    if (index > -1) {
+      return AppConstants.VIDEO;
+    }
+    index = AppConstants.SUPPORTED_AUDIO_FORMATS.indexOf(fileExtension);
+    if (index > -1) {
+      return AppConstants.AUDIO;
+    }
+  }
+
+  /**
+   * convert an array buffer to string
+   * @param arrayBuffer
+   * @returns
+   */
+  arrayBufferToString(arrayBuffer: ArrayBuffer): string {
+    return String.fromCharCode.apply(null, new Uint8Array(arrayBuffer));
+  }
+
+  /**
+   * convert string to unit-16 array buffer
+   * @param stringData
+   * @returns
+   */
+  stringToArrayBuffer(stringData: string): ArrayBuffer {
+    var buf = new ArrayBuffer(stringData.length); // 2 bytes for each char
+    var bufView = new Uint8Array(buf);
+    for (var i = 0, strLen = stringData.length; i < strLen; i++) {
+      bufView[i] = stringData.charCodeAt(i);
+    }
+    return buf;
+  }
+
+  /**
+   * format size in to higher terms
+   * @param bytes
+   * @param decimals
+   * @returns
+   */
+  formatBytes(bytes: number, decimals: number = 2): string {
+    if (bytes === 0) return "0 Bytes";
+    const k: number = 1024;
+    const dm: number = decimals < 0 ? 0 : decimals;
+    const sizes: string[] = [
+      "Bytes",
+      "KB",
+      "MB",
+      "GB",
+      "TB",
+      "PB",
+      "EB",
+      "ZB",
+      "YB",
+    ];
+    const i: number = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
   }
 }

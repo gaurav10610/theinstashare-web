@@ -18,7 +18,6 @@ export class WebRemoteAccessService {
     private rendererFactory: RendererFactory2,
     private userContextService: UserContextService,
     private talkWindowContextService: TalkWindowContextService,
-    private talkWindowUtilService: TalkWindowUtilityService,
     private coreDataChannelService: CoreDataChannelService
   ) {
     this.renderer = this.rendererFactory.createRenderer(null, null);
@@ -26,33 +25,33 @@ export class WebRemoteAccessService {
 
   /**
    * these are some variables used by remote access mechanism
-   * 
+   *
    */
   noOfMouseDowns: number = 0;
   noOfMouseUps: number = 0;
   mouseUpDelay: number = 250;
 
   /**
-   * this will handle resize screen event when user is accessing a remote machine to re-calculate 
+   * this will handle resize screen event when user is accessing a remote machine to re-calculate
    * parameters like plane coordinates ratio which will be used by remote access mechanism
-   *  
-   * @param remoteVideoWidth remote video width 
-   * 
+   *
+   * @param remoteVideoWidth remote video width
+   *
    * @param remoteVideoHeight remote videp height
-   * 
+   *
    * @param localRemoteVideoWidth local remote video width
-   * 
+   *
    * @param localRemoteVideoHeight local remote video height
-   * 
-   * @param remoteVideo remote video html native element 
-   * 
+   *
+   * @param remoteVideo remote video html native element
+   *
    * @param remoteVideoCanvas remote video html native element
    */
   calculateRemoteAccessParameters(remoteVideoWidth: any, remoteVideoHeight: any,
     localRemoteVideoWidth: any, localRemoteVideoHeight: any,
     remoteVideo: any, remoteVideoCanvas: any) {
-    LoggerUtil.log(remoteVideo.nativeElement.clientWidth);
-    LoggerUtil.log(remoteVideo.nativeElement.clientHeight);
+    LoggerUtil.logAny(remoteVideo.nativeElement.clientWidth);
+    LoggerUtil.logAny(remoteVideo.nativeElement.clientHeight);
 
 
     /**
@@ -65,12 +64,12 @@ export class WebRemoteAccessService {
     let minWidth: any;
 
     /**
-     * check here if height of viewer device is less than it's width then set/scale 
-     * only height of the video tag and blank canvas over it after it width will be 
+     * check here if height of viewer device is less than it's width then set/scale
+     * only height of the video tag and blank canvas over it after it width will be
      * scaled automatically.
-     * 
-     * if width of viewer device is less than it's height then do vice-versa of above  
-     * 
+     *
+     * if width of viewer device is less than it's height then do vice-versa of above
+     *
      */
     // if (localRemoteVideoHeight < localRemoteVideoWidth) {
 
@@ -100,26 +99,25 @@ export class WebRemoteAccessService {
     //this is temporary
     this.renderer.setProperty(remoteVideoCanvas.nativeElement, 'height', minHeight);
     this.renderer.setProperty(remoteVideoCanvas.nativeElement, 'width', minWidth);
-    this.talkWindowUtilService.appRef.tick();
 
     this.talkWindowContextService.remoteAccessContext['heightScalingRatio'] = remoteVideoHeight / minHeight;
     this.talkWindowContextService.remoteAccessContext['widthScalingRatio'] = remoteVideoWidth / minWidth;
 
     this.talkWindowContextService.remoteAccessContext['offsetLeft'] = remoteVideoCanvas.nativeElement.getBoundingClientRect().left;
     this.talkWindowContextService.remoteAccessContext['offsetTop'] = remoteVideoCanvas.nativeElement.getBoundingClientRect().top;
-    LoggerUtil.log(this.talkWindowContextService.remoteAccessContext);
+    LoggerUtil.logAny(this.talkWindowContextService.remoteAccessContext);
   }
 
   /**
-   * this will register all the event listeners required for remote access 
+   * this will register all the event listeners required for remote access
    * on blank canvas over remote video
-   *  
+   *
    * @param remoteVideoCanvas remote video html native element
    */
   registerRemoteAccessEventListeners(remoteVideoCanvas: any) {
     /**
      * register 'mousedown' event listener for remote access
-     * 
+     *
      */
     this.talkWindowContextService.canvasUnlistenFunctions.push(
       this.renderer.listen(remoteVideoCanvas.nativeElement, 'mousedown', (event) => {
@@ -162,7 +160,7 @@ export class WebRemoteAccessService {
 
     /**
      * register 'mouseup' event listener for remote access
-     * 
+     *
      */
     this.talkWindowContextService.canvasUnlistenFunctions.push(
       this.renderer.listen(remoteVideoCanvas.nativeElement, 'mouseup', (event) => {
@@ -176,7 +174,7 @@ export class WebRemoteAccessService {
         } else {
           /**
            * send mouseup event
-           * 
+           *
            */
           this.coreDataChannelService.sendMessageOnDataChannel({
             from: this.userContextService.username,
@@ -196,7 +194,7 @@ export class WebRemoteAccessService {
 
     /**
      * register 'mousemove' event listener for remote access
-     * 
+     *
      */
     this.talkWindowContextService.canvasUnlistenFunctions.push(
       this.renderer.listen(remoteVideoCanvas.nativeElement, 'mousemove', (event) => {
@@ -216,7 +214,7 @@ export class WebRemoteAccessService {
 
     /**
      * register 'wheel' event listener for remote access
-     * 
+     *
      */
     this.talkWindowContextService.canvasUnlistenFunctions.push(
       this.renderer.listen(remoteVideoCanvas.nativeElement, 'wheel', (event) => {
@@ -224,7 +222,7 @@ export class WebRemoteAccessService {
 
         /**
          * send mouse wheel scroll event
-         * 
+         *
          */
         this.coreDataChannelService.sendMessageOnDataChannel({
           from: this.userContextService.username,
@@ -238,7 +236,7 @@ export class WebRemoteAccessService {
 
     /**
      * register 'keydown' event listener for remote access
-     * 
+     *
      */
     this.talkWindowContextService.canvasUnlistenFunctions.push(
       this.renderer.listen(remoteVideoCanvas.nativeElement, 'keydown', (event) => {
@@ -262,7 +260,7 @@ export class WebRemoteAccessService {
 
         /**
          * this is a paste event
-         * 
+         *
          * @TODO see if this can work somehow
          */
         // if (event.keyCode === 86) {
@@ -300,7 +298,7 @@ export class WebRemoteAccessService {
 
     /**
      * register 'paste' event listener for remote access
-     * 
+     *
      */
     this.talkWindowContextService.canvasUnlistenFunctions.push(
       this.renderer.listen(remoteVideoCanvas.nativeElement, 'paste', (event) => {
@@ -317,7 +315,7 @@ export class WebRemoteAccessService {
 
     /**
      * register 'copy' event listener for remote access
-     * 
+     *
      */
     this.talkWindowContextService.canvasUnlistenFunctions.push(
       this.renderer.listen(remoteVideoCanvas.nativeElement, 'copy', (event) => {

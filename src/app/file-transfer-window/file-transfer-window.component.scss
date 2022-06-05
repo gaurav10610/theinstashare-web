@@ -1,0 +1,45 @@
+.top-container {
+    display: grid;
+    grid-template-columns: 23% 77%;
+    grid-template-rows: 100%;
+    overflow: hidden;
+}
+
+@media screen and (max-width: 735px) {
+    .top-container {
+        grid-template-columns: 100% 100%;
+    }
+}
+
+.dashboard-header {
+    width: 100%;
+    height: 60px;
+}
+
+.tab-contols-class {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    justify-content: flex-end;
+    max-height: 40px;
+}
+
+.border-bottom {
+    border-bottom: 2px solid black;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.input-message {
+    height: 60px;
+}
+
+.sent-message-class {
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.tab-icon-button {
+  margin: 0px 5px 0px 5px;
+}

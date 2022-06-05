@@ -32,7 +32,6 @@ export class GroupChatWebrtcService {
         private coreDataChannelService: CoreDataChannelService,
         private appUtilService: TalkWindowUtilityService,
         private coreAppUtilService: CoreAppUtilityService,
-        private groupChatContextService: GroupChatContextService,
         private apiService: ApiService
     ) { }
 
@@ -48,7 +47,7 @@ export class GroupChatWebrtcService {
         return new Promise<void>(async (resolve, reject) => {
             try {
                 /**
-                 * 
+                 *
                  * initialize the webrtc context if not yet initialized
                  */
                 if (!this.userContextService.hasUserWebrtcContext(createDataChannelType.username)) {
@@ -58,7 +57,7 @@ export class GroupChatWebrtcService {
                 const webrtcContext: any = this.userContextService.getUserWebrtcContext(createDataChannelType.username);
 
                 /**
-                 * 
+                 *
                  * mark data channel state as connecting for provided channel in user's webrtc media context
                  */
                 webrtcContext[AppConstants.MEDIA_CONTEXT][createDataChannelType.channel][AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTING;
@@ -76,7 +75,7 @@ export class GroupChatWebrtcService {
                      */
                     const offerContainer: any = await this.coreWebrtcService.getDataChannelOffer(peerConnection, createDataChannelType.channel);
                     const dataChannel: any = offerContainer.dataChannel;
-                    LoggerUtil.log('registered message listener on ' + createDataChannelType.channel + ' data channel');
+                    LoggerUtil.logAny('registered message listener on ' + createDataChannelType.channel + ' data channel');
 
                     // remote datachannel onmessage listener
                     dataChannel.onmessage = (msgEvent: any) => {
@@ -100,10 +99,10 @@ export class GroupChatWebrtcService {
                      */
                     webrtcContext[AppConstants.MEDIA_CONTEXT][createDataChannelType.channel][AppConstants.DATACHANNEL] = dataChannel;
                 } else {
-                    LoggerUtil.log('webrtc connection is not in connected state for user: ' + createDataChannelType.username);
+                    LoggerUtil.logAny('webrtc connection is not in connected state for user: ' + createDataChannelType.username);
                     /**
-                     * 
-                     * if webrtc connection is not in connetcted state then add the setup data channel function 
+                     *
+                     * if webrtc connection is not in connetcted state then add the setup data channel function
                      * along with the calling context in the webrtc on connect queue
                      */
                     const webrtcCallbackContextType: CallbackContextType = {
@@ -123,21 +122,21 @@ export class GroupChatWebrtcService {
     }
 
     /**
-     * 
+     *
      * this will setup a webrtc connection with provided user
-     * 
+     *
      * @param username username of the user with whom webrtc connection have to be established
-     * 
+     *
      *  @param offerMessage this is an optional offer signaling message
      */
     setUpWebrtcConnection(username: string, offerMessage?: any) {
         return new Promise<void>(async (resolve, reject) => {
             try {
 
-                LoggerUtil.log('setting up new webrtc connection');
+                LoggerUtil.logAny('setting up new webrtc connection');
 
                 /**
-                 * 
+                 *
                  * initialize webrtc context if not yet initialized
                  */
                 if (!this.userContextService.hasUserWebrtcContext(username)) {
@@ -148,20 +147,20 @@ export class GroupChatWebrtcService {
                 if (webrtcContext[AppConstants.CONNECTION_STATE] === AppConstants.CONNECTION_STATES.NOT_CONNECTED) {
 
                     /**
-                     * 
+                     *
                      * initialize webrtc peer connection
                      */
                     const initializedConnection: boolean = await this.coreWebrtcService.rtcConnectionInit(username);
 
                     /**
-                     * 
+                     *
                      * update webrtc connection state to connecting so that not other flow can update it further
                      */
                     webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTING;
                     const peerConnection: any = webrtcContext[AppConstants.CONNECTION];
 
                     /**
-                     * 
+                     *
                      * register webrtc connection if new webrtc conection has been initialized
                      */
                     if (initializedConnection) {
@@ -169,7 +168,7 @@ export class GroupChatWebrtcService {
                     }
 
                     /**
-                     * 
+                     *
                      * create the offer for the peer connection and send it to other peer
                      */
                     if (offerMessage === undefined) {
@@ -177,7 +176,7 @@ export class GroupChatWebrtcService {
                             peerConnection.setLocalDescription(offer);
 
                             /**
-                             * 
+                             *
                              * send the offer payload
                              */
                             this.coreDataChannelService.sendPayload({
@@ -188,7 +187,7 @@ export class GroupChatWebrtcService {
                                 offer: offer
                             });
                         }).catch((error) => {
-                            LoggerUtil.log(error);
+                            LoggerUtil.logAny(error);
                             reject('There is an error while generating offer on peer connection');
                         });
                     } else {
@@ -197,7 +196,7 @@ export class GroupChatWebrtcService {
                             peerConnection.setLocalDescription(answer);
 
                             /**
-                             * 
+                             *
                              * send the answer payload
                              */
                             this.coreDataChannelService.sendPayload({
@@ -208,18 +207,18 @@ export class GroupChatWebrtcService {
                                 answer: answer
                             });
                         }).catch((error) => {
-                            LoggerUtil.log('there is an error while generating answer');
+                            LoggerUtil.logAny('there is an error while generating answer');
                             reject(error);
                         }); // Here ends create answer
                     }
                 } else {
                     /**
-                     * 
+                     *
                      * already in connecting/connected state so do nothing here
                      */
                 }
             } catch (e) {
-                LoggerUtil.log(e);
+                LoggerUtil.logAny(e);
                 reject('there is an exception occured while establishing connection with ' + username);
             }
         });
@@ -237,54 +236,54 @@ export class GroupChatWebrtcService {
      */
     registerWebrtcEventListeners(peerConnection: any, userToChat: any) {
         return new Promise<void>((resolve, reject) => {
-            LoggerUtil.log('registering webrtc events on webrtc connection for ' + userToChat);
+            LoggerUtil.logAny('registering webrtc events on webrtc connection for ' + userToChat);
             try {
 
 
                 /**
-                 * 
+                 *
                  * process onnegotiationneeded event here
                  */
                 peerConnection.onnegotiationneeded = async (event) => {
-                    LoggerUtil.log(userToChat + ' webrtc connection needs renegotiation');
+                    LoggerUtil.logAny(userToChat + ' webrtc connection needs renegotiation');
                 };
 
                 /**
-                 * 
+                 *
                  * process onsignalingstatechange event here
-                 * 
+                 *
                  */
                 peerConnection.onsignalingstatechange = () => {
-                    LoggerUtil.log(userToChat + ' webrtc connection signaling state: ' + peerConnection.signalingState);
+                    LoggerUtil.logAny(userToChat + ' webrtc connection signaling state: ' + peerConnection.signalingState);
                     const webrtcContext = this.userContextService.getUserWebrtcContext(userToChat);
                     switch (peerConnection.signalingState) {
 
                         /**
-                         * 
-                         * There is no ongoing exchange of offer and answer underway. This may mean that the RTCPeerConnection 
-                         * object is new, in which case both the localDescription and remoteDescription are null; it may also mean 
+                         *
+                         * There is no ongoing exchange of offer and answer underway. This may mean that the RTCPeerConnection
+                         * object is new, in which case both the localDescription and remoteDescription are null; it may also mean
                          * that negotiation is complete and a connection has been established.
-                         * 
+                         *
                          */
                         case 'stable':
                             /**
-                             * 
+                             *
                              * make the connection status as 'connected' in the user's webrtc context
-                             * 
+                             *
                              */
                             webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTED;
 
                             /**
-                             * 
+                             *
                              * execute all the callback functions wih provided callback context
-                             * 
+                             *
                              */
                             while (!webrtcContext[AppConstants.WEBRTC_ON_CONNECT_QUEUE].isEmpty()) {
                                 const callback: CallbackContextType = <CallbackContextType>webrtcContext[AppConstants.WEBRTC_ON_CONNECT_QUEUE].dequeue();
                                 try {
                                     callback.callbackFunction(callback.callbackContext);
                                 } catch (e) {
-                                    LoggerUtil.log(e);
+                                    LoggerUtil.logAny(e);
                                 }
                             }
                             break;
@@ -292,18 +291,18 @@ export class GroupChatWebrtcService {
                 };
 
                 /**
-                 * 
+                 *
                  * process connection state change event here
                  */
                 peerConnection.onconnectionstatechange = async () => {
-                    LoggerUtil.log(userToChat + ' webrtc connection state change: ' + peerConnection.connectionState);
+                    LoggerUtil.logAny(userToChat + ' webrtc connection state change: ' + peerConnection.connectionState);
 
                     const webrtcContext = this.userContextService.getUserWebrtcContext(userToChat);
 
                     switch (peerConnection.connectionState) {
                         case 'disconnected':
 
-                            // handle the webrtc disconnection here 
+                            // handle the webrtc disconnection here
                             await this.webrtcConnectionDisconnectHandler(userToChat, [{
                                 type: AppConstants.POPUP_TYPE.DISCONNECT + AppConstants.CONNECTION,
                                 channel: AppConstants.CONNECTION,
@@ -313,7 +312,7 @@ export class GroupChatWebrtcService {
 
                         case 'connected':
                             /**
-                             * 
+                             *
                              * make the connection status as 'connected' in the user's webrtc context
                              */
                             webrtcContext[AppConstants.CONNECTION_STATE] = AppConstants.CONNECTION_STATES.CONNECTED;
@@ -351,7 +350,7 @@ export class GroupChatWebrtcService {
                 this.registerMediaTrackEvents(peerConnection, userToChat);
                 resolve();
             } catch (error) {
-                LoggerUtil.log('there is an error while registering events on peer connection');
+                LoggerUtil.logAny('there is an error while registering events on peer connection');
                 reject(error);
             }
         });
@@ -367,7 +366,7 @@ export class GroupChatWebrtcService {
      */
     registerMediaTrackEvents(peerConnection: any, userToChat: any) {
         /**
-         * 
+         *
          * @TODO do appropriate handling here
          */
     }
@@ -391,7 +390,7 @@ export class GroupChatWebrtcService {
             const dataChannel = event.channel;
             const channel: string = dataChannel.label;
             this.coreWebrtcService.mediaContextInit(channel, userToChat);
-            LoggerUtil.log(channel + ' data channel has been received');
+            LoggerUtil.logAny(channel + ' data channel has been received');
             const webrtcContext: any = this.userContextService.getUserWebrtcContext(userToChat);
             webrtcContext[AppConstants.MEDIA_CONTEXT][channel][AppConstants.DATACHANNEL] = dataChannel;
 
@@ -403,7 +402,7 @@ export class GroupChatWebrtcService {
                 this.onDataChannelMessage(msgEvent.data);
             }
 
-            LoggerUtil.log('message listener registered on received ' + channel + ' data channel');
+            LoggerUtil.logAny('message listener registered on received ' + channel + ' data channel');
 
             /**
              * if this data channel is meant for sending text messages then register
@@ -411,11 +410,11 @@ export class GroupChatWebrtcService {
              *
              */
             dataChannel.onopen = () => {
-                LoggerUtil.log(channel + ' data channel has been opened');
+                LoggerUtil.logAny(channel + ' data channel has been opened');
 
                 /**
-                 * 
-                 * send onopen data channel event message to other peer 
+                 *
+                 * send onopen data channel event message to other peer
                  */
                 this.coreDataChannelService.sendPayload({
                     type: AppConstants.WEBRTC_EVENT,
@@ -458,14 +457,14 @@ export class GroupChatWebrtcService {
      *
      * @param popupContexts an optional array of popup contexts if any modal popup message
      * has to be displayed after handling the disconnection
-     * 
+     *
      * @TODO refactor it afterwards if needed
      *
      * @return a promise
      */
     webrtcConnectionDisconnectHandler(username: string, popupContexts?: any[]) {
         return new Promise<void>((resolve) => {
-            LoggerUtil.log('handling webrtc connection disconnect for ' + username);
+            LoggerUtil.logAny('handling webrtc connection disconnect for ' + username);
             const webrtcContext: any = this.userContextService.getUserWebrtcContext(username);
 
             /**
@@ -478,14 +477,14 @@ export class GroupChatWebrtcService {
             const mediaContext: any = webrtcContext[AppConstants.MEDIA_CONTEXT];
 
             /**
-             * 
-             * iterate whole media context and clean channel context for all the open channels 
+             *
+             * iterate whole media context and clean channel context for all the open channels
              */
             Object.keys(mediaContext).forEach(channel => {
 
                 /**
-                 * 
-                 * choose appropriate clean up routine for each open channel 
+                 *
+                 * choose appropriate clean up routine for each open channel
                  */
                 if (this.coreAppUtilService.isDataChannel(channel)) {
                     this.cleanDataChannelContext(channel, mediaContext[channel]);
@@ -514,7 +513,7 @@ export class GroupChatWebrtcService {
      * this will stop any ongoing media streaming for provided channel and clean the corresponding channel context
      *
      * @param channel type of media i.e audio, video, screen or sound
-     * 
+     *
      * @param mediaChannelContext media channel context
      */
     cleanMediaStreamContext(channel: string, mediaChannelContext: any) {
@@ -527,18 +526,13 @@ export class GroupChatWebrtcService {
                     if (mediaChannelContext[AppConstants.TRACK]) {
                         mediaChannelContext[AppConstants.TRACK].stop();
                     }
-
-                    /**
-                     * @TODO see if this even needed
-                     */
-                    this.appUtilService.appRef.tick();
                 }
 
                 //remove any of the popup context
                 //this.appUtilService.removePopupContext([AppConstants.POPUP_TYPE.CONNECTING + channel]);
                 resolve();
             } catch (error) {
-                LoggerUtil.log('there is an error occured while cleaning media channel context for channel: ' + channel);
+                LoggerUtil.logAny('there is an error occured while cleaning media channel context for channel: ' + channel);
                 reject(error);
             }
         });
@@ -548,9 +542,9 @@ export class GroupChatWebrtcService {
      * this will clean the data channel for provided channel and clean the corresponding channel context
      *
      * @param channel type of media i.e audio, video, screen or sound
-     * 
+     *
      * @param mediaChannelContext media channel context
-     * 
+     *
      */
     cleanDataChannelContext(channel: string, mediaChannelContext: string) {
         return new Promise<void>((resolve, reject) => {
@@ -562,7 +556,7 @@ export class GroupChatWebrtcService {
 
                     if (channel === AppConstants.REMOTE_CONTROL) {
                         /**
-                         * if user is accessing remote machine then remove all the event listners 
+                         * if user is accessing remote machine then remove all the event listners
                          * remove all event listeners from canvas
                          */
                         // if (this.talkWindowContextService.bindingFlags.isAccessingRemote) {
@@ -577,14 +571,14 @@ export class GroupChatWebrtcService {
                 }
                 resolve();
             } catch (error) {
-                LoggerUtil.log('there is an error occured while cleaning data channel context for channel: ' + channel);
+                LoggerUtil.logAny('there is an error occured while cleaning data channel context for channel: ' + channel);
                 reject(error);
             }
         });
     }
 
     /**
-     * 
+     *
      * @TODO this method will be moved afterwards, right now it's just for testing
      * @param groupName name of group to join
      */
@@ -601,7 +595,7 @@ export class GroupChatWebrtcService {
     }
 
     /**
-     * 
+     *
      * @TODO this method will be moved afterwards, right now it's just for testing
      * @param groupName name of group to join
      */
@@ -628,8 +622,8 @@ export class GroupChatWebrtcService {
                 await this.apiService.get(`group/${groupName}`, AppConstants.MEDIA_SERVER).toPromise();
                 resolve(true);
             } catch (e) {
-                LoggerUtil.log(`error occured while checking group existence for group: ${groupName}`);
-                LoggerUtil.log(e);
+                LoggerUtil.logAny(`error occured while checking group existence for group: ${groupName}`);
+                LoggerUtil.logAny(e);
                 resolve(false);
             }
         });

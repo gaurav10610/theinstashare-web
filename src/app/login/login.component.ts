@@ -8,6 +8,9 @@ import { UserContextService } from '../services/context/user.context.service';
 import { environment } from '../../environments/environment';
 import { CoreMediaCaptureService } from '../services/media-capture/core-media-capture.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { GoogleAnalyticsService } from 'ngx-google-analytics';
+import { MatIconRegistry } from "@angular/material/icon";
+import { DomSanitizer } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-signin-root',
@@ -21,8 +24,17 @@ export class LoginComponent implements OnInit {
     public signalingService: SignalingService,
     private userContextService: UserContextService,
     private coreMediaCaptureService: CoreMediaCaptureService,
-    private snackBar: MatSnackBar
-  ) { }
+    private snackBar: MatSnackBar,
+    private gaService: GoogleAnalyticsService,
+    private matIconRegistry: MatIconRegistry,
+    private domSanitizer: DomSanitizer
+  ) {
+    // adding github icon in registry
+    this.matIconRegistry.addSvgIcon('github', this.domSanitizer
+      .bypassSecurityTrustResourceUrl(this.assetsPath + 'images/icons/github-icon.svg'));
+    this.matIconRegistry.addSvgIcon('instashare_title', this.domSanitizer
+      .bypassSecurityTrustResourceUrl(this.assetsPath + 'images/icons/instashare-title.svg'));
+  }
 
   inputFieldLabel: String = 'Username';
   assetsPath = environment.is_native_app ? 'assets/' : '../../assets/';
@@ -33,13 +45,16 @@ export class LoginComponent implements OnInit {
   isRegistering: Boolean = false;
 
   async ngOnInit() {
-    LoggerUtil.log('ngOnit of login component');
+
+    this.gaService.pageView('/login', 'Login');
+
+    LoggerUtil.logAny('ngOnit of login component');
 
     // setTimeout(() => { this.stopNotification = false; }, 5000);
 
     try {
       const message: string = await this.coreMediaCaptureService.takeCameraAndMicrophoneAccess();
-      LoggerUtil.log('got camera/microphone permissions');
+      LoggerUtil.logAny('got camera/microphone permissions');
     } catch (errorMessage) {
       this.snackBar.open(errorMessage);
     }
@@ -142,6 +157,7 @@ export class LoginComponent implements OnInit {
 
           this.signalingService.signalingRouter.off('message');
           this.signalingService.signalingRouter.off('connect');
+          this.gaService.event('login_event', 'user_logged_in', 'User logged in', message[AppConstants.USERNAME], true);
           this.router.navigateByUrl('app');
         } else {
           this.errorMessage = 'username is either invalid or already been taken';
@@ -149,7 +165,7 @@ export class LoginComponent implements OnInit {
         }
         break;
       default:
-        LoggerUtil.log('unknown message type');
+        LoggerUtil.logAny('unknown message type');
     }
   }
 

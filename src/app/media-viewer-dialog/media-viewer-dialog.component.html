@@ -1,5 +1,5 @@
 <div id="media_viewer" class="column-flex-display">
-    <div (click)="closeMediaViewer($event)" class="row-flex-display center-content">
+    <div (click)="closeMediaViewer(contentType)" class="row-flex-display center-content">
         <img id="viewer_image" *ngIf="contentType === 'image'" src="{{content}}" (click)="closeMediaViewer(contentType)"
             class="media-class">
         <video id="viewer_video" *ngIf="contentType === 'video'" src="{{content}}" controls

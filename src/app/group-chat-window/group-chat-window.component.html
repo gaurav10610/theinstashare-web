@@ -112,7 +112,7 @@
         <!-- render video frames here -->
         <div class="video-frames flex-grow-full vertical-scroll no-scroll">
 
-            <mat-grid-list cols={{totalsVideoStreamsColumns}} rowHeight="2:1">
+            <mat-grid-list cols={{totalVideoStreamsColumns}} rowHeight="2:1">
                 <mat-grid-tile *ngFor="let stream of streams" [colspan]="stream.cols" [rowspan]="stream.rows">
                     <video controls class="full-height-width"></video>
                 </mat-grid-tile>

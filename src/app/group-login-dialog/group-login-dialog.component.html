@@ -9,12 +9,12 @@
 
             <button mat-raised-button
                 [ngStyle]="{'display':  isRegistering ? 'none': 'block'}"
-                 color="primary" (click)="createOrJoinGroup('existing')">
+                class="button-class" color="primary" (click)="createOrJoinGroup('existing')">
                 <p>Join existing group</p>
             </button>
 
             <button mat-raised-button [ngStyle]="{'display': isRegistering ? 'none': 'block'}"
-                 color="primary" (click)="createOrJoinGroup('new')">
+                 class="button-class" color="primary" (click)="createOrJoinGroup('new')">
                 <p>Create a new group</p>
             </button>
 
