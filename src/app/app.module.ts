@@ -3,11 +3,7 @@ import { NgModule } from "@angular/core";
 import { AppRoutingModule } from "./app-routing.module";
 import { HttpClientModule } from "@angular/common/http";
 import { AppComponent } from "./app.component";
-import { LoginComponent } from "./login/login.component";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
-import { ProgressDialogComponent } from "./progress-dialog/progress-dialog.component";
-import { AppLoginDialogComponent } from "./app-login-dialog/app-login-dialog.component";
-import { InformationDialogComponent } from "./information-dialog/information-dialog.component";
 import { MatListModule } from "@angular/material/list";
 import { MatDividerModule } from "@angular/material/divider";
 import { MatIconModule } from "@angular/material/icon";
@@ -25,6 +21,10 @@ import { MatSnackBarModule } from "@angular/material/snack-bar";
 import { NgxGoogleAnalyticsModule } from "ngx-google-analytics";
 import { MatBadgeModule } from "@angular/material/badge";
 import { environment } from "src/environments/environment";
+import { AppLoginDialogComponent } from "./components/app-login-dialog/app-login-dialog.component";
+import { InformationDialogComponent } from "./components/information-dialog/information-dialog.component";
+import { LoginComponent } from "./components/login/login.component";
+import { ProgressDialogComponent } from "./components/progress-dialog/progress-dialog.component";
 
 const moduleImports: any[] = [
   BrowserModule,
