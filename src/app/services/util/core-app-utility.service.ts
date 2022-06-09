@@ -191,45 +191,17 @@ export class CoreAppUtilityService {
 
   /**
    * this will return the max bitrate to configure in the SDP
-   *
    * @param channel: media type audio/video/text
-   *
    * @TODO fix it afterwards
-   *
    */
   getMaxBitrateForSdpModification(channel: string) {
     return channel === AppConstants.FILE || channel === AppConstants.TEXT
       ? 100000
       : 10000;
-    // switch (channel) {
-    //   case AppConstants.VIDEO:
-    //     bitrate = AppConstants.MEDIA_BITRATES.VIDEO;
-    //     break;
-    //   case AppConstants.SCREEN:
-    //     bitrate = AppConstants.MEDIA_BITRATES.SCREEN;
-    //     break;
-    //   case AppConstants.AUDIO:
-    //     bitrate = AppConstants.MEDIA_BITRATES.AUDIO
-    //     break;
-    //   case AppConstants.SOUND:
-    //     bitrate = AppConstants.MEDIA_BITRATES.SOUND
-    //     break;
-    //   case AppConstants.FILE:
-    //     bitrate = AppConstants.MEDIA_BITRATES.FILE;
-    //     break;
-    //   case AppConstants.REMOTE_CONTROL:
-    //     bitrate = AppConstants.MEDIA_BITRATES.REMOTE_CONTROL;
-    //     break;
-    //   case AppConstants.TEXT:
-    //     bitrate = AppConstants.MEDIA_BITRATES.DATA;
-    //     break;
-    // }
   }
 
   /**
-   *
    * check if provided channel uses data channel
-   *
    * @param channel type of media i.e 'text', 'file' or 'remoteControl'
    */
   isDataChannel(channel: string): boolean {

@@ -179,11 +179,12 @@ export class CoreFileSharingService {
          * sending file data fragments
          */
         while (!fileStreamer.isEndOfFile()) {
-          // LoggerUtil.logAny(
-          //   `sending ${offsetCounter} chunk of ${submittedFile.file.name}`
-          // );
           const data: ArrayBuffer = await fileStreamer.readBlockAsArrayBuffer();
-          this.sendArrayBufferOnChannel(dataChannel, data, submittedFile.to);
+          await this.sendArrayBufferOnChannel(
+            dataChannel,
+            data,
+            submittedFile.to
+          );
 
           // emit file progress event
           this.shareFileProgress(
