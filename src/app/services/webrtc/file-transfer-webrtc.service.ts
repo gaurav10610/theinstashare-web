@@ -4,6 +4,7 @@ import { UserContextService } from "../context/user.context.service";
 import { CallbackContextType } from "../contracts/CallbackContextType";
 import { ComponentServiceSpec } from "../contracts/component/component-specs";
 import { CreateDataChannelType } from "../contracts/CreateDataChannelType";
+import { ChannelBufferData } from "../contracts/datachannel/datachannel-spec";
 import { DataChannelInfo } from "../contracts/datachannel/DataChannelInfo";
 import { ConnectionStateChangeContext } from "../contracts/event/ConnectionStateChangeContext";
 import { CoreDataChannelService } from "../data-channel/core-data-channel.service";
@@ -42,11 +43,11 @@ export class FileTransferService implements ComponentServiceSpec {
    * trigger a scheduled cleaner job
    */
   async scheduledCleanerJob(): Promise<void> {
-    LoggerUtil.logAny(`scheduled job started at: ${new Date().toISOString()}`);
-    LoggerUtil.logAny(this.userContextService.webrtcContext);
-    LoggerUtil.logAny(
-      `scheduled job completed at: ${new Date().toISOString()}`
-    );
+    // LoggerUtil.logAny(`scheduled job started at: ${new Date().toISOString()}`);
+    // LoggerUtil.logAny(this.userContextService.webrtcContext);
+    // LoggerUtil.logAny(
+    //   `scheduled job completed at: ${new Date().toISOString()}`
+    // );
   }
 
   /**
@@ -82,10 +83,15 @@ export class FileTransferService implements ComponentServiceSpec {
     this.registerCommonWebrtcEvents(peerConnection, username);
     this.registerSignalingStateChangeTrackEvent(peerConnection, username);
     this.registerDataChannelEvents(peerConnection, username);
-    this.registerMediaTrackEvents(peerConnection, username);
+    //this.registerMediaTrackEvents(peerConnection, username);
     return;
   }
 
+  /**
+   * register common on a user's webrtc connection
+   * @param peerConnection
+   * @param username
+   */
   registerCommonWebrtcEvents(
     peerConnection: RTCPeerConnection,
     username: string
@@ -108,7 +114,7 @@ export class FileTransferService implements ComponentServiceSpec {
      * handle ice candidate event
      *
      * compose the 'candidate' type signaling message using the generated
-     * candidate and send it to the other user
+     * candidate and send it to the other peer
      */
     peerConnection.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
       if (event.candidate) {
@@ -124,6 +130,11 @@ export class FileTransferService implements ComponentServiceSpec {
     };
   }
 
+  /**
+   * register signaling state change event on a user's webrtc connection
+   * @param peerConnection
+   * @param username
+   */
   registerSignalingStateChangeTrackEvent(
     peerConnection: RTCPeerConnection,
     username: string
@@ -136,11 +147,9 @@ export class FileTransferService implements ComponentServiceSpec {
         this.userContextService.getUserWebrtcContext(username);
       switch (peerConnection.signalingState) {
         /**
-         *
          * There is no ongoing exchange of offer and answer underway. This may mean that the RTCPeerConnection
          * object is new, in which case both the localDescription and remoteDescription are null; it may also mean
          * that negotiation is complete and a connection has been established
-         *
          */
         case "stable":
           /**
@@ -169,6 +178,11 @@ export class FileTransferService implements ComponentServiceSpec {
     };
   }
 
+  /**
+   * register data channel related events on a user's webrtc connection
+   * @param peerConnection
+   * @param username
+   */
   registerDataChannelEvents(
     peerConnection: RTCPeerConnection,
     username: string
@@ -190,8 +204,16 @@ export class FileTransferService implements ComponentServiceSpec {
       /**
        * register onmessage listener on received data channel
        */
-      dataChannel.onmessage = (msgEvent: MessageEvent) => {
-        this.onDataChannelMessageEvent.emit(msgEvent.data);
+      dataChannel.onmessage = (messageEvent: MessageEvent) => {
+        if (messageEvent.data instanceof ArrayBuffer) {
+          const channelBufferData: ChannelBufferData = {
+            from: username,
+            data: messageEvent.data,
+          };
+          this.onDataChannelMessageEvent.emit(channelBufferData);
+        } else {
+          this.onDataChannelMessageEvent.emit(messageEvent.data);
+        }
       };
 
       LoggerUtil.logAny(
@@ -220,25 +242,25 @@ export class FileTransferService implements ComponentServiceSpec {
         webrtcContext[AppConstants.MEDIA_CONTEXT][channel][
           AppConstants.CONNECTION_STATE
         ] = AppConstants.CONNECTION_STATES.CONNECTED;
-        if (channel === AppConstants.TEXT) {
-          this.onDataChannelReceiveEvent.emit({
-            channel,
-            channelOpenedWith: username,
-            channelOpenAt: new Date(),
-          });
-        }
+        this.onDataChannelReceiveEvent.emit({
+          channel,
+          channelOpenedWith: username,
+          channelOpenAt: new Date(),
+        });
       };
     };
   }
 
+  /**
+   * register media track events on a user's webrtc connection
+   * @param peerConnection
+   * @param username
+   */
   registerMediaTrackEvents(
     peerConnection: RTCPeerConnection,
     username: string
   ): void {
-    /**
-     * @NOTE - Not to be implemented by file transfer application
-     **/
-    return;
+    throw new Error("not to be implemented for file transfer!");
   }
 
   /**
@@ -291,8 +313,16 @@ export class FileTransferService implements ComponentServiceSpec {
       );
 
       // remote datachannel onmessage listener
-      dataChannel.onmessage = (msgEvent: any) => {
-        this.onDataChannelMessageEvent.emit(msgEvent.data);
+      dataChannel.onmessage = (messageEvent: MessageEvent) => {
+        if (messageEvent.data instanceof ArrayBuffer) {
+          const channelBufferData: ChannelBufferData = {
+            from: createDataChannelType.username,
+            data: messageEvent.data,
+          };
+          this.onDataChannelMessageEvent.emit(channelBufferData);
+        } else {
+          this.onDataChannelMessageEvent.emit(messageEvent.data);
+        }
       };
 
       /**
@@ -359,14 +389,12 @@ export class FileTransferService implements ComponentServiceSpec {
       AppConstants.CONNECTION_STATES.NOT_CONNECTED
     ) {
       /**
-       *
        * initialize webrtc peer connection
        */
       const initializedConnection: boolean =
         await this.coreWebrtcService.rtcConnectionInit(username);
 
       /**
-       *
        * update webrtc connection state to connecting so that not other flow can update it further
        */
       webrtcContext[AppConstants.CONNECTION_STATE] =
@@ -383,7 +411,6 @@ export class FileTransferService implements ComponentServiceSpec {
       }
 
       /**
-       *
        * create the offer for the peer connection and send it to other peer
        */
       if (offerMessage === undefined) {
@@ -393,7 +420,6 @@ export class FileTransferService implements ComponentServiceSpec {
             peerConnection.setLocalDescription(offer);
 
             /**
-             *
              * send the offer payload
              */
             this.coreDataChannelService.sendPayload({
@@ -420,7 +446,6 @@ export class FileTransferService implements ComponentServiceSpec {
             peerConnection.setLocalDescription(answer);
 
             /**
-             *
              * send the answer payload
              */
             this.coreDataChannelService.sendPayload({
@@ -438,7 +463,6 @@ export class FileTransferService implements ComponentServiceSpec {
       }
     } else {
       /**
-       *
        * already in connecting/connected state so do nothing here
        */
     }

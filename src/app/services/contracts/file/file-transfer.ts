@@ -12,7 +12,6 @@ export interface TransferredFileContext {
   totalFragments: number;
   fileBuffer?: any[];
   lastPartReceivedAt: Date;
-  lastAcknowledgementAt: Date;
   from: string;
   isPaused: boolean;
   size: number;
@@ -20,6 +19,7 @@ export interface TransferredFileContext {
   isComplete: boolean; // specifies if download/upload is completed
   error: boolean;
   isResendEnable: boolean;
+  startedAt: Date;
   completedAt: Date;
 }
 

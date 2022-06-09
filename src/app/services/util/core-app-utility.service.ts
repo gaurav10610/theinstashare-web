@@ -1,3 +1,4 @@
+import { LoggerUtil } from "src/app/services/logging/LoggerUtil";
 import { Injectable } from "@angular/core";
 import { AppConstants } from "../AppConstants";
 import { UserContextService } from "../context/user.context.service";
@@ -112,13 +113,9 @@ export class CoreAppUtilityService {
 
   /**
    * update an element's position in an array to provided newIndex
-   *
    * @param array given array of element
-   *
    * @param elementValue element of the array
-   *
    * @param  newIndex new position for the array element
-   *
    * @return a promise
    */
   updateElemntPositionInArray(array: any, elementValue: any, newIndex: number) {
@@ -201,7 +198,9 @@ export class CoreAppUtilityService {
    *
    */
   getMaxBitrateForSdpModification(channel: string) {
-    let bitrate = 10000;
+    return channel === AppConstants.FILE || channel === AppConstants.TEXT
+      ? 100000
+      : 10000;
     // switch (channel) {
     //   case AppConstants.VIDEO:
     //     bitrate = AppConstants.MEDIA_BITRATES.VIDEO;
@@ -225,7 +224,6 @@ export class CoreAppUtilityService {
     //     bitrate = AppConstants.MEDIA_BITRATES.DATA;
     //     break;
     // }
-    return bitrate;
   }
 
   /**
@@ -302,18 +300,32 @@ export class CoreAppUtilityService {
   }
 
   /**
-   * convert string to unit-16 array buffer
+   * convert string to unit-8 array buffer
    * @param stringData
    * @returns
    */
   stringToArrayBuffer(stringData: string): ArrayBuffer {
-    var buf = new ArrayBuffer(stringData.length); // 2 bytes for each char
-    var bufView = new Uint8Array(buf);
-    for (var i = 0, strLen = stringData.length; i < strLen; i++) {
+    let dataLength: number = stringData.length;
+    let buf = new ArrayBuffer(dataLength); // 2 bytes for each char
+    let bufView = new Uint8Array(buf);
+    for (let i = 0; i < dataLength; i++) {
       bufView[i] = stringData.charCodeAt(i);
     }
     return buf;
   }
+
+  // arrayBufferToString(arrayBuffer: ArrayBuffer): string {
+  //   return new TextDecoder("utf-8").decode(new Uint8Array(arrayBuffer));
+  // }
+
+  // /**
+  //  * convert string to unit-16 array buffer
+  //  * @param stringData
+  //  * @returns
+  //  */
+  // stringToArrayBuffer(stringData: string): ArrayBuffer {
+  //   return new TextEncoder().encode(stringData).buffer;
+  // }
 
   /**
    * format size in to higher terms

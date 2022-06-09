@@ -16,8 +16,6 @@ import { CoreDataChannelService } from "../data-channel/core-data-channel.servic
 /**
  * this service contains all the webrtc related reusable logic chunks which app
  * utilises in order to process various types of user requests from UI
- *
- *
  */
 @Injectable({
   providedIn: "root",

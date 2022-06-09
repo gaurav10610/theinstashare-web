@@ -1,3 +1,4 @@
+import { ChannelBufferData } from "./../../services/contracts/datachannel/datachannel-spec";
 import { InformationDialogComponent } from "./../information-dialog/information-dialog.component";
 import {
   AfterViewInit,
@@ -14,7 +15,7 @@ import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Router } from "@angular/router";
 import { GoogleAnalyticsService } from "ngx-google-analytics";
-import { firstValueFrom } from "rxjs";
+import { firstValueFrom, Subscription } from "rxjs";
 import { environment } from "src/environments/environment";
 import { AppLoginDialogComponent } from "../app-login-dialog/app-login-dialog.component";
 import { IconsDialogComponent } from "../icons-dialog/icons-dialog.component";
@@ -83,6 +84,9 @@ export class FileTransferWindowComponent
   @ViewChild("messageHistoryDiv", { static: false })
   messageHistoryDiv: ElementRef;
 
+  // list of all the subsciptions
+  subscriptions: Subscription[] = [];
+
   currentDialogRef: MatDialogRef<any>;
 
   //assets path
@@ -99,25 +103,36 @@ export class FileTransferWindowComponent
     await this.setupSignaling();
 
     // subscribe to connection related custom events
-    this.fileTransferService.onDataChannelMessageEvent.subscribe(
-      this.onDataChannelMessage.bind(this)
+    this.subscriptions.push(
+      this.fileTransferService.onDataChannelMessageEvent.subscribe(
+        this.onDataChannelMessage.bind(this)
+      )
     );
-    this.fileTransferService.onDataChannelReceiveEvent.subscribe(
-      this.sendQueuedMessagesOnChannel.bind(this)
+    this.subscriptions.push(
+      this.fileTransferService.onDataChannelReceiveEvent.subscribe(
+        this.onDataChannelReceive.bind(this)
+      )
     );
+
     this.fileTransferService.onWebrtcConnectionStateChangeEvent.subscribe(
       this.onWebrtcConnectionStateChange.bind(this)
     );
 
     // subcribe to file sharing related events
-    this.fileSharingService.onFileProgress.subscribe(
-      this.handleFileProgress.bind(this)
+    this.subscriptions.push(
+      this.fileSharingService.onFileProgress.subscribe(
+        this.handleFileProgress.bind(this)
+      )
     );
-    this.fileSharingService.onFileShareError.subscribe(
-      this.handleFileShareError.bind(this)
+    this.subscriptions.push(
+      this.fileSharingService.onFileShareError.subscribe(
+        this.handleFileShareError.bind(this)
+      )
     );
-    this.fileSharingService.onFileMetadata.subscribe(
-      this.handleFileMetaData.bind(this)
+    this.subscriptions.push(
+      this.fileSharingService.onFileMetadata.subscribe(
+        this.handleFileMetaData.bind(this)
+      )
     );
 
     if (this.userContextService.isMobile) {
@@ -134,21 +149,17 @@ export class FileTransferWindowComponent
 
   ngAfterViewInit() {}
 
-  /**
-   * do clean up here before this component get destroyed
-   */
   ngOnDestroy(): void {
+    // unregister the periodic cleanup job
     if (this.scheduledJobId) {
-      LoggerUtil.logAny(
-        `scheduled job with id: ${this.scheduledJobId} is cleared`
-      );
       clearInterval(this.scheduledJobId);
     }
+
+    // unsubscribe all the subscriptions
+    this.subscriptions.forEach((subscription) => subscription.unsubscribe());
+    this.subscriptions = [];
   }
 
-  /**
-   * signaling setup
-   */
   async setupSignaling(): Promise<void> {
     if (this.signalingService.isRegistered) {
       /**
@@ -249,7 +260,7 @@ export class FileTransferWindowComponent
   }
 
   /*
-   * handle connection open event with server
+   * handle connection open event with signaling server
    */
   async onRouterConnect(): Promise<void> {
     const username: String = this.userContextService.getUserName()
@@ -269,12 +280,10 @@ export class FileTransferWindowComponent
   /**
    * handle messages received via server or via webrtc datachannel
    *
-   *
    * while sending any message to other user app gives first priority to existing
    * datachannel between two users to exchange any messages(see the existing
    * supported message types below) between them if it found one else it will
    * send the messages to other user via signaling server only
-   *
    *
    * @param signalingMessage received signaling message
    *
@@ -329,9 +338,7 @@ export class FileTransferWindowComponent
 
   /**
    * handle to handle received messages of type 'register'
-   *
    * @param signalingMessage received signaling message
-   *
    */
   async handleRegister(signalingMessage: any): Promise<void> {
     if (signalingMessage.success) {
@@ -378,7 +385,6 @@ export class FileTransferWindowComponent
     } else {
       /**
        * user registeration failed case -
-       *
        * close current progress dialog and open app login dialog again
        **/
       this.openDialog(DialogType.APP_LOGIN);
@@ -387,7 +393,6 @@ export class FileTransferWindowComponent
 
   /**
    * open appropriate dialog
-   *
    * @param dialogType type of dialog
    * @param data data to be passed to close handler
    */
@@ -434,8 +439,7 @@ export class FileTransferWindowComponent
 
   /**
    * this will handle dialog close
-   * @param dialogCloseResult result data sent by the component contained in the dialog which got closed
-   *
+   * @param dialogCloseResult data emitted by dialog component
    */
   async handleDialogClose(
     dialogCloseResult?: DialogCloseResult
@@ -514,11 +518,10 @@ export class FileTransferWindowComponent
   }
 
   /**
-   * back to contacts click handler
-   * this button is available only on mobile screen view
+   * back to contacts click handler button is available only on mobile screen view
    */
   async backToContacts(): Promise<void> {
-    const userToChat = this.userContextService.userToChat;
+    const userToChat: string = this.userContextService.userToChat;
     this.userContextService.userToChat = undefined;
   }
 
@@ -529,9 +532,7 @@ export class FileTransferWindowComponent
   async consumeWebrtcOffer(signalingMessage: any): Promise<void> {
     try {
       /**
-       *
        * if this offer message is for renegotiating an already established connection
-       *
        */
       if (signalingMessage.renegotiate) {
         this.coreWebrtcService.mediaContextInit(
@@ -560,7 +561,6 @@ export class FileTransferWindowComponent
         /**
          * send the composed 'answer' signaling message to the other user from whom
          * we've received the offer message
-         *
          */
         this.coreDataChannelService.sendPayload({
           type: AppConstants.ANSWER,
@@ -571,7 +571,6 @@ export class FileTransferWindowComponent
         });
       } else {
         /**
-         *
          * this will setup a new webrtc connection
          */
         this.fileTransferService.setUpWebrtcConnection(
@@ -918,50 +917,81 @@ export class FileTransferWindowComponent
   }
 
   /**
-   * this is onmessage event handler for data channel
-   * @param jsonMessage message received via webrtc datachannel
+   * handle data channel receive event here
+   * @param dataChannelInfo received data channel info
    */
-  async onDataChannelMessage(jsonMessage: string): Promise<void> {
+  async onDataChannelReceive(dataChannelInfo: DataChannelInfo): Promise<void> {
+    switch (dataChannelInfo.channel) {
+      case AppConstants.TEXT:
+        this.sendQueuedMessagesOnChannel(dataChannelInfo);
+        break;
+
+      case AppConstants.FILE:
+        // @TODO do some processing here
+        break;
+    }
+  }
+
+  /**
+   * this is onmessage event handler for data channel
+   * @param channelMessage message received via webrtc datachannel
+   */
+  async onDataChannelMessage(
+    channelMessage: string | ChannelBufferData
+  ): Promise<void> {
     this.zoneRef.run(async () => {
-      const message: any = JSON.parse(jsonMessage);
-      if (message.type !== AppConstants.FILE) {
-        LoggerUtil.logAny(`message received on data channel : ${jsonMessage}`);
-      }
-      switch (message.type) {
-        //handle signaling messages
-        case AppConstants.SIGNALING:
-          this.onRouterMessage(message.message);
-          break;
-
-        //handle message acknowledgement
-        case AppConstants.MESSAGE_ACKNOWLEDGEMENT:
-          this.utilityService.updateChatMessageStatus(message);
-          break;
-
-        case AppConstants.FILE:
-          this.fileSharingService.processFileMessage(<FileData>message);
-          break;
-
-        case AppConstants.TEXT:
-          message.sent = false;
-          const messageStatus: string = await this.updateChatMessages(message);
-          if (
-            messageStatus !== AppConstants.CHAT_MESSAGE_STATUS.NOT_APPLICABLE
-          ) {
-            this.utilityService.sendMessageAcknowledgement(
-              message,
-              messageStatus,
-              message.type
-            );
-          }
-          break;
-
-        default:
+      // when received a json string
+      if (typeof channelMessage === "string") {
+        const message: any = JSON.parse(channelMessage);
+        if (message.type !== AppConstants.FILE) {
           LoggerUtil.logAny(
-            `unkown message type recived on dataChannel from: ${
-              message.from ? message.from : message.username
-            }`
+            `message received on data channel : ${channelMessage}`
           );
+        }
+        switch (message.type) {
+          //handle signaling messages
+          case AppConstants.SIGNALING:
+            this.onRouterMessage(message.message);
+            break;
+
+          //handle message acknowledgement
+          case AppConstants.MESSAGE_ACKNOWLEDGEMENT:
+            this.utilityService.updateChatMessageStatus(message);
+            break;
+
+          case AppConstants.FILE:
+            this.fileSharingService.handleReceivedFileMessage(
+              <FileData>message
+            );
+            break;
+
+          case AppConstants.TEXT:
+            message.sent = false;
+            const messageStatus: string = await this.updateChatMessages(
+              message
+            );
+            if (
+              messageStatus !== AppConstants.CHAT_MESSAGE_STATUS.NOT_APPLICABLE
+            ) {
+              this.utilityService.sendMessageAcknowledgement(
+                message,
+                messageStatus,
+                message.type
+              );
+            }
+            break;
+
+          default:
+            LoggerUtil.logAny(
+              `unkown message type recived on dataChannel from: ${
+                message.from ? message.from : message.username
+              }`
+            );
+        }
+      } else {
+        // handle buffer data here
+        // LoggerUtil.logAny(`received buffer data from: ${channelMessage.from}`);
+        this.fileSharingService.handleReceivedFileBufferData(channelMessage);
       }
     });
   }
@@ -1055,12 +1085,14 @@ export class FileTransferWindowComponent
   async handleFileProgress(
     fileShareProgressEvent: FileShareProgress
   ): Promise<void> {
-    const fileContext: TransferredFileContext = this.contextService
-      .getFileContext(fileShareProgressEvent.username)
-      .get(fileShareProgressEvent.id);
-    fileContext.progress = fileShareProgressEvent.progress;
-    fileContext.fragmentOffsetAt = fileShareProgressEvent.fragmentOffset;
-    fileContext.lastPartReceivedAt = new Date();
+    this.zoneRef.run(() => {
+      const fileContext: TransferredFileContext = this.contextService
+        .getFileContext(fileShareProgressEvent.username)
+        .get(fileShareProgressEvent.id);
+      fileContext.progress = fileShareProgressEvent.progress;
+      fileContext.fragmentOffsetAt = fileShareProgressEvent.fragmentOffset;
+      fileContext.lastPartReceivedAt = new Date();
+    });
   }
 
   /**
@@ -1089,41 +1121,45 @@ export class FileTransferWindowComponent
       );
 
     switch (fileMetadata.fileFragmentType) {
-      /**
-       * this payload will be received only for received files
-       */
       case FileFragmentType.START:
-        fileContext.set(fileMetadata.fileId, {
-          id: fileMetadata.fileId,
-          fileName: fileMetadata.fileName,
-          isSent: false,
-          progress: 0,
-          fileType: fileMetadata.fileType,
-          isFragmented:
-            fileMetadata.fileSize > CoreFileSharingService.MAX_FILE_CHUNK_SIZE,
-          fragmentOffsetAt: 0,
-          totalFragments: fileMetadata.totalFragments,
-          lastPartReceivedAt: null,
-          lastAcknowledgementAt: null,
-          from: fileMetadata.from,
-          isPaused: false,
-          size: fileMetadata.fileSize,
-          icon: this.fileTransferService.getMappedFileIcon(
-            fileMetadata.fileName
-          ),
-          isComplete: false,
-          error: false,
-          isResendEnable: false,
-          completedAt: null,
-        });
-        if (this.userContextService.userToChat !== fileMetadata.from) {
-          this.userContextService.getUserWebrtcContext(fileMetadata.from)
-            .unreadCount++;
+        // start metadata is for sent file
+        if (fileMetadata.sent) {
+          fileContext.get(fileMetadata.fileId).startedAt = new Date();
+        } else {
+          // start metadata is for received file
+          fileContext.set(fileMetadata.fileId, {
+            id: fileMetadata.fileId,
+            fileName: fileMetadata.fileName,
+            isSent: false,
+            progress: 0,
+            fileType: fileMetadata.fileType,
+            isFragmented:
+              fileMetadata.fileSize >
+              CoreFileSharingService.MAX_FILE_CHUNK_SIZE,
+            fragmentOffsetAt: 0,
+            totalFragments: fileMetadata.totalFragments,
+            lastPartReceivedAt: null,
+            from: fileMetadata.from,
+            isPaused: false,
+            size: fileMetadata.fileSize,
+            icon: this.fileTransferService.getMappedFileIcon(
+              fileMetadata.fileName
+            ),
+            isComplete: false,
+            error: false,
+            isResendEnable: false,
+            startedAt: new Date(),
+            completedAt: null,
+          });
+          if (this.userContextService.userToChat !== fileMetadata.from) {
+            this.userContextService.getUserWebrtcContext(fileMetadata.from)
+              .unreadCount++;
 
-          // increment file specic unread count for showing badge
-          this.contextService.initializeBadgeConfig(fileMetadata.from);
-          this.contextService.getBadgeConfig(fileMetadata.from).file++;
-          this.playIncomeingMessageTune(true);
+            // increment file specic unread count for showing badge
+            this.contextService.initializeBadgeConfig(fileMetadata.from);
+            this.contextService.getBadgeConfig(fileMetadata.from).file++;
+            this.playIncomeingMessageTune(true);
+          }
         }
         break;
 
@@ -1218,7 +1254,6 @@ export class FileTransferWindowComponent
           file.size / CoreFileSharingService.MAX_FILE_CHUNK_SIZE
         ),
         lastPartReceivedAt: null,
-        lastAcknowledgementAt: null,
         from: this.userContextService.username,
         isPaused: false,
         size: file.size,
@@ -1226,6 +1261,7 @@ export class FileTransferWindowComponent
         isComplete: false,
         error: false,
         isResendEnable: false,
+        startedAt: null,
         completedAt: null,
       });
     }

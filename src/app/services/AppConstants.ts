@@ -5,7 +5,7 @@
 export class AppConstants {
   public static DATACHANNEL = "dataChannel";
 
-  public static CLEANUP_JOB_INTERVAL = 30000;
+  public static CLEANUP_JOB_INTERVAL = 10000;
 
   public static WEBRTC_EVENTS = {
     CHANNEL_OPEN: "channelOpen",
@@ -306,7 +306,7 @@ export class AppConstants {
 
   public static DATACHANNEL_BUFFER_THRESHOLD = 65535;
 
-  public static DATACHANNEL_FILE_SEND_TIMEOUT = 50;
+  public static DATACHANNEL_FILE_SEND_TIMEOUT = 5;
 
   public static CALL_DISCONNECT_POPUP_TIMEOUT = 3000;
 

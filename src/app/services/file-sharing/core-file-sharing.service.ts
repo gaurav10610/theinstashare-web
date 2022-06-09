@@ -1,3 +1,4 @@
+import { ChannelBufferData } from "./../contracts/datachannel/datachannel-spec";
 import { CoreAppUtilityService } from "./../util/core-app-utility.service";
 import { MediaChannelType } from "./../contracts/enum/MediaChannelType";
 import { LoggerUtil } from "./../logging/LoggerUtil";
@@ -26,6 +27,7 @@ export class CoreFileSharingService {
   private fileSenderTracker: Map<string, boolean>;
   private fileSendQueue: Map<string, QueueStorage<FileSubmitContext>>;
   private fileBuffer: Map<string, ArrayBuffer[]>;
+  private currentFileContext: Map<string, FileData>;
 
   public static MAX_FILE_CHUNK_SIZE = 16 * 1024;
   // public static MAX_FILE_CHUNK_SIZE = 65535;
@@ -40,8 +42,13 @@ export class CoreFileSharingService {
     this.fileSenderTracker = new Map();
     this.fileSendQueue = new Map();
     this.fileBuffer = new Map();
+    this.currentFileContext = new Map();
   }
 
+  /**
+   * mechanism to submit file which needs to be sent
+   * @param fileToSend
+   */
   async submitFileToSend(fileToSend: FileSubmitContext): Promise<void> {
     if (!this.fileSendQueue.has(fileToSend.to)) {
       this.fileSendQueue.set(
@@ -120,24 +127,34 @@ export class CoreFileSharingService {
       );
 
       try {
+        const fileStartFragment: FileData = {
+          type: MediaChannelType.FILE,
+          fileFragmentType: FileFragmentType.START,
+          fileName: submittedFile.file.name,
+          totalFragments: fileStreamer.getTotalFragments(),
+          fileId: submittedFile.id,
+          fileSize: submittedFile.file.size,
+          from: this.userContextService.getUserName(),
+          to: submittedFile.to,
+          fileType: submittedFile.file.type,
+          fragmentOffset: 0,
+        };
+
         /**
          * send file START fragment
          */
-        await this.sendDataOnChannel(
+        await this.sendJsonOnChannel(
           dataChannel,
-          {
-            type: MediaChannelType.FILE,
-            fileFragmentType: FileFragmentType.START,
-            fileName: submittedFile.file.name,
-            totalFragments: fileStreamer.getTotalFragments(),
-            fileId: submittedFile.id,
-            fileSize: submittedFile.file.size,
-            from: this.userContextService.getUserName(),
-            to: submittedFile.to,
-            fileType: submittedFile.file.type,
-          },
-          submittedFile.to
+          fileStartFragment,
+          submittedFile.to,
+          true
         );
+
+        // emit file metadata event
+        this.onFileMetadata.emit({
+          sent: true,
+          ...fileStartFragment,
+        });
 
         if (
           submittedFile.file.size < CoreFileSharingService.MAX_FILE_CHUNK_SIZE
@@ -166,29 +183,7 @@ export class CoreFileSharingService {
           //   `sending ${offsetCounter} chunk of ${submittedFile.file.name}`
           // );
           const data: ArrayBuffer = await fileStreamer.readBlockAsArrayBuffer();
-          const dataString: string =
-            this.appUtilService.arrayBufferToString(data);
-
-          /**
-           * prepare file fragment payload to send
-           */
-          const fileFragment: FileData = {
-            type: MediaChannelType.FILE,
-            fileFragmentType: FileFragmentType.DATA,
-            from: this.userContextService.getUserName(),
-            to: submittedFile.to,
-            fileName: submittedFile.file.name,
-            fileId: submittedFile.id,
-            fileSize: submittedFile.file.size,
-            fragmentOffset: offsetCounter,
-            totalFragments: fileStreamer.getTotalFragments(),
-            data: dataString,
-          };
-          await this.sendDataOnChannel(
-            dataChannel,
-            fileFragment,
-            submittedFile.to
-          );
+          this.sendArrayBufferOnChannel(dataChannel, data, submittedFile.to);
 
           // emit file progress event
           this.shareFileProgress(
@@ -214,10 +209,11 @@ export class CoreFileSharingService {
         /**
          * send file END fragment
          */
-        await this.sendDataOnChannel(
+        await this.sendJsonOnChannel(
           dataChannel,
           fileEndFragment,
-          submittedFile.to
+          submittedFile.to,
+          true
         );
 
         this.onFileMetadata.emit({
@@ -247,21 +243,54 @@ export class CoreFileSharingService {
   }
 
   /**
+   * send array buffer on provided datachannel
+   * @param dataChannel
+   * @param data
+   * @param username
+   */
+  private async sendArrayBufferOnChannel(
+    dataChannel: RTCDataChannel,
+    data: ArrayBuffer,
+    username: string
+  ): Promise<void> {
+    try {
+      dataChannel.send(data);
+      //stop sending file data if data channel buffer is already crossed threshold
+      while (
+        dataChannel.bufferedAmount > AppConstants.DATACHANNEL_BUFFER_THRESHOLD
+      ) {
+        await this.appUtilService.delay(
+          AppConstants.DATACHANNEL_FILE_SEND_TIMEOUT
+        );
+      }
+      this.updateLastUsedTimestamp(username, AppConstants.FILE);
+    } catch (e) {
+      LoggerUtil.logAny(
+        `unable to send file data on datachannel to user ${username}`
+      );
+      throw e;
+    }
+  }
+
+  /**
    * send file data on provided data channel
    * @param dataChannel data channel to be used for sending the data
    * @param data data to be sent
    * @param username username of the user to whom data needs to be sent
    */
-  private async sendDataOnChannel(
+  private async sendJsonOnChannel(
     dataChannel: RTCDataChannel,
     data: FileData,
-    username: string
+    username: string,
+    needDelay?: boolean
   ): Promise<void> {
-    if (data.fileFragmentType !== FileFragmentType.DATA) {
-      LoggerUtil.logAny(`sent payload on datachannel: ${JSON.stringify(data)}`);
-    }
+    LoggerUtil.logAny(`sent payload on datachannel: ${JSON.stringify(data)}`);
     try {
       dataChannel.send(JSON.stringify(data));
+
+      if (needDelay) {
+        await this.appUtilService.delay(20);
+      }
       //stop sending file data if data channel buffer is already crossed threshold
       while (
         dataChannel.bufferedAmount > AppConstants.DATACHANNEL_BUFFER_THRESHOLD
@@ -328,41 +357,52 @@ export class CoreFileSharingService {
    * process datachannel message with type as 'FILE'
    * @param message received message on datachannel
    */
-  async processFileMessage(message: FileData): Promise<void> {
+  async handleReceivedFileMessage(message: FileData): Promise<void> {
     switch (message.fileFragmentType) {
       case FileFragmentType.START:
         this.onFileMetadata.emit(message);
+        this.currentFileContext.set(message.from, message);
+        if (!this.fileBuffer.has(message.fileId)) {
+          this.fileBuffer.set(message.fileId, []);
+        }
         break;
 
       case FileFragmentType.END:
         this.onFileMetadata.emit(message);
-        break;
-
-      case FileFragmentType.DATA:
-        if (!this.fileBuffer.has(message.fileId)) {
-          this.fileBuffer.set(message.fileId, []);
-        }
-
-        /**
-         * store data in file buffer
-         */
-        this.fileBuffer
-          .get(message.fileId)
-          .push(this.appUtilService.stringToArrayBuffer(<string>message.data));
-
-        /**
-         * emit file progress
-         */
-        this.shareFileProgress(
-          message.from,
-          message.fileId,
-          message.fragmentOffset,
-          message.totalFragments
-        );
+        this.currentFileContext.delete(message.from);
         break;
 
       default:
         LoggerUtil.logAny(`unknown file data received from: ${message.from}`);
+    }
+  }
+
+  /**
+   * handle received file buffer data
+   * @param data
+   */
+  async handleReceivedFileBufferData(
+    bufferData: ChannelBufferData
+  ): Promise<void> {
+    try {
+      const currentFile: FileData = this.currentFileContext.get(
+        bufferData.from
+      );
+      // store data in file buffer
+      this.fileBuffer.get(currentFile.fileId).push(bufferData.data);
+
+      currentFile.fragmentOffset++;
+      this.shareFileProgress(
+        currentFile.from,
+        currentFile.fileId,
+        currentFile.fragmentOffset,
+        currentFile.totalFragments
+      );
+    } catch (error) {
+      LoggerUtil.logAny(`corrupted file buffer data has been received!`);
+      /**
+       * @TODO ask sender to send the file again
+       */
     }
   }
 }

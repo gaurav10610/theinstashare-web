@@ -269,28 +269,55 @@ export class FileTransferUtilityService {
     };
     rows.push(fileSizeRow);
 
-    const timestampRow: InfoDialogRow = {
-      elements: [
-        {
-          type: InfoDialogElementType.TEXT,
-          text: file.isSent ? "Sent At: " : "Received At: ",
-          textStyle: {
-            "header-font": true,
-            "bold-text": true,
-            "single-line-text": true,
+    if (file.completedAt) {
+      const transferTimeRow: InfoDialogRow = {
+        elements: [
+          {
+            type: InfoDialogElementType.TEXT,
+            text: "Transfer time: ",
+            textStyle: {
+              "header-font": true,
+              "bold-text": true,
+              "single-line-text": true,
+            },
           },
-        },
-        {
-          type: InfoDialogElementType.TEXT,
-          text: file.completedAt.toLocaleString(),
-          textStyle: {
-            "header-font": true,
+          {
+            type: InfoDialogElementType.TEXT,
+            text: `${
+              (file.completedAt.getTime() - file.startedAt.getTime()) / 1000
+            } seconds`,
+            textStyle: {
+              "header-font": true,
+            },
           },
-        },
-      ],
-      needBorderAfterRow: true,
-    };
-    rows.push(timestampRow);
+        ],
+        needBorderAfterRow: true,
+      };
+      rows.push(transferTimeRow);
+
+      const timestampRow: InfoDialogRow = {
+        elements: [
+          {
+            type: InfoDialogElementType.TEXT,
+            text: file.isSent ? "Sent At: " : "Received At: ",
+            textStyle: {
+              "header-font": true,
+              "bold-text": true,
+              "single-line-text": true,
+            },
+          },
+          {
+            type: InfoDialogElementType.TEXT,
+            text: file.completedAt.toLocaleString(),
+            textStyle: {
+              "header-font": true,
+            },
+          },
+        ],
+        needBorderAfterRow: true,
+      };
+      rows.push(timestampRow);
+    }
 
     return {
       rows,
